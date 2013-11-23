@@ -161,5 +161,16 @@ def load_all_sfx(directory,accept=(".wav",".mp3",".ogg",".mdi")):
     for fx in os.listdir(directory):
         name,ext = os.path.splitext(fx)
         if ext.lower() in accept:
-            effects[name] = pg.mixer.Sound(pg.os.path.join(directory,fx))
+            effects[name] = pg.mixer.Sound(os.path.join(directory,fx))
     return effects
+
+
+def strip_from_sheet(sheet,start,size,columns,rows=1):
+    """Strips individual frames from a sprite sheet given a start location,
+    sprite size, and number of columns and rows."""
+    frames = []
+    for j in range(rows):
+        for i in range(columns):
+            location = start[0]+size[0]*i,start[1]+size[1]*j
+            frames.append(sheet.subsurface(pg.Rect(location,size)))
+    return frames

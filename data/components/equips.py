@@ -1,7 +1,7 @@
 import os
 import pygame as pg
 
-from .. import prepare
+from .. import prepare,tools
 
 
 CELL_SIZE = (50,50)
@@ -131,10 +131,7 @@ class ArmsLegs(_Equipment):
         self.description = "Just your basic shoes... Nothing special."
 
     def get_images(self,sheet,sheet_location):
-        frames = []
-        for i in range(18):
-            location = sheet_location[0]+CELL_SIZE[0]*i,sheet_location[1]
-            frames.append(sheet.subsurface(pg.Rect(location,CELL_SIZE)))
+        frames = tools.strip_from_sheet(sheet,sheet_location,CELL_SIZE,18)
         self.images = {}
         self.attack_images = {}
         self.images["front"] = frames[:2]
@@ -155,17 +152,13 @@ class _Weapon(_Equipment):
         _Equipment.__init__(self,stats,"weapons",sheet_location,"other")
         self.attack_images = None
 
-    def get_images(self,sheet,coords):
-        """Rip frames off the weapon sheet.  Setup differs from standard and
-        needs a custom ripper."""
-        step = CELL_SIZE[0]*2
+    def get_images(self,sheet,sheet_location):
+        frames = tools.strip_from_sheet(sheet,sheet_location,CELL_SIZE,8)
         self.images = {}
-        for i,direction in enumerate(["front","back","left","right"]):
-            loc_one = (coords[0]+step*i,coords[1])
-            loc_two = (coords[0]+step*i+CELL_SIZE[0],coords[1])
-            one = sheet.subsurface(pg.Rect(loc_one,CELL_SIZE))
-            two = sheet.subsurface(pg.Rect(loc_two,CELL_SIZE))
-            self.images[direction] = [one,two]
+        self.images["front"] = frames[:2]
+        self.images["back"] = frames[2:4]
+        self.images["left"] = frames[4:6]
+        self.images["right"] = frames[6:]
 
 
 class PitchFork(_Weapon):

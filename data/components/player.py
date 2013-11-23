@@ -83,7 +83,7 @@ class Player(object):
                   "body" : self.inventory["body"]["cloth"],
                   "shield" : self.inventory["shield"]["tin"],
                   "armleg" : self.inventory["armleg"]["normal"],
-                  "weapon" : self.inventory["weapon"]["labrys"]}
+                  "weapon" : self.inventory["weapon"]["pitch"]}
         return equips
 
     def make_images(self,attack=False,order=DRAW_ORDER):
