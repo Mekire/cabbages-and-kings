@@ -79,8 +79,8 @@ class Player(object):
         """Set the equips the player is wearing.  Currently hardcoded.
         Eventually it will load from player data or revert to defaults."""
         equips = {}
-        equips = {"head" : self.inventory["head"]["sader"],
-                  "body" : self.inventory["body"]["cloth"],
+        equips = {"head" : self.inventory["head"]["helm"],
+                  "body" : self.inventory["body"]["chain"],
                   "shield" : self.inventory["shield"]["tin"],
                   "armleg" : self.inventory["armleg"]["normal"],
                   "weapon" : self.inventory["weapon"]["pitch"]}
@@ -171,15 +171,30 @@ class Player(object):
             if self.direction_stack:
                 self.direction = self.direction_stack[-1]
 
-    def update(self,surface_rect,dt):
+    def attack(self):
+        """Change attack flag to True if weapon is ready."""
+        self.equipped["weapon"].start_attack(self)
+
+    def update(self,surface_rect,now,dt):
         """Updates our player appropriately every frame."""
         if not self.flags["attacking"]:
-            self.adjust_images()
-            if self.direction_stack:
-                vector = DIRECT_DICT[self.direction_stack[-1]]
-                self.exact_position[0] += self.speed*vector[0]*dt
-                self.exact_position[1] += self.speed*vector[1]*dt
+            self.move(dt)
+        else:
+            self.equipped["weapon"].attack(self,now)
         self.rect.topleft = self.exact_position
+        self.clamp(surface_rect)
+
+    def move(self,dt):
+        """Move the player if not attacking (or interupted some other way)."""
+        self.adjust_images()
+        if self.direction_stack:
+            vector = DIRECT_DICT[self.direction_stack[-1]]
+            self.exact_position[0] += self.speed*vector[0]*dt
+            self.exact_position[1] += self.speed*vector[1]*dt
+
+    def clamp(self,surface_rect):
+        """Clamp the player to the screen. This will be removed when the maps
+        are up and running."""
         clamped = self.rect.clamp(surface_rect)
         if self.rect != clamped:
             self.rect = clamped
@@ -189,5 +204,7 @@ class Player(object):
         """Draw the appropriate frames to the target surface."""
         if self.flags["attacking"]:
             surface.blit(self.attack_image,self.rect)
+            draw_attack = self.equipped["weapon"].draw_attack
+            draw_attack(surface,self.direction)
         else:
             surface.blit(self.image,self.rect)

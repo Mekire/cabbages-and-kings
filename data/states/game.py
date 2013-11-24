@@ -1,3 +1,7 @@
+"""
+This module contains the primary gameplay state.
+"""
+
 import pygame as pg
 
 from .. import prepare,tools
@@ -17,17 +21,15 @@ class Game(tools._State):
         direction stack as necessary."""
         if event.type == pg.KEYDOWN:
             self.player.add_direction(event.key)
-            ##Temporary change to test attack images
             if event.key == pg.K_SPACE:
-                flip = self.player.flags["attacking"]
-                self.player.flags["attacking"] = not flip
+                self.player.attack()
         elif event.type == pg.KEYUP:
             self.player.pop_direction(event.key)
 
     def update(self,surface,keys,current_time,time_delta):
         """Update phase for the primary game state."""
         self.current_time = current_time
-        self.player.update(prepare.SCREEN_RECT,time_delta)
+        self.player.update(prepare.SCREEN_RECT,current_time,time_delta)
         surface.fill((50,200,50))
         self.player.shadow.draw(self.player.rect.midbottom,surface)
         self.player.draw(surface)
