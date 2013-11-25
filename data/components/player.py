@@ -79,11 +79,11 @@ class Player(object):
         """Set the equips the player is wearing.  Currently hardcoded.
         Eventually it will load from player data or revert to defaults."""
         equips = {}
-        equips = {"head" : self.inventory["head"]["helm"],
+        equips = {"head" : self.inventory["head"]["goggles"],
                   "body" : self.inventory["body"]["chain"],
                   "shield" : self.inventory["shield"]["tin"],
                   "armleg" : self.inventory["armleg"]["normal"],
-                  "weapon" : self.inventory["weapon"]["pitch"]}
+                  "weapon" : self.inventory["weapon"]["labrys"]}
         return equips
 
     def make_images(self,attack=False,order=DRAW_ORDER):
@@ -135,6 +135,8 @@ class Player(object):
 
     def adjust_images(self):
         """Update the sprites walk_frames as the sprite's direction changes."""
+        if self.direction_stack:
+            self.direction = self.direction_stack[-1]
         if self.direction != self.old_direction:
             self.walk_frames = self.image_dict[self.direction]
             self.attack_frames = self.attack_image_dict[self.direction]
@@ -160,20 +162,21 @@ class Player(object):
         """Add a pressed direction key on the direction stack."""
         if key in self.controls:
             direction = self.controls[key]
+            if direction in self.direction_stack:
+                self.direction_stack.remove(direction)
             self.direction_stack.append(direction)
-            self.direction = self.direction_stack[-1]
 
     def pop_direction(self,key):
         """Pop a released key from the direction stack."""
         if key in self.controls:
             direction = self.controls[key]
-            self.direction_stack.remove(direction)
-            if self.direction_stack:
-                self.direction = self.direction_stack[-1]
+            if direction in self.direction_stack:
+                self.direction_stack.remove(direction)
 
     def attack(self):
         """Change attack flag to True if weapon is ready."""
-        self.equipped["weapon"].start_attack(self)
+        if not self.flags["attacking"]:
+            self.flags["attacking"] = self.equipped["weapon"].start_attack()
 
     def update(self,surface_rect,now,dt):
         """Updates our player appropriately every frame."""

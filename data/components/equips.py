@@ -162,13 +162,13 @@ class _Weapon(_Equipment):
         self.delay = 300.0
         self.delay_timer = 0.0
 
-    def start_attack(self,player):
+    def start_attack(self):
         """Checks the time to see if the weapon's after attack delay has
         elapsed."""
         now = pg.time.get_ticks()
         if not self.attacking and (now-self.delay_timer) > self.delay:
-            player.flags["attacking"] = True
             self.delay_timer = now
+            return True
 
     def attack(self,player,now):
         """Called from the player's update method if the attacking flag
