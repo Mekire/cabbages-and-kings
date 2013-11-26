@@ -9,6 +9,7 @@ from .. import prepare,tools
 
 
 CELL_SIZE = (50,50)
+DIRECTIONS = ["front", "back", "left", "right"]
 
 
 class _Equipment(object):
@@ -40,6 +41,7 @@ class _Equipment(object):
 
 #Specific types of headgear
 class NoHeadGear(_Equipment):
+    """The initial headgearless player."""
     def __init__(self):
         stats = (0,0,0)
         _Equipment.__init__(self,stats,"heads",(0,0),"attack")
@@ -49,6 +51,7 @@ class NoHeadGear(_Equipment):
 
 
 class Helm(_Equipment):
+    """A minor improvement on having no helmet."""
     def __init__(self):
         stats = (1,0,0)
         _Equipment.__init__(self,stats,"heads",(0,50),"attack")
@@ -59,6 +62,7 @@ class Helm(_Equipment):
 
 
 class Sader(_Equipment):
+    """Very high defense, but the vision impairment is a tough tradeoff."""
     def __init__(self):
         stats = (3,0,0)
         _Equipment.__init__(self,stats,"heads",(0,100),"attack")
@@ -72,6 +76,7 @@ class Sader(_Equipment):
 
 
 class Diver(_Equipment):
+    """Impaired vision is the price one pays for underwater breathing."""
     def __init__(self):
         stats = (1,0,0)
         _Equipment.__init__(self,stats,"heads",(0,150),"attack")
@@ -85,6 +90,7 @@ class Diver(_Equipment):
 
 
 class TopGoggles(_Equipment):
+    """A novelty hat in which form seems to completely ignore function."""
     def __init__(self):
         stats = (1,0,0)
         _Equipment.__init__(self,stats,"heads",(0,200),"attack")
@@ -99,6 +105,7 @@ class TopGoggles(_Equipment):
 
 #Specific types of body armor
 class Cloth(_Equipment):
+    """At least he doesn't start naked. Be thankful."""
     def __init__(self):
         stats = (0,0,0)
         _Equipment.__init__(self,stats,"bodies",(0,0))
@@ -108,6 +115,7 @@ class Cloth(_Equipment):
 
 
 class ChainMail(_Equipment):
+    """Higher defense at the cost of speed."""
     def __init__(self):
         stats = (3,0,-50)
         _Equipment.__init__(self,stats,"bodies",(200,0))
@@ -118,6 +126,7 @@ class ChainMail(_Equipment):
 
 #Specific types of shields
 class TinShield(_Equipment):
+    """The first shield. Should only deflect basic projectiles."""
     def __init__(self):
         stats = (0,0,0)
         _Equipment.__init__(self,stats,"shields",(0,0),"attack")
@@ -128,6 +137,7 @@ class TinShield(_Equipment):
 
 #Specific arms and legs
 class ArmsLegs(_Equipment):
+    """Starting shoes.  No gloves."""
     def __init__(self):
         stats = (0,0,0)
         _Equipment.__init__(self,stats,"armslegs",(0,0),"other")
@@ -135,17 +145,15 @@ class ArmsLegs(_Equipment):
         self.description = "Just your basic shoes... Nothing special."
 
     def get_images(self,sheet,sheet_location):
+        """Slice images from the sheet with respect to a standard layout.
+        Note that an exception must be made for right facing while holding a
+        shield."""
         frames = tools.strip_from_sheet(sheet,sheet_location,CELL_SIZE,18)
         self.images = {}
         self.attack_images = {}
-        self.images["front"] = frames[:2]
-        self.attack_images["front"] = frames[2:4]
-        self.images["back"] = frames[4:6]
-        self.attack_images["back"] = frames[6:8]
-        self.images["left"] = frames[8:10]
-        self.attack_images["left"] = frames[10:12]
-        self.images["right"] = frames[12:14]
-        self.attack_images["right"] = frames[14:16]
+        for i,direction in enumerate(DIRECTIONS):
+            self.images[direction] = frames[4*i:4*i+2]
+            self.attack_images[direction] = frames[4*i+2:4*i+4]
         self.images["right_with_shield"] = frames[16:]
 
 
@@ -213,10 +221,8 @@ class _Weapon(_Equipment):
         """Get the weapon images assuming a standard layout."""
         frames = tools.strip_from_sheet(sheet,sheet_location,CELL_SIZE,8)
         self.images = {}
-        self.images["front"] = frames[:2]
-        self.images["back"] = frames[2:4]
-        self.images["left"] = frames[4:6]
-        self.images["right"] = frames[6:]
+        for i,direction in enumerate(DIRECTIONS):
+            self.images[direction] = frames[2*i:2*i+2]
 
     def get_attack_frames(self,start,size,columns):
         """Get attack frames from the attack sheet."""

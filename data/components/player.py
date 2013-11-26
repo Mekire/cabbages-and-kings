@@ -79,11 +79,12 @@ class Player(object):
         """Set the equips the player is wearing.  Currently hardcoded.
         Eventually it will load from player data or revert to defaults."""
         equips = {}
-        equips = {"head" : self.inventory["head"]["goggles"],
+        equips = {"head" : self.inventory["head"]["none"],
                   "body" : self.inventory["body"]["chain"],
                   "shield" : self.inventory["shield"]["tin"],
+##                  "shield" : None,
                   "armleg" : self.inventory["armleg"]["normal"],
-                  "weapon" : self.inventory["weapon"]["labrys"]}
+                  "weapon" : self.inventory["weapon"]["pitch"]}
         return equips
 
     def make_images(self,attack=False,order=DRAW_ORDER):
@@ -99,9 +100,10 @@ class Player(object):
                 for part in order[direction]:
                     if self.equipped[part]:
                         if attack:
-                            blitting = self.get_attack_part_image(direction,part,frame)
+                            get_part = self.get_attack_part_image
                         else:
-                            blitting = self.get_part_image(direction,part,frame)
+                            get_part = self.get_part_image
+                        blitting = get_part(direction,part,frame)
                         if blitting:
                             image.blit(blitting,(0,0))
                 frames.append(image)
@@ -175,7 +177,7 @@ class Player(object):
 
     def attack(self):
         """Change attack flag to True if weapon is ready."""
-        if not self.flags["attacking"]:
+        if not self.flags["attacking"] and self.equipped["weapon"]:
             self.flags["attacking"] = self.equipped["weapon"].start_attack()
 
     def update(self,surface_rect,now,dt):
