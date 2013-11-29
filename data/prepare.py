@@ -8,7 +8,7 @@ from . import tools
 
 
 SCREEN_SIZE = (1200, 700)
-ORIGINAL_CAPTION = "Of Cabbages and Kings"
+ORIGINAL_CAPTION = "The Cabbages"
 
 
 #Initialization
