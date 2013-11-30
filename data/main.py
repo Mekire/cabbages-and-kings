@@ -9,6 +9,7 @@ and in the setup module.
 from . import prepare,tools
 from .states import title,splash,game
 
+
 def main():
     """Add states to control here."""
     run_it = tools.Control(prepare.ORIGINAL_CAPTION)
