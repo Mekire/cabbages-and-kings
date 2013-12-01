@@ -1,3 +1,7 @@
+"""
+The state for editing the individual maps.
+"""
+
 import pygame as pg
 
 from .. import map_prepare,tools
@@ -12,6 +16,7 @@ class Edit(tools._State):
         self.make_widgets()
 
     def make_widgets(self):
+        """Create required GUI elements."""
         content = ("Standard","Specials","Events","Enemies","Items","NPCs")
         self.mode_select = Selector(content,(0,16),(0,20),(100,20),"Standard")
         content = ("Environment","Foreground","Solid/Fore",
