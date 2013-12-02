@@ -95,6 +95,7 @@ class Button(object):
 
 
 class NavSelector(Selector):
+    """Identical to Selector except that buttons don't remain clicked."""
     def get_result(self,name):
         """This function is passed to each button on instantiazation. It is
         called by the button when it is clicked."""

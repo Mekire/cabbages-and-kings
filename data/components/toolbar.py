@@ -1,12 +1,41 @@
 """
 Contains the class for our left hand control panel used during individual
-map editing."""
+map editing.
+"""
 
 import pygame as pg
 
 from .. import map_prepare
 from .map_gui_widgets import Selector,CheckBoxArray,NavSelector
 
+
+MODES = ("Standard","Specials","Events","Enemies","Items","NPCs")
+
+LAYERS = ("Environment","Foreground","Solid/Fore",
+          "Solid","Water","BG Tiles","BG Colors")
+
+#Settings for widgets, passed via **kwarg syntax.
+MODE_SELECT_SETTINGS = {"content" : MODES,
+                        "start" : (0,16),
+                        "space" : (0,20),
+                        "size" : (100,20),
+                        "selected" : "Standard"}
+
+LAYER_SELECT_SETTINGS = {"content" : LAYERS,
+                         "start" : (20, map_prepare.SCREEN_RECT.bottom-140),
+                         "space" : (0,20),
+                         "size" : (80,20),
+                         "selected" : "BG Colors"}
+
+CHECK_ARRAY_SETTTINGS = {"content" : LAYERS,
+                         "initial" : True,
+                         "start" : (0, LAYER_SELECT_SETTINGS["start"][1]),
+                         "space" : (0,20)}
+
+NAV_SELECTOR_SETTINGS = {"content" : ("<<",">>"),
+                         "start" : (10, LAYER_SELECT_SETTINGS["start"][1]-55),
+                         "space" : (40,0),
+                         "size" : (40,20)}
 
 #Dictionary of pallet modes to pallet lists.
 _TILE_PALLETS = ["base","exttemple","inttemple1","inttemple2",
@@ -42,15 +71,14 @@ class ToolBar(object):
 
     def make_widgets(self):
         """Create required GUI elements."""
-        content = ("Standard","Specials","Events","Enemies","Items","NPCs")
-        self.mode_select = Selector(content,(0,16),(0,20),(100,20),"Standard")
-        content = ("Environment","Foreground","Solid/Fore",
-                    "Solid","Water","BG Tiles","BG Colors")
-        start = (20, map_prepare.SCREEN_RECT.bottom-20*len(content))
-        self.layer_select = Selector(content,start,(0,20),(80,20),"BG Colors")
-        self.check_boxes = CheckBoxArray(content,True,(0,start[1]),(0,20))
-        content = ("<<",">>")
-        self.pallet_nav = NavSelector(content,(10,start[1]-55),(40,0),(40,20))
+        self.mode_select = Selector(**MODE_SELECT_SETTINGS)
+        self.layer_select = Selector(**LAYER_SELECT_SETTINGS)
+        self.check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTTINGS)
+        self.pallet_nav = NavSelector(**NAV_SELECTOR_SETTINGS)
+        self.widgets = [self.mode_select,
+                        self.layer_select,
+                        self.check_boxes,
+                        self.pallet_nav]
 
     def update(self,surface,keys,current_time,time_delta):
         """Updates each toolbar widget to the screen."""
@@ -61,10 +89,8 @@ class ToolBar(object):
             print("Not implemented yet")##
             self.pallet_nav.selected = None##
         surface.blit(self.image,(0,0))
-        self.mode_select.update(surface)
-        self.layer_select.update(surface)
-        self.check_boxes.update(surface)
-        self.pallet_nav.update(surface)
+        for widget in self.widgets:
+            widget.update(surface)
 
     def change_pallet(self):
         if self.pallet_nav.selected:
@@ -100,7 +126,5 @@ class ToolBar(object):
 
     def check_event(self,event):
         """Receive events from the Edit state and pass them to each widget."""
-        self.mode_select.check_event(event)
-        self.layer_select.check_event(event)
-        self.check_boxes.check_event(event)
-        self.pallet_nav.check_event(event)
+        for widget in self.widgets:
+            widget.check_event(event)
