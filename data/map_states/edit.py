@@ -24,6 +24,15 @@ class Edit(tools._State):
         """Updates the title screen."""
         self.current_time = current_time
         self.toolbar.update(surface,keys,current_time,time_delta)
+        surface.fill((0,0,0),(100,0,400,700))
+        try:
+            pallet = self.toolbar.get_pallet_name()
+            pallet_image = map_prepare.GFX["mapsheets"][pallet]
+            surface.blit(pallet_image,(100,50))
+        except KeyError:
+            print("Not implemented yet")
+            self.toolbar.mode_select.get_result("Standard")
+            self.toolbar.layer_select.get_result("BG Colors")
 
     def get_event(self,event):
         """Get events from Control and pass them on to components."""

@@ -94,6 +94,15 @@ class Button(object):
         surface.blit(text,self.text_rect)
 
 
+class NavSelector(Selector):
+    def get_result(self,name):
+        """This function is passed to each button on instantiazation. It is
+        called by the button when it is clicked."""
+        self.selected = name
+        for button in self.buttons:
+            button.clicked = False
+
+
 class CheckBoxArray(object):
     """A class to hold an array of CheckBox instances."""
     def __init__(self,content,initial,start,space):
