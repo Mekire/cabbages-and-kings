@@ -9,6 +9,7 @@ from .. import map_prepare
 from .map_gui_widgets import Selector,CheckBoxArray,Button
 
 
+#Available modes and layers.
 MODES = ("Standard","Specials","Events","Enemies","Items","NPCs")
 
 LAYERS = ("Environment","Foreground","Solid/Fore",
@@ -68,8 +69,12 @@ NAVIGATION_DIRECTION = {">>" : 1, "<<" : -1}
 class ToolBar(object):
     """A class for our left hand control panel."""
     def __init__(self):
+        """Initialize needed settings and create widgets."""
         self.image = map_prepare.GFX["misc"]["interface"]
         self.selected = None
+        self.mode = None
+        self.layer = None
+        self.checkboxes = None
         self.pallet = {"Tiles" : 0,
                        "Enemies" : 0,
                        "Items" : 0}
@@ -77,23 +82,28 @@ class ToolBar(object):
 
     def make_widgets(self):
         """Create required GUI elements."""
-        self.mode_select = Selector(**MODE_SELECT_SETTINGS)
-        self.layer_select = Selector(**LAYER_SELECT_SETTINGS)
-        self.check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTTINGS)
+        self.mode_select = Selector(self.change_mode, **MODE_SELECT_SETTINGS)
+        self.layer_select = Selector(self.change_layer, **LAYER_SELECT_SETTINGS)
+        check_boxes = CheckBoxArray(self.set_checkboxes,**CHECK_ARRAY_SETTTINGS)
         nav_left = Button(self.change_pallet, **NAV_LEFT)
         nav_right = Button(self.change_pallet, **NAV_RIGHT)
         self.widgets = [self.mode_select,
                         self.layer_select,
-                        self.check_boxes,
+                        check_boxes,
                         nav_left,
                         nav_right]
 
-    def update(self,surface,keys,current_time,time_delta):
-        """Updates each toolbar widget to the screen."""
-        self.current_time = current_time
-        surface.blit(self.image,(0,0))
-        for widget in self.widgets:
-            widget.update(surface)
+    def change_mode(self,name):
+        """Called from the selector when mode buttons are clicked."""
+        self.mode = name
+
+    def change_layer(self,name):
+        """Called from the selector when layer buttons are clicked."""
+        self.layer = name
+
+    def set_checkboxes(self,state):
+        """Called from the checkbox array when the user changes any checkbox."""
+        self.checkboxes = state
 
     def change_pallet(self,name):
         """Changes the current pallet page to the next or previous. Called
@@ -103,29 +113,33 @@ class ToolBar(object):
         length = len(PALLETS[mode])
         if mode in self.pallet:
             self.pallet[mode] = (self.pallet[mode]+increment)%length
-        print(self.get_pallet_name())
 
     def get_pallet_mode(self):
         """Returns the type of pallets used during a given mode and layer."""
-        mode = self.mode_select.selected
-        if mode == "Standard" :
-            layer = self.layer_select.selected
-            if layer in STANDARD_TILES:
+        if self.mode == "Standard" :
+            if self.layer in STANDARD_TILES:
                 pallet_mode = "Tiles"
             else:
-                pallet_mode = layer
+                pallet_mode = self.layer
         else:
-            pallet_mode = mode
+            pallet_mode = self.mode
         return pallet_mode
 
     def get_pallet_name(self):
         """Get string name of pallet."""
-        mode = self.get_pallet_mode()
-        if mode in self.pallet:
-            pallet_index = self.pallet[mode]
+        pallet_mode = self.get_pallet_mode()
+        if pallet_mode in self.pallet:
+            pallet_index = self.pallet[pallet_mode]
         else:
             pallet_index = 0
-        return PALLETS[mode][pallet_index]
+        return PALLETS[pallet_mode][pallet_index]
+
+    def update(self,surface,keys,current_time,time_delta):
+        """Updates each toolbar widget to the screen."""
+        self.current_time = current_time
+        surface.blit(self.image,(0,0))
+        for widget in self.widgets:
+            widget.update(surface)
 
     def check_event(self,event):
         """Receive events from the Edit state and pass them to each widget."""

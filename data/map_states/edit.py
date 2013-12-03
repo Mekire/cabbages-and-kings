@@ -26,12 +26,12 @@ class Edit(tools._State):
         self.toolbar.update(surface,keys,current_time,time_delta)
         surface.fill((255,255,255),(102,48,402,604))
         surface.fill((40,40,40),(102,50,400,600))
-        try:
+        try:##
             pallet = self.toolbar.get_pallet_name()
             pallet_image = map_prepare.GFX["mapsheets"][pallet]
             surface.blit(pallet_image,(102,50))
         except KeyError:
-            print("Not implemented yet")
+            print("Not implemented yet")##
             self.toolbar.mode_select.get_result("Standard")
             self.toolbar.layer_select.get_result("BG Colors")
 

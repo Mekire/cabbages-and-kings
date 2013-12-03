@@ -8,7 +8,7 @@ import pygame as pg
 
 class Selector(object):
     """A selector menu including highlighting."""
-    def __init__(self,content,start,space,size,selected=None):
+    def __init__(self,function,content,start,space,size,selected=None):
         """The content argument is a list of strings that will be used both as
         the text appearing on the buttons, as well as the name referred to in
         the self.selected attribute. The arguments start, space, and size are
@@ -18,8 +18,10 @@ class Selector(object):
         button. The selected argument can be set to any element of content to
         have the Selector start with that option selected; or set to None to
         start with no options selected."""
+        self.function = function
         self.selected = selected
         self.buttons = self.create_buttons(content,start,space,size)
+        self.function(self.selected)
 
     def create_buttons(self,content,start,space,size):
         """Create the buttons using the arguments detailed above in the init."""
@@ -37,6 +39,7 @@ class Selector(object):
         for button in self.buttons:
             if button.name != name:
                 button.clicked = False
+        self.function(name)
 
     def check_event(self,event):
         """Pass events down to each button."""
@@ -101,7 +104,7 @@ class Button(object):
 
 class CheckBoxArray(object):
     """A class to hold an array of CheckBox instances."""
-    def __init__(self,content,initial,start,space):
+    def __init__(self,function,content,initial,start,space):
         """The argument content is a list of strings used to refer to each box.
         The initial argument indicates the starting state of each CheckBox;
         pass True to start with all boxes check; False to start with no boxes
@@ -109,8 +112,10 @@ class CheckBoxArray(object):
         of content. The arguments start and space are 2-tuples of the form
         (x,y) and indicate the starting location of the first box and the space
         between each box, respectively."""
+        self.function = function
         self.state = self.make_state(content,initial)
         self.checkboxes = self.create_checkboxes(content,start,space)
+        self.function(self.state)
 
     def make_state(self,content,initial):
         """Create the initial state dictionary. The details of the arguments
@@ -135,6 +140,7 @@ class CheckBoxArray(object):
         """This function is passed to each CheckBox and called when they are
         clicked."""
         self.state[name] = not self.state[name]
+        self.function(self.state)
 
     def check_event(self,event):
         """Pass events down to each CheckBox."""
