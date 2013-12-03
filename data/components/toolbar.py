@@ -10,6 +10,8 @@ from .panel import PalletPanel
 from .map_gui_widgets import Selector,CheckBoxArray,Button
 
 
+CELL_SIZE = (50,50)
+
 #Available modes and layers.
 MODES = ("Standard","Specials","Events","Enemies","Items","NPCs")
 
@@ -79,7 +81,7 @@ class ToolBar(object):
         self.pallet = {"Tiles" : 0,
                        "Enemies" : 0,
                        "Items" : 0}
-        self.pallet_panel = PalletPanel()
+        self.pallet_panel = PalletPanel(self.change_selected)
         self.make_widgets()
 
     def make_widgets(self):
@@ -106,6 +108,17 @@ class ToolBar(object):
     def set_checkboxes(self,state):
         """Called from the checkbox array when the user changes any checkbox."""
         self.checkboxes = state
+
+    def change_selected(self,coordinates):
+        """Called from the panel when a tile is selected."""
+        pallet_name = self.get_pallet_name()
+        self.selected = (pallet_name, coordinates)
+
+    def draw_selected(self,surface):
+        """Draw the currently selected tile onto the control bar."""
+        if self.selected:
+            sheet = map_prepare.GFX["mapsheets"][self.selected[0]]
+            surface.blit(sheet,(25,185),pg.Rect(self.selected[1],CELL_SIZE))
 
     def change_pallet(self,name):
         """Changes the current pallet page to the next or previous. Called
@@ -150,6 +163,7 @@ class ToolBar(object):
 
         self.pallet_panel.update(surface,pallet,time_delta)
         surface.blit(self.image,(0,0))
+        self.draw_selected(surface)
         for widget in self.widgets:
             widget.update(surface)
 

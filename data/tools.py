@@ -174,3 +174,11 @@ def strip_from_sheet(sheet,start,size,columns,rows=1):
             location = start[0]+size[0]*i,start[1]+size[1]*j
             frames.append(sheet.subsurface(pg.Rect(location,size)))
     return frames
+
+def get_cell_coordinates(rect,point,size):
+    """Find the cell of size, within rect, that point occupies."""
+    cell = [None, None]
+    point = (point[0]-rect.x, point[1]-rect.y)
+    cell[0] = (point[0]//size[0])*size[0]
+    cell[1] = (point[1]//size[1])*size[1]
+    return cell
