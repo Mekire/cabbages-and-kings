@@ -6,7 +6,7 @@ map editing.
 import pygame as pg
 
 from .. import map_prepare
-from .map_gui_widgets import Selector,CheckBoxArray,NavSelector
+from .map_gui_widgets import Selector,CheckBoxArray,Button
 
 
 MODES = ("Standard","Specials","Events","Enemies","Items","NPCs")
@@ -32,10 +32,16 @@ CHECK_ARRAY_SETTTINGS = {"content" : LAYERS,
                          "start" : (0, LAYER_SELECT_SETTINGS["start"][1]),
                          "space" : (0,20)}
 
-NAV_SELECTOR_SETTINGS = {"content" : ("<<",">>"),
-                         "start" : (10, LAYER_SELECT_SETTINGS["start"][1]-55),
-                         "space" : (40,0),
-                         "size" : (40,20)}
+NAV_LEFT = {"name" : "<<",
+             "rect" : (10, LAYER_SELECT_SETTINGS["start"][1]-55, 40, 20),
+             "selected" : False,
+             "unclick" : True}
+
+NAV_RIGHT = {"name" : ">>",
+             "rect" : (50, LAYER_SELECT_SETTINGS["start"][1]-55, 40, 20),
+             "selected" : False,
+             "unclick" : True}
+
 
 #Dictionary of pallet modes to pallet lists.
 _TILE_PALLETS = ["base","exttemple","inttemple1","inttemple2",
@@ -74,33 +80,30 @@ class ToolBar(object):
         self.mode_select = Selector(**MODE_SELECT_SETTINGS)
         self.layer_select = Selector(**LAYER_SELECT_SETTINGS)
         self.check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTTINGS)
-        self.pallet_nav = NavSelector(**NAV_SELECTOR_SETTINGS)
+        nav_left = Button(self.change_pallet, **NAV_LEFT)
+        nav_right = Button(self.change_pallet, **NAV_RIGHT)
         self.widgets = [self.mode_select,
                         self.layer_select,
                         self.check_boxes,
-                        self.pallet_nav]
+                        nav_left,
+                        nav_right]
 
     def update(self,surface,keys,current_time,time_delta):
         """Updates each toolbar widget to the screen."""
         self.current_time = current_time
-        try:
-            self.change_pallet()
-        except KeyError:
-            print("Not implemented yet")##
-            self.pallet_nav.selected = None##
         surface.blit(self.image,(0,0))
         for widget in self.widgets:
             widget.update(surface)
 
-    def change_pallet(self):
-        if self.pallet_nav.selected:
-            mode = self.get_pallet_mode()
-            length = len(PALLETS[mode])
-            increment = NAVIGATION_DIRECTION[self.pallet_nav.selected]
-            if mode in self.pallet:
-                self.pallet[mode] = (self.pallet[mode]+increment)%length
-            self.pallet_nav.selected = None
-            print(self.get_pallet_name())
+    def change_pallet(self,name):
+        """Changes the current pallet page to the next or previous. Called
+        when pallet navigation buttons are clicked."""
+        increment = NAVIGATION_DIRECTION[name]
+        mode = self.get_pallet_mode()
+        length = len(PALLETS[mode])
+        if mode in self.pallet:
+            self.pallet[mode] = (self.pallet[mode]+increment)%length
+        print(self.get_pallet_name())
 
     def get_pallet_mode(self):
         """Returns the type of pallets used during a given mode and layer."""

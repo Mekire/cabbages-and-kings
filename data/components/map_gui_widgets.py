@@ -27,7 +27,7 @@ class Selector(object):
         for i,name in enumerate(content):
             rect = pg.Rect((start[0]+i*space[0],start[1]+i*space[1]),size)
             selected = (True if name==self.selected else False)
-            buttons.append(Button(name,rect,self.get_result,selected))
+            buttons.append(Button(self.get_result,name,rect,selected))
         return buttons
 
     def get_result(self,name):
@@ -52,12 +52,13 @@ class Selector(object):
 class Button(object):
     """A simple button class. Features such as colors, font and border
     width are currently hardcoded."""
-    def __init__(self,name,rect,function,selected=False):
+    def __init__(self,function,name,rect,selected=False,unclick=False):
         """The argument name is a string used to refer to the button; rect is
         a pygame.Rect for the area of the button (inclusive of the border);
         function is the function that should be called when the button is
         clicked; selected is a boolean indicating whether or not the button
-        is currently selected."""
+        is currently selected; unclick is a boolean indicating whether or not
+        the self.clicked attribute will be set back to False on mouse up."""
         self.name = name
         self.rect = pg.Rect(rect)
         self.function = function
@@ -67,6 +68,7 @@ class Button(object):
         self.selected_text = self.font.render(name,False,pg.Color("black"))
         self.text_rect = self.text.get_rect(center=self.rect.center)
         self.clicked = selected
+        self.unclick = unclick
 
     def check_event(self,event):
         """Check if the button has been clicked, and if so, set self.clicked to
@@ -75,6 +77,9 @@ class Button(object):
             if self.rect.collidepoint(event.pos):
                 self.clicked = True
                 self.function(self.name)
+        elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
+            if self.unclick:
+                self.clicked = False
 
     def update(self,surface):
         """Determine appearance based on whether the button is currently
@@ -92,16 +97,6 @@ class Button(object):
         surface.fill(pg.Color("black"),self.rect)
         surface.fill(fill_color,self.rect.inflate(-2,-2))
         surface.blit(text,self.text_rect)
-
-
-class NavSelector(Selector):
-    """Identical to Selector except that buttons don't remain clicked."""
-    def get_result(self,name):
-        """This function is passed to each button on instantiazation. It is
-        called by the button when it is clicked."""
-        self.selected = name
-        for button in self.buttons:
-            button.clicked = False
 
 
 class CheckBoxArray(object):
