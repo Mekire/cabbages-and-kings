@@ -39,6 +39,9 @@ class Selector(object):
         for button in self.buttons:
             if button.name != name:
                 button.clicked = False
+            ##Temporary code to make buttons return when option not implemented.
+            else: ##
+                button.clicked = True ##
         self.function(name)
 
     def check_event(self,event):

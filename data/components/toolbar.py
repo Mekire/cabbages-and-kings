@@ -6,6 +6,7 @@ map editing.
 import pygame as pg
 
 from .. import map_prepare
+from .panel import PalletPanel
 from .map_gui_widgets import Selector,CheckBoxArray,Button
 
 
@@ -34,9 +35,9 @@ CHECK_ARRAY_SETTTINGS = {"content" : LAYERS,
                          "space" : (0,20)}
 
 NAV_LEFT = {"name" : "<<",
-             "rect" : (10, LAYER_SELECT_SETTINGS["start"][1]-55, 40, 20),
-             "selected" : False,
-             "unclick" : True}
+            "rect" : (10, LAYER_SELECT_SETTINGS["start"][1]-55, 40, 20),
+            "selected" : False,
+            "unclick" : True}
 
 NAV_RIGHT = {"name" : ">>",
              "rect" : (50, LAYER_SELECT_SETTINGS["start"][1]-55, 40, 20),
@@ -78,6 +79,7 @@ class ToolBar(object):
         self.pallet = {"Tiles" : 0,
                        "Enemies" : 0,
                        "Items" : 0}
+        self.pallet_panel = PalletPanel()
         self.make_widgets()
 
     def make_widgets(self):
@@ -137,6 +139,16 @@ class ToolBar(object):
     def update(self,surface,keys,current_time,time_delta):
         """Updates each toolbar widget to the screen."""
         self.current_time = current_time
+
+        try:##
+            pallet = self.get_pallet_name()
+        except KeyError:
+            print("Not implemented yet")##
+            self.mode_select.get_result("Standard")
+            self.layer_select.get_result("BG Colors")
+            pallet = self.get_pallet_name()
+
+        self.pallet_panel.update(surface,pallet,time_delta)
         surface.blit(self.image,(0,0))
         for widget in self.widgets:
             widget.update(surface)
@@ -145,3 +157,4 @@ class ToolBar(object):
         """Receive events from the Edit state and pass them to each widget."""
         for widget in self.widgets:
             widget.check_event(event)
+        self.pallet_panel.check_event(event)
