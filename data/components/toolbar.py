@@ -104,6 +104,7 @@ class ToolBar(object):
     def change_layer(self,name):
         """Called from the selector when layer buttons are clicked."""
         self.layer = name
+        self.selected = None
 
     def set_checkboxes(self,state):
         """Called from the checkbox array when the user changes any checkbox."""
