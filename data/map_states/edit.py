@@ -14,8 +14,6 @@ class Edit(tools._State):
         tools._State.__init__(self)
         self.toolbar = toolbar.ToolBar()
         self.edit_map = editmap.EditMap()
-        self.adding = False
-        self.deleting = False
 
     def render_font(self,font,size,msg,color=(255,255,255)):
         """Takes the name of a loaded font, the size, and the color and returns
@@ -26,28 +24,13 @@ class Edit(tools._State):
     def update(self,surface,keys,current_time,time_delta):
         """Updates the title screen."""
         self.current_time = current_time
-        mouse_position = pg.mouse.get_pos()
-        selected, layer = self.toolbar.selected,self.toolbar.layer
-        if self.adding:
-            self.edit_map.add_tile(selected,layer,mouse_position)
-        elif self.deleting:
-            self.edit_map.del_tile(layer,mouse_position)
+        self.edit_map.update(self.toolbar.selected,self.toolbar.layer)
         surface.fill((20,20,20))
         self.edit_map.draw_map(surface,self.toolbar.checkboxes)
         self.toolbar.update(surface,keys,current_time,time_delta)
 
     def get_event(self,event):
         """Get events from Control and pass them on to components."""
-        if event.type == pg.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                if not self.toolbar.pallet_panel.visible:
-                    if self.edit_map.rect.collidepoint(event.pos):
-                        self.adding = True
-            elif event.button == 3:
-                if not self.toolbar.pallet_panel.visible:
-                    if self.edit_map.rect.collidepoint(event.pos):
-                        self.deleting = True
-        elif event.type == pg.MOUSEBUTTONUP:
-            self.adding = False
-            self.deleting = False
+        if not self.toolbar.pallet_panel.visible:
+            self.edit_map.check_event(event)
         self.toolbar.check_event(event)
