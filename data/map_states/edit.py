@@ -12,8 +12,8 @@ class Edit(tools._State):
     """This State is updated while our game shows the title screen."""
     def __init__(self):
         tools._State.__init__(self)
-        self.toolbar = toolbar.ToolBar()
         self.edit_map = editmap.EditMap()
+        self.toolbar = toolbar.ToolBar(self.edit_map.set_background_color)
 
     def render_font(self,font,size,msg,color=(255,255,255)):
         """Takes the name of a loaded font, the size, and the color and returns

@@ -71,8 +71,9 @@ NAVIGATION_DIRECTION = {">>" : 1, "<<" : -1}
 
 class ToolBar(object):
     """A class for our left hand control panel."""
-    def __init__(self):
+    def __init__(self,set_background_function):
         """Initialize needed settings and create widgets."""
+        self.set_background_color = set_background_function
         self.image = map_prepare.GFX["misc"]["interface"]
         self.selected = None
         self.mode = None
@@ -81,7 +82,8 @@ class ToolBar(object):
         self.pallet = {"Tiles" : 0,
                        "Enemies" : 0,
                        "Items" : 0}
-        self.pallet_panel = PalletPanel(self.change_selected)
+        self.pallet_panel = PalletPanel(self.change_selected,
+                                        self.change_background)
         self.make_widgets()
 
     def make_widgets(self):
@@ -97,6 +99,12 @@ class ToolBar(object):
                         nav_left,
                         nav_right]
 
+    def change_background(self):
+        """Change background color; part of callback hell. Fix fix."""
+        if self.selected:
+            color = self.selected[1]
+            self.set_background_color(color)
+
     def change_mode(self,name):
         """Called from the selector when mode buttons are clicked."""
         self.mode = name
@@ -110,16 +118,23 @@ class ToolBar(object):
         """Called from the checkbox array when the user changes any checkbox."""
         self.checkboxes = state
 
-    def change_selected(self,coordinates):
+    def change_selected(self,coordinates,color):
         """Called from the panel when a tile is selected."""
         pallet_name = self.get_pallet_name()
-        self.selected = (pallet_name, coordinates)
+        if pallet_name == "background":
+            self.selected = (pallet_name,color)
+        else:
+            self.selected = (pallet_name, coordinates)
 
     def draw_selected(self,surface):
         """Draw the currently selected tile onto the control bar."""
         if self.selected:
-            sheet = map_prepare.GFX["mapsheets"][self.selected[0]]
-            surface.blit(sheet,(25,185),pg.Rect(self.selected[1],CELL_SIZE))
+            if self.selected[0] == "background":
+                surface.fill(self.selected[1],((25,185),CELL_SIZE))
+            else:
+                sheet = map_prepare.GFX["mapsheets"][self.selected[0]]
+                from_rect = pg.Rect(self.selected[1],CELL_SIZE)
+                surface.blit(sheet,(25,185),from_rect)
 
     def change_pallet(self,name):
         """Changes the current pallet page to the next or previous. Called

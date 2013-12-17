@@ -29,7 +29,7 @@ class Selector(object):
         for i,name in enumerate(content):
             rect = pg.Rect((start[0]+i*space[0],start[1]+i*space[1]),size)
             selected = (True if name==self.selected else False)
-            buttons.append(Button(self.get_result,name,rect,selected))
+            buttons.append(Button(self.get_result,name,rect,clicked=selected))
         return buttons
 
     def get_result(self,name):
@@ -58,7 +58,7 @@ class Selector(object):
 class Button(object):
     """A simple button class. Features such as colors, font and border
     width are currently hardcoded."""
-    def __init__(self,function,name,rect,selected=False,unclick=False):
+    def __init__(self,function,name,rect,**kwargs):
         """The argument name is a string used to refer to the button; rect is
         a pygame.Rect for the area of the button (inclusive of the border);
         function is the function that should be called when the button is
@@ -73,19 +73,26 @@ class Button(object):
         self.text = self.font.render(name,False,pg.Color("white"))
         self.selected_text = self.font.render(name,False,pg.Color("black"))
         self.text_rect = self.text.get_rect(center=self.rect.center)
-        self.clicked = selected
-        self.unclick = unclick
+        self.set_kwargs(kwargs)
+
+    def set_kwargs(self,kwargs):
+        accept = dict(clicked=False,unclick=False,active=True)
+        for kwarg in kwargs:
+            if kwarg in accept:
+                accept[kwarg] = kwargs[kwarg]
+        self.__dict__.update(accept)
 
     def check_event(self,event):
         """Check if the button has been clicked, and if so, set self.clicked to
         true and call self.function."""
-        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-            if self.rect.collidepoint(event.pos):
-                self.clicked = True
-                self.function(self.name)
-        elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
-            if self.unclick:
-                self.clicked = False
+        if self.active:
+            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+                if self.rect.collidepoint(event.pos):
+                    self.clicked = True
+                    self.function(self.name)
+            elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
+                if self.unclick:
+                    self.clicked = False
 
     def update(self,surface):
         """Determine appearance based on whether the button is currently

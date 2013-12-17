@@ -14,6 +14,7 @@ class EditMap(object):
     def __init__(self):
         self.rect = pg.Rect(120,0,1200,700)
         self.map_dict = {layer:{} for layer in LAYERS}
+        self.map_dict["BG Colors"]["fill"] = (255,0,0)
         self.adding = False
         self.deleting = False
 
@@ -32,13 +33,33 @@ class EditMap(object):
     def draw_map(self,surface,visibility):
         """Draws the map layers in the correct order.  The toolbar.checkboxes
         are checked to see if the layer's visibility is on/off."""
+        surface.fill(self.map_dict["BG Colors"]["fill"],self.rect)
         for layer in LAYERS:
             if visibility[layer]:
-                for coords in self.map_dict[layer]:
-                    map_string, source_coords = self.map_dict[layer][coords]
-                    sheet = map_prepare.GFX["mapsheets"][map_string]
-                    target = 120+coords[0], 0+coords[1]
-                    surface.blit(sheet,target,pg.Rect(source_coords,CELL_SIZE))
+                if layer == "BG Colors":
+                    self.draw_color_layer(surface,layer)
+                else:
+                    self.draw_normal_layer(surface,layer)
+
+    def set_background_color(self,color):
+        """Set the background fill color of the map."""
+        self.map_dict["BG Colors"]["fill"] = color
+
+    def draw_color_layer(self,surface,layer):
+        """The BG_Colors layer requires a unique draw function."""
+        for coords in self.map_dict[layer]:
+            if not coords == "fill":
+                color = self.map_dict[layer][coords][1]
+                target = pg.Rect((120+coords[0],0+coords[1]),CELL_SIZE)
+                surface.fill(color,target)
+
+    def draw_normal_layer(self,surface,layer):
+        """Draw function for standard layers."""
+        for coords in self.map_dict[layer]:
+            map_string, source_coords = self.map_dict[layer][coords]
+            sheet = map_prepare.GFX["mapsheets"][map_string]
+            target = 120+coords[0], 0+coords[1]
+            surface.blit(sheet,target,pg.Rect(source_coords,CELL_SIZE))
 
     def check_event(self,event):
         """Set adding and deleting flags based on mouse clicks."""
@@ -47,7 +68,7 @@ class EditMap(object):
                 if self.rect.collidepoint(event.pos):
                     self.adding = True
             elif event.button == 3:
-                if self.edit_map.rect.collidepoint(event.pos):
+                if self.rect.collidepoint(event.pos):
                     self.deleting = True
         elif event.type == pg.MOUSEBUTTONUP:
             self.adding = False
