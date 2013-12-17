@@ -37,3 +37,7 @@ def graphics_from_directories(directories):
 
 _SUB_DIRECTORIES = ["enemies","equips", "mapsheets", "misc", "objects"]
 GFX = graphics_from_directories(_SUB_DIRECTORIES)
+
+DROPPER = pg.cursors.compile(tools.cursor_from_image(GFX["misc"]["dropper"]))
+DEFAULT_CURSOR = pg.mouse.get_cursor()
+

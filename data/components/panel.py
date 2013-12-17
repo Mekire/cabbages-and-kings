@@ -59,11 +59,18 @@ class PalletPanel(object):
         point = pg.mouse.get_pos()
         if self.rect.collidepoint(point):
             if pallet == "background":
-                pass ###
+                if pg.mouse.get_cursor() != map_prepare.DROPPER:
+                    pg.mouse.set_cursor((16,16),(0,15),*map_prepare.DROPPER)
             else:
                 on_sheet = tools.get_cell_coordinates(self.rect,point,CELL_SIZE)
                 location = (on_sheet[0]+self.rect.x, on_sheet[1]+self.rect.y)
                 surface.blit(self.cursor,location)
+
+    def reset_cursor(self,pallet):
+        point = pg.mouse.get_pos()
+        if pallet != "background" or not self.rect.collidepoint(point):
+            if pg.mouse.get_cursor() != map_prepare.DEFAULT_CURSOR:
+                 pg.mouse.set_cursor(*map_prepare.DEFAULT_CURSOR)
 
     def draw_button(self,surface,pallet):
         """Draw background fill button when required."""
@@ -106,6 +113,8 @@ class PalletPanel(object):
         self.selected = selected
         self.do_scroll(dt)
         self.draw(surface,pallet)
+        self.reset_cursor(pallet)
+
 
     def check_event(self,event):
         """Handle events directed at the panel."""

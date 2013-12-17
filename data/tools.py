@@ -138,6 +138,7 @@ def load_all_gfx(directory,colorkey=(255,0,255),accept=(".png",".jpg",".bmp")):
             graphics[name]=img
     return graphics
 
+
 def load_all_music(directory,accept=(".wav",".mp3",".ogg",".mdi")):
     """Create a dictionary of paths to music files in given directory
     if their extensions are in accept."""
@@ -148,10 +149,12 @@ def load_all_music(directory,accept=(".wav",".mp3",".ogg",".mdi")):
             songs[name] = os.path.join(directory,song)
     return songs
 
+
 def load_all_fonts(directory,accept=(".ttf",)):
     """Create a dictionary of paths to font files in given directory
     if their extensions are in accept."""
     return load_all_music(directory,accept)
+
 
 def load_all_sfx(directory,accept=(".wav",".mp3",".ogg",".mdi")):
     """Load all sfx of extensions found in accept.  Unfortunately it is
@@ -175,6 +178,7 @@ def strip_from_sheet(sheet,start,size,columns,rows=1):
             frames.append(sheet.subsurface(pg.Rect(location,size)))
     return frames
 
+
 def get_cell_coordinates(rect,point,size):
     """Find the cell of size, within rect, that point occupies."""
     cell = [None, None]
@@ -182,3 +186,18 @@ def get_cell_coordinates(rect,point,size):
     cell[0] = (point[0]//size[0])*size[0]
     cell[1] = (point[1]//size[1])*size[1]
     return tuple(cell)
+
+
+def cursor_from_image(image):
+    """Take a valid image and create a mouse cursor."""
+    colors = {(0,0,0,255):"X",
+              (255,255,255,255):"."}
+    rect = image.get_rect()
+    icon_string = []
+    for j in range(rect.height):
+        this_row = []
+        for i in range(rect.width):
+            pixel = tuple(image.get_at((i,j)))
+            this_row.append(colors.get(pixel," "))
+        icon_string.append("".join(this_row))
+    return icon_string
