@@ -11,10 +11,9 @@ CELL_SIZE = (50,50)
 
 class EditMap(object):
     """A class to contain the actual map data."""
-    def __init__(self):
+    def __init__(self,map_dict):
+        self.map_dict = map_dict
         self.rect = pg.Rect(120,0,1200,700)
-        self.map_dict = {layer:{} for layer in LAYERS}
-        self.map_dict["BG Colors"]["fill"] = (255,0,0)
         self.adding = False
         self.deleting = False
 
@@ -40,10 +39,6 @@ class EditMap(object):
                     self.draw_color_layer(surface,layer)
                 else:
                     self.draw_normal_layer(surface,layer)
-
-    def set_background_color(self,color):
-        """Set the background fill color of the map."""
-        self.map_dict["BG Colors"]["fill"] = color
 
     def draw_color_layer(self,surface,layer):
         """The BG_Colors layer requires a unique draw function."""

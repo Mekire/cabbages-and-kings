@@ -6,6 +6,7 @@ for the time being.
 
 import sys
 import pygame as pg
+
 from data.map_main import main
 
 

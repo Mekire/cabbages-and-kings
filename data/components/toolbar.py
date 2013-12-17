@@ -14,7 +14,6 @@ CELL_SIZE = (50,50)
 
 #Available modes and layers.
 MODES = ("Standard","Specials","Events","Enemies","Items","NPCs")
-
 LAYERS = ("Environment","Foreground","Solid/Fore",
           "Solid","Water","BG Tiles","BG Colors")
 
@@ -71,9 +70,9 @@ NAVIGATION_DIRECTION = {">>" : 1, "<<" : -1}
 
 class ToolBar(object):
     """A class for our left hand control panel."""
-    def __init__(self,set_background_function):
+    def __init__(self,map_dict):
         """Initialize needed settings and create widgets."""
-        self.set_background_color = set_background_function
+        self.map_dict = map_dict
         self.image = map_prepare.GFX["misc"]["interface"]
         self.selected = None
         self.mode = None
@@ -82,8 +81,7 @@ class ToolBar(object):
         self.pallet = {"Tiles" : 0,
                        "Enemies" : 0,
                        "Items" : 0}
-        self.pallet_panel = PalletPanel(self.change_selected,
-                                        self.change_background)
+        self.pallet_panel = PalletPanel(self.map_dict,self.change_selected)
         self.make_widgets()
 
     def make_widgets(self):
@@ -98,12 +96,6 @@ class ToolBar(object):
                         check_boxes,
                         nav_left,
                         nav_right]
-
-    def change_background(self):
-        """Change background color; part of callback hell. Fix fix."""
-        if self.selected:
-            color = self.selected[1]
-            self.set_background_color(color)
 
     def change_mode(self,name):
         """Called from the selector when mode buttons are clicked."""
@@ -165,26 +157,26 @@ class ToolBar(object):
             pallet_index = 0
         return PALLETS[pallet_mode][pallet_index]
 
-    def update(self,surface,keys,current_time,time_delta):
-        """Updates each toolbar widget to the screen."""
-        self.current_time = current_time
-
-        try:##
-            pallet = self.get_pallet_name()
-        except KeyError:
-            print("Not implemented yet")##
-            self.mode_select.get_result("Standard")
-            self.layer_select.get_result("BG Colors")
-            pallet = self.get_pallet_name()
-
-        self.pallet_panel.update(surface,pallet,time_delta)
-        surface.blit(self.image,(0,0))
-        self.draw_selected(surface)
-        for widget in self.widgets:
-            widget.update(surface)
-
     def check_event(self,event):
         """Receive events from the Edit state and pass them to each widget."""
         for widget in self.widgets:
             widget.check_event(event)
         self.pallet_panel.check_event(event)
+
+    def update(self,surface,keys,current_time,time_delta):
+        """Updates each toolbar widget to the screen."""
+        self.current_time = current_time
+        ###Temporary error handling
+        try:
+            pallet = self.get_pallet_name()
+        except KeyError:
+            print("Not implemented yet")###
+            self.mode_select.get_result("Standard")
+            self.layer_select.get_result("BG Colors")
+            pallet = self.get_pallet_name()
+        ###End Temporary error handling
+        self.pallet_panel.update(surface,pallet,self.selected,time_delta)
+        surface.blit(self.image,(0,0))
+        self.draw_selected(surface)
+        for widget in self.widgets:
+            widget.update(surface)
