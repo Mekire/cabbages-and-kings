@@ -40,9 +40,11 @@ class Edit(tools._State):
         mouse = pg.mouse.get_pos()
         on_panel = self.toolbar.pallet_panel.rect.collidepoint(mouse)
         on_map = self.edit_map.rect.collidepoint(mouse)
-        if event.type == pg.MOUSEBUTTONDOWN and not on_panel and on_map:
+        if event.type == pg.MOUSEBUTTONUP:
+            self.edit_map.reset_add_del()
+        elif event.type == pg.MOUSEBUTTONDOWN and not on_panel and on_map:
             if self.toolbar.pallet_panel.visible:
                 self.toolbar.pallet_panel.scrolling = True
-        if not on_panel and on_map:
+        if not on_panel:
             self.edit_map.check_event(event)
         self.toolbar.check_event(event)

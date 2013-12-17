@@ -56,6 +56,10 @@ class EditMap(object):
             target = 120+coords[0], 0+coords[1]
             surface.blit(sheet,target,pg.Rect(source_coords,CELL_SIZE))
 
+    def reset_add_del(self):
+        self.adding = False
+        self.deleting = False
+
     def check_event(self,event):
         """Set adding and deleting flags based on mouse clicks."""
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -66,8 +70,7 @@ class EditMap(object):
                 if self.rect.collidepoint(event.pos):
                     self.deleting = True
         elif event.type == pg.MOUSEBUTTONUP:
-            self.adding = False
-            self.deleting = False
+            self.reset_add_del()
 
     def update(self,selected,layer):
         """Add and delete tiles according to current flags."""

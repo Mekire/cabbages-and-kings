@@ -115,7 +115,6 @@ class PalletPanel(object):
         self.draw(surface,pallet)
         self.reset_cursor(pallet)
 
-
     def check_event(self,event):
         """Handle events directed at the panel."""
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
