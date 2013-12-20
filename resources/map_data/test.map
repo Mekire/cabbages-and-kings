@@ -1,0 +1,72 @@
+BG Colors:
+  fill: !!python/tuple [181, 112, 66, 255]
+BG Tiles: {}
+Environment: {}
+Foreground: {}
+Solid:
+  ? !!python/tuple [450, 300]
+  : &id001 !!python/tuple
+  - base
+  - !!python/tuple [0, 200]
+  ? !!python/tuple [450, 350]
+  : *id001
+  ? !!python/tuple [450, 400]
+  : *id001
+  ? !!python/tuple [450, 450]
+  : *id001
+  ? !!python/tuple [500, 250]
+  : *id001
+  ? !!python/tuple [500, 450]
+  : *id001
+  ? !!python/tuple [550, 200]
+  : *id001
+  ? !!python/tuple [550, 450]
+  : *id001
+  ? !!python/tuple [600, 200]
+  : *id001
+  ? !!python/tuple [600, 400]
+  : *id001
+  ? !!python/tuple [600, 450]
+  : *id001
+  ? !!python/tuple [650, 200]
+  : *id001
+  ? !!python/tuple [700, 250]
+  : *id001
+  ? !!python/tuple [750, 250]
+  : *id001
+  ? !!python/tuple [800, 150]
+  : *id001
+  ? !!python/tuple [800, 300]
+  : *id001
+  ? !!python/tuple [800, 350]
+  : *id001
+  ? !!python/tuple [800, 400]
+  : *id001
+  ? !!python/tuple [850, 100]
+  : *id001
+  ? !!python/tuple [850, 150]
+  : *id001
+  ? !!python/tuple [850, 450]
+  : *id001
+  ? !!python/tuple [900, 100]
+  : *id001
+  ? !!python/tuple [900, 350]
+  : *id001
+  ? !!python/tuple [900, 400]
+  : *id001
+  ? !!python/tuple [900, 450]
+  : *id001
+  ? !!python/tuple [950, 100]
+  : *id001
+  ? !!python/tuple [950, 150]
+  : *id001
+  ? !!python/tuple [950, 200]
+  : *id001
+  ? !!python/tuple [950, 250]
+  : *id001
+  ? !!python/tuple [950, 300]
+  : *id001
+  ? !!python/tuple [950, 350]
+  : *id001
+Solid/Fore: {}
+Water: {}
