@@ -3,7 +3,15 @@ Contains the class for our left hand control panel used during individual
 map editing.
 """
 
+import os
+import sys
+import wx
 import pygame as pg
+
+if sys.version_info[0] < 3:
+    import yaml
+else:
+    import yaml3 as yaml
 
 from .. import map_prepare
 from .panel import PalletPanel
@@ -45,6 +53,15 @@ NAV_RIGHT = {"name" : ">>",
              "selected" : False,
              "unclick" : True}
 
+SAVE_BUTTON = {"name": "Save",
+               "rect" : (15,265,70,20),
+               "selected" : False,
+               "unclick" : True}
+
+LOAD_BUTTON = {"name": "Load",
+               "rect" : (15,305,70,20),
+               "selected" : False,
+               "unclick" : True}
 
 #Dictionary of pallet modes to pallet lists.
 _TILE_PALLETS = ["base","exttemple","inttemple1","inttemple2",
@@ -91,11 +108,54 @@ class ToolBar(object):
         check_boxes = CheckBoxArray(self.set_checkboxes,**CHECK_ARRAY_SETTTINGS)
         nav_left = Button(self.change_pallet, **NAV_LEFT)
         nav_right = Button(self.change_pallet, **NAV_RIGHT)
+        save_button = Button(self.save_map, **SAVE_BUTTON)
+        load_button = Button(self.load_map, **LOAD_BUTTON)
         self.widgets = [self.mode_select,
                         self.layer_select,
                         check_boxes,
                         nav_left,
-                        nav_right]
+                        nav_right,
+                        save_button,
+                        load_button]
+
+    def save_map(self,name):
+        directory = os.path.join(".","resources","map_data")
+        wx_app = wx.App(False)
+        ask = wx.FileDialog(None, "Save As",directory, "",
+                            "Map files (*.map)|*.map",
+                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        ask.ShowModal()
+        path = ask.GetPath()
+        if path:
+            try:
+                with open(path,"w") as myfile:
+                    yaml.dump(self.map_dict,myfile)
+                    print("Map saved.")
+            except IOError:
+                print("Invalid filename.")
+        else:
+            print("File name not entered. Data not saved.")
+
+    def load_map(self,name):
+        """Uses a wx python widget for load map dialog."""
+        directory = os.path.join(".","resources","map_data")
+        wx_app = wx.App(False)
+        ask = wx.FileDialog(None, "Open", directory, "",
+                           "Map files (*.map)|*.map",
+                           wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        ask.ShowModal()
+        path = ask.GetPath()
+        if path:
+            try:
+                with open(path) as myfile:
+                    data = yaml.load(myfile)
+                    for k,v in data.items():
+                        self.map_dict[k] = v
+                    print("Map loaded.")
+            except IOError:
+                print("File not found.")
+        else:
+            print("Filename not entered.  Cannot load data.")
 
     def change_mode(self,name):
         """Called from the selector when mode buttons are clicked."""
@@ -114,7 +174,7 @@ class ToolBar(object):
         """Called from the panel when a tile is selected."""
         pallet_name = self.get_pallet_name()
         if pallet_name == "background":
-            self.selected = (pallet_name,color)
+            self.selected = (pallet_name,tuple(color))
         else:
             self.selected = (pallet_name, coordinates)
 
