@@ -13,7 +13,7 @@ class EditMap(object):
     """A class to contain the actual map data."""
     def __init__(self,map_dict):
         self.map_dict = map_dict
-        self.rect = pg.Rect(120,0,1200,700)
+        self.rect = pg.Rect(120,0,1000,700)
         self.adding = False
         self.deleting = False
 
@@ -57,6 +57,7 @@ class EditMap(object):
             surface.blit(sheet,target,pg.Rect(source_coords,CELL_SIZE))
 
     def reset_add_del(self):
+        """Flip both adding and deleting back to False."""
         self.adding = False
         self.deleting = False
 

@@ -65,7 +65,7 @@ LOAD_BUTTON = {"name": "Load",
 
 #Dictionary of pallet modes to pallet lists.
 _TILE_PALLETS = ["base","exttemple","inttemple1","inttemple2",
-                 "misc","forest","tatami"]
+                 "dungeon1","misc","forest","tatami"]
 
 _BACKGROUND_PALLETS = ["background"]
 
@@ -73,13 +73,16 @@ _ENEMIES = ["enemyplace1","enemyplace2","bossplace1"]
 
 _ITEMS = ["itemplace1","gearplace1"]
 
+_WATER = ["animsheet"]
+
 PALLETS = {"Tiles" : _TILE_PALLETS,
            "BG Colors" : _BACKGROUND_PALLETS,
            "Enemies" : _ENEMIES,
-           "Items" : _ITEMS}
+           "Items" : _ITEMS,
+           "Water" : _WATER}
 
 #Use standard tiles if mode is standard and selected layer is in the following.
-STANDARD_TILES = ["Foreground","Solid/Fore","Solid","Water","BG Tiles"]
+STANDARD_TILES = ["Foreground","Solid/Fore","Solid","BG Tiles"]
 
 #Used for pallet navigation buttons.
 NAVIGATION_DIRECTION = {">>" : 1, "<<" : -1}
@@ -129,7 +132,7 @@ class ToolBar(object):
         if path:
             try:
                 with open(path,"w") as myfile:
-                    yaml.dump(self.map_dict,myfile)
+                    yaml.dump(self.map_dict, myfile)
                     print("Map saved.")
             except IOError:
                 print("Invalid filename.")
@@ -151,7 +154,7 @@ class ToolBar(object):
                     data = yaml.load(myfile)
                     for k,v in data.items():
                         self.map_dict[k] = v
-                    print("Map loaded.")
+                    print("Map loaded.\n")
             except IOError:
                 print("File not found.")
         else:

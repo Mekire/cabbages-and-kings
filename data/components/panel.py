@@ -28,7 +28,7 @@ class PalletPanel(object):
         self.cursor = self.make_selector_cursor()
         self.visible = False
         self.scrolling = False
-        self.scroll_speed = 800
+        self.scroll_speed = 1200
         self.image = None
         self.selected = None
         self.bg_button = Button(self.change_background,
@@ -130,5 +130,8 @@ class PalletPanel(object):
                     self.select_function(coords,color)
                 except IndexError:
                     print("Not on sheet.")
+        elif event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+            self.visible = True
+            self.scrolling = True
         if self.visible:
             self.bg_button.check_event(event)

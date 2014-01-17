@@ -7,7 +7,7 @@ import pygame as pg
 from . import tools
 
 
-SCREEN_SIZE = (1320, 700)
+SCREEN_SIZE = (1120, 700)
 ORIGINAL_CAPTION = "The Cabbages: Map Editor"
 
 

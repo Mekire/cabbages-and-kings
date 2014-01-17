@@ -36,6 +36,7 @@ class Player(object):
     def __init__(self,rect,speed,direction="back"):
         self.rect = pg.Rect(rect)
         self.exact_position = list(self.rect.topleft)
+        self.old_position = self.exact_position[:]
         self.speed = speed
         self.direction = direction
         self.old_direction = None #The Players previous direction every frame.
@@ -50,12 +51,20 @@ class Player(object):
         self.animate_timer = 0.0
         self.animate_fps = 7.0
         self.image = None
+        self.mask = self.make_mask()
         self.attack_image = None
         self.walk_frames = self.image_dict[self.direction]
         self.attack_frames = self.attack_image_dict[self.direction]
         self.adjust_images()
         self.flags = self.initialize_flags()
         self.shadow = shadow.Shadow((40,20))
+
+    def make_mask(self):
+        """Create a collision mask for the player."""
+        temp = pg.Surface((PLAYER_SIZE)).convert_alpha()
+        temp.fill((0,0,0,0))
+        temp.fill(pg.Color("white"), (10,20,30,30))
+        return pg.mask.from_surface(temp)
 
     def initialize_flags(self):
         """Sets flags to the default state of the player."""
@@ -187,23 +196,15 @@ class Player(object):
         else:
             self.equipped["weapon"].attack(self,now)
         self.rect.topleft = self.exact_position
-        self.clamp(surface_rect)
 
     def move(self,dt):
         """Move the player if not attacking (or interupted some other way)."""
         self.adjust_images()
+        self.old_position = self.exact_position[:]
         if self.direction_stack:
             vector = DIRECT_DICT[self.direction_stack[-1]]
             self.exact_position[0] += self.speed*vector[0]*dt
             self.exact_position[1] += self.speed*vector[1]*dt
-
-    def clamp(self,surface_rect):
-        """Clamp the player to the screen. This will be removed when the maps
-        are up and running."""
-        clamped = self.rect.clamp(surface_rect)
-        if self.rect != clamped:
-            self.rect = clamped
-            self.exact_position = list(self.rect.topleft)
 
     def draw(self,surface):
         """Draw the appropriate frames to the target surface."""

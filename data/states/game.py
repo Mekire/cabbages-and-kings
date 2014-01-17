@@ -5,7 +5,7 @@ This module contains the primary gameplay state.
 import pygame as pg
 
 from .. import prepare,tools
-from ..components import player
+from ..components import player,level
 
 
 class Game(tools._State):
@@ -15,6 +15,7 @@ class Game(tools._State):
         tools._State.__init__(self)
         self.player = player.Player((0,0,50,50),190)
         self.player.exact_position = list(prepare.SCREEN_RECT.center)
+        self.level = level.Level(self.player, "central.map")
 
     def get_event(self,event):
         """Process game state events. Add and pop directions from the player's
@@ -30,6 +31,5 @@ class Game(tools._State):
         """Update phase for the primary game state."""
         self.current_time = current_time
         self.player.update(prepare.SCREEN_RECT,current_time,time_delta)
-        surface.fill((50,200,50))
-        self.player.shadow.draw(self.player.rect.midbottom,surface)
-        self.player.draw(surface)
+        self.level.update()
+        self.level.draw(surface)
