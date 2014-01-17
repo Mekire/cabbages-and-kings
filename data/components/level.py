@@ -18,8 +18,9 @@ ANIMATED_TILES = {(0,0) : 2}
 
 
 class Tile(pg.sprite.Sprite):
-    """A basic tile. If the player can collide with it pass make_mask=True."""
+    """A basic tile."""
     def __init__(self, sheet, source, target, make_mask=False):
+        """If the player can collide with it pass make_mask=True."""
         pg.sprite.Sprite.__init__(self)
         self.rect = pg.Rect(target, CELL_SIZE)
         self.sheet = prepare.GFX["mapsheets"][sheet]
@@ -50,6 +51,7 @@ class Animated_Tile(Tile):
 
 
 class Level(object):
+    """Class representing an individual map."""
     def __init__(self, player, map_name):
         self.player = player
         self.map_dict = self.load_map(map_name)
@@ -57,11 +59,13 @@ class Level(object):
         self.layer_groups, self.solid_group = self.make_all_layer_groups()
 
     def load_map(self, map_name):
+        """Load the map data from a resource file."""
         path = os.path.join(".","resources","map_data",map_name)
         with open(path) as myfile:
             return yaml.load(myfile)
 
     def make_background(self):
+        """Create the background as one big surface."""
         background = pg.Surface((1000,700)).convert()
         background.fill(self.map_dict["BG Colors"]["fill"])
         for target in self.map_dict["BG Colors"]:
@@ -72,6 +76,7 @@ class Level(object):
         return background
 
     def make_all_layer_groups(self):
+        """Create sprite groups for all layers."""
         layer_groups = {}
         solid_group = pg.sprite.Group()
         for layer in ("Foreground","BG Tiles"):
@@ -82,6 +87,8 @@ class Level(object):
         return layer_groups, solid_group
 
     def make_tile_group(self, layer, make_mask=False):
+        """Create a single sprite group for the selected layer.  Pass
+        make_mask=True to create collision masks for the tiles."""
         group = pg.sprite.Group()
         for target in self.map_dict[layer]:
             sheet, source = self.map_dict[layer][target]
@@ -93,17 +100,23 @@ class Level(object):
         return group
 
     def update(self,current_time):
+        """Update all tiles (currently only affects animated water).
+        Then check any collisions that may have occured."""
         for layer in self.layer_groups:
             self.layer_groups[layer].update(current_time)
         self.check_collisions()
 
     def check_collisions(self):
+        """Check collisions and call the appropriate functions of the affected
+        sprites."""
         collisions = pg.sprite.spritecollide(self.player,self.solid_group,False)
         collidable = pg.sprite.collide_mask
         if pg.sprite.spritecollideany(self.player,collisions,collidable):
             self.player.collide_with_solid()
 
     def draw(self,surface):
+        """Draw all sprites and layers to the surface.  This may be greatly
+        simplified if I implement layered sprite groups."""
         surface.fill(pg.Color("black"),(1000,0,200,700))###
         surface.blit(self.background, (0,0))
         for layer in ("BG Tiles","Water"):
