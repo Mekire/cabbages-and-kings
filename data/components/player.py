@@ -189,7 +189,7 @@ class Player(object):
         if not self.flags["attacking"] and self.equipped["weapon"]:
             self.flags["attacking"] = self.equipped["weapon"].start_attack()
 
-    def update(self,surface_rect,now,dt):
+    def update(self,now,dt):
         """Updates our player appropriately every frame."""
         if not self.flags["attacking"]:
             self.move(dt)
@@ -214,3 +214,8 @@ class Player(object):
             draw_attack(surface,self.direction)
         else:
             surface.blit(self.image,self.rect)
+
+    def collide_with_solid(self):
+        """Called from level when the player walks into a solid tile."""
+        self.exact_position = self.old_position
+        self.rect.topleft = self.exact_position

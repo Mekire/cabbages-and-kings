@@ -30,6 +30,6 @@ class Game(tools._State):
     def update(self,surface,keys,current_time,time_delta):
         """Update phase for the primary game state."""
         self.current_time = current_time
-        self.player.update(prepare.SCREEN_RECT,current_time,time_delta)
-        self.level.update()
+        self.player.update(current_time,time_delta)
+        self.level.update(current_time)
         self.level.draw(surface)
