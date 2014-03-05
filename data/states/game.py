@@ -5,7 +5,7 @@ This module contains the primary gameplay state.
 import pygame as pg
 
 from .. import prepare,tools
-from ..components import player,level
+from ..components import player, level
 
 
 class Game(tools._State):

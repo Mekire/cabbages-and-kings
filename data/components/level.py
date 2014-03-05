@@ -2,6 +2,7 @@ import os
 import sys
 import pygame as pg
 
+from operator import attrgetter
 from .. import prepare,tools
 from . import enemy
 
@@ -12,8 +13,6 @@ else:
     import yaml3 as yaml
 
 
-CELL_SIZE = (50, 50)
-
 #Location on animsheet : number of frames in animation.
 ANIMATED_TILES = {(0,0) : 2}
 
@@ -23,15 +22,17 @@ class Tile(pg.sprite.Sprite):
     def __init__(self, sheet, source, target, make_mask=False):
         """If the player can collide with it pass make_mask=True."""
         pg.sprite.Sprite.__init__(self)
-        self.rect = pg.Rect(target, CELL_SIZE)
+        self.rect = pg.Rect(target, prepare.CELL_SIZE)
         self.sheet = prepare.GFX["mapsheets"][sheet]
-        self.image = self.sheet.subsurface(pg.Rect(source, CELL_SIZE))
+        self.image = self.sheet.subsurface(pg.Rect(source, prepare.CELL_SIZE))
         if make_mask:
             self.mask = pg.mask.from_surface(self.image)
 
 
 class Animated_Tile(Tile):
-    """An animated tile. Animated tiles must be on the "animsheet" map sheet."""
+    """
+    An animated tile. Animated tiles must be on the "animsheet" map sheet.
+    """
     def __init__(self, source, target, frames, make_mask=False, fps=4.0):
         """
         The frames argument is the number of frames in the animation, and
@@ -41,7 +42,7 @@ class Animated_Tile(Tile):
         Tile.__init__(self, "animsheet", source, target, make_mask)
         self.frame = 0
         self.frames = tools.strip_from_sheet(self.sheet, source,
-                                             CELL_SIZE, frames)
+                                             prepare.CELL_SIZE, frames)
         self.timer = 0.0
         self.fps = fps
 
@@ -58,9 +59,11 @@ class Level(object):
     def __init__(self, player, map_name):
         self.player = player
         self.enemies = pg.sprite.Group()
-        enemy.Cabbage((500,500), 100, "walk", self.enemies)
-        enemy.Zombie((50,300), 100, "walk", self.enemies)
-        enemy.Snake((850,300), 100, "walk", self.enemies)
+        self.main_sprites = pg.sprite.Group(self.player)
+        enemy.Cabbage((500,500), 120, "walk", self.enemies, self.main_sprites)
+        enemy.Zombie((50,300), 120, "walk", self.enemies, self.main_sprites)
+        enemy.Snake((850,300), 120, "walk", self.enemies, self.main_sprites)
+
         self.map_dict = self.load_map(map_name)
         self.background = self.make_background()
         self.layer_groups, self.solid_group = self.make_all_layer_groups()
@@ -78,7 +81,7 @@ class Level(object):
         for target in self.map_dict["BG Colors"]:
             if target != "fill":
                 color = self.map_dict["BG Colors"][target][1]
-                background.fill(color, pg.Rect(target,CELL_SIZE))
+                background.fill(color, pg.Rect(target, prepare.CELL_SIZE))
         self.map_dict.pop("BG Colors")
         return background
 
@@ -139,7 +142,7 @@ class Level(object):
             self.layer_groups[layer].draw(surface)
         self.player.shadow.draw(self.player.rect.midbottom, surface)
         self.layer_groups["Solid"].draw(surface)
-        self.player.draw(surface)
-        self.enemies.draw(surface)
+        for sprite in sorted(self.main_sprites, key=attrgetter("rect.y")):
+            sprite.draw(surface)
         for layer in ("Solid/Fore", "Foreground"):
             self.layer_groups[layer].draw(surface)

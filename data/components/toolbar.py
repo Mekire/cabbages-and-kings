@@ -18,8 +18,6 @@ from .panel import PalletPanel
 from .map_gui_widgets import Selector,CheckBoxArray,Button
 
 
-CELL_SIZE = (50,50)
-
 #Available modes and layers.
 MODES = ("Standard","Specials","Events","Enemies","Items","NPCs")
 LAYERS = ("Environment","Foreground","Solid/Fore",
@@ -90,7 +88,7 @@ NAVIGATION_DIRECTION = {">>" : 1, "<<" : -1}
 
 class ToolBar(object):
     """A class for our left hand control panel."""
-    def __init__(self,map_dict):
+    def __init__(self, map_dict):
         """Initialize needed settings and create widgets."""
         self.map_dict = map_dict
         self.image = map_prepare.GFX["misc"]["interface"]
@@ -101,7 +99,7 @@ class ToolBar(object):
         self.pallet = {"Tiles" : 0,
                        "Enemies" : 0,
                        "Items" : 0}
-        self.pallet_panel = PalletPanel(self.map_dict,self.change_selected)
+        self.pallet_panel = PalletPanel(self.map_dict, self.change_selected)
         self.make_widgets()
 
     def make_widgets(self):
@@ -121,8 +119,8 @@ class ToolBar(object):
                         save_button,
                         load_button]
 
-    def save_map(self,name):
-        directory = os.path.join(".","resources","map_data")
+    def save_map(self, name):
+        directory = os.path.join(".", "resources", "map_data")
         wx_app = wx.App(False)
         ask = wx.FileDialog(None, "Save As",directory, "",
                             "Map files (*.map)|*.map",
@@ -139,9 +137,9 @@ class ToolBar(object):
         else:
             print("File name not entered. Data not saved.")
 
-    def load_map(self,name):
+    def load_map(self, name):
         """Uses a wx python widget for load map dialog."""
-        directory = os.path.join(".","resources","map_data")
+        directory = os.path.join(".", "resources", "map_data")
         wx_app = wx.App(False)
         ask = wx.FileDialog(None, "Open", directory, "",
                            "Map files (*.map)|*.map",
@@ -160,40 +158,42 @@ class ToolBar(object):
         else:
             print("Filename not entered.  Cannot load data.")
 
-    def change_mode(self,name):
+    def change_mode(self, name):
         """Called from the selector when mode buttons are clicked."""
         self.mode = name
 
-    def change_layer(self,name):
+    def change_layer(self, name):
         """Called from the selector when layer buttons are clicked."""
         self.layer = name
         self.selected = None
 
-    def set_checkboxes(self,state):
+    def set_checkboxes(self, state):
         """Called from the checkbox array when the user changes any checkbox."""
         self.checkboxes = state
 
-    def change_selected(self,coordinates,color):
+    def change_selected(self, coordinates, color):
         """Called from the panel when a tile is selected."""
         pallet_name = self.get_pallet_name()
         if pallet_name == "background":
-            self.selected = (pallet_name,tuple(color))
+            self.selected = (pallet_name, tuple(color))
         else:
             self.selected = (pallet_name, coordinates)
 
-    def draw_selected(self,surface):
+    def draw_selected(self, surface):
         """Draw the currently selected tile onto the control bar."""
         if self.selected:
             if self.selected[0] == "background":
-                surface.fill(self.selected[1],((25,185),CELL_SIZE))
+                surface.fill(self.selected[1],((25,185),map_prepare.CELL_SIZE))
             else:
                 sheet = map_prepare.GFX["mapsheets"][self.selected[0]]
-                from_rect = pg.Rect(self.selected[1],CELL_SIZE)
-                surface.blit(sheet,(25,185),from_rect)
+                from_rect = pg.Rect(self.selected[1], map_prepare.CELL_SIZE)
+                surface.blit(sheet, (25,185), from_rect)
 
     def change_pallet(self,name):
-        """Changes the current pallet page to the next or previous. Called
-        when pallet navigation buttons are clicked."""
+        """
+        Changes the current pallet page to the next or previous. Called
+        when pallet navigation buttons are clicked.
+        """
         increment = NAVIGATION_DIRECTION[name]
         mode = self.get_pallet_mode()
         length = len(PALLETS[mode])
@@ -226,7 +226,7 @@ class ToolBar(object):
             widget.check_event(event)
         self.pallet_panel.check_event(event)
 
-    def update(self,surface,keys,current_time,time_delta):
+    def update(self, surface, keys, current_time, time_delta):
         """Updates each toolbar widget to the screen."""
         self.current_time = current_time
         ###Temporary error handling
@@ -238,8 +238,8 @@ class ToolBar(object):
             self.layer_select.get_result("BG Colors")
             pallet = self.get_pallet_name()
         ###End Temporary error handling
-        self.pallet_panel.update(surface,pallet,self.selected,time_delta)
-        surface.blit(self.image,(0,0))
+        self.pallet_panel.update(surface, pallet, self.selected,time_delta)
+        surface.blit(self.image, (0,0))
         self.draw_selected(surface)
         for widget in self.widgets:
             widget.update(surface)

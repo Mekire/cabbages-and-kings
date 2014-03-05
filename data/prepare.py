@@ -16,11 +16,27 @@ pg.init()
 _Y_OFFSET = (pg.display.Info().current_w-SCREEN_SIZE[0])//2
 os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(_Y_OFFSET, 25)
 pg.display.set_caption(ORIGINAL_CAPTION)
-SCREEN = pg.display.set_mode(SCREEN_SIZE)
-SCREEN_RECT = SCREEN.get_rect()
+pg.display.set_mode(SCREEN_SIZE)
+
 
 #General constants
+COLOR_KEY = (255, 0, 255)
+SCREEN_RECT = pg.Rect((0,0), SCREEN_SIZE)
+PLAY_RECT = pg.Rect(0, 0, 1000, 700)
 CELL_SIZE = (50, 50)
+
+DIRECTIONS = ["front", "back", "left", "right"]
+
+DIRECT_DICT = {"front" : ( 0, 1),
+               "back"  : ( 0,-1),
+               "left"  : (-1, 0),
+               "right" : ( 1, 0)}
+
+OPPOSITE_DICT = {"front" : "back",
+                 "back"  : "front",
+                 "left"  : "right",
+                 "right" : "left"}
+
 
 #Resource loading (Fonts and music just contain path names).
 FONTS = tools.load_all_fonts(os.path.join("resources", "fonts"))
