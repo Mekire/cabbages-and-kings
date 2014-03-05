@@ -60,8 +60,8 @@ class Level(object):
         self.player = player
         self.enemies = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
-        enemy.Cabbage((500,500), 120, "walk", self.enemies, self.main_sprites)
-        enemy.Zombie((50,300), 120, "walk", self.enemies, self.main_sprites)
+        enemy.Cabbage((500,500), 0, "walk", self.enemies, self.main_sprites)
+        enemy.Zombie((50,300), 200, "walk", self.enemies, self.main_sprites)
         enemy.Snake((850,300), 120, "walk", self.enemies, self.main_sprites)
 
         self.map_dict = self.load_map(map_name)
@@ -140,7 +140,8 @@ class Level(object):
         surface.blit(self.background, (0,0))
         for layer in ("BG Tiles", "Water"):
             self.layer_groups[layer].draw(surface)
-        self.player.shadow.draw(self.player.rect.midbottom, surface)
+        for sprite in self.main_sprites:
+            sprite.shadow.draw(surface)
         self.layer_groups["Solid"].draw(surface)
         for sprite in sorted(self.main_sprites, key=attrgetter("rect.y")):
             sprite.draw(surface)

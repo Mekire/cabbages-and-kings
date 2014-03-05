@@ -1,6 +1,7 @@
 import random
 import pygame as pg
 
+from . import shadow
 from .. import prepare, tools
 
 
@@ -92,6 +93,7 @@ class _Enemy(pg.sprite.Sprite):
         self.direction = random.choice(prepare.DIRECTIONS)
         self.anim_direction = self.direction
         self.anim_directions = prepare.DIRECTIONS[:]
+        self.shadow = shadow.Shadow((40,20), self.rect)
         self.image = None
         self.state = state
 

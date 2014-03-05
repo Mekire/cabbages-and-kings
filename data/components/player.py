@@ -47,7 +47,7 @@ class Player(pg.sprite.Sprite):
         self.attack_frames = self.attack_image_dict[self.direction]
         self.adjust_images()
         self.flags = self.initialize_flags()
-        self.shadow = shadow.Shadow((40,20))
+        self.shadow = shadow.Shadow((40,20), self.rect)
 
     def make_mask(self):
         """Create a collision mask for the player."""
