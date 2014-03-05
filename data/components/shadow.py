@@ -1,5 +1,5 @@
 """
-Contains the class for adding basic shadows to sprites.
+Contains a class for adding basic shadows to sprites.
 """
 
 import pygame as pg
@@ -8,6 +8,11 @@ import pygame as pg
 class Shadow(object):
     """A simple class for adding shadows to sprites."""
     def __init__(self, size, lock_rect, **kwargs):
+        """
+        Arguments are the size (width, height), and the rect that the shadow
+        will lock to (the rect of the sprite with the shadow).
+        See process_kwargs for detail on customizing via keyword.
+        """
         self.process_kwargs(kwargs)
         self.lock_rect = lock_rect
         self.image = pg.Surface(size).convert_alpha()
@@ -23,9 +28,11 @@ class Shadow(object):
         defaults = {"lock_attr"  : "midbottom",
                     "color" : (0, 0, 50, 150),
                     "offset" : (0, 0)}
-        if any(kwarg not in defaults for kwarg in kwargs):
-            raise AttributeError("Invalid keyword {}".format(kwarg))
-        defaults.update(kwargs)
+        for kwarg in kwargs:
+            if kwarg  in defaults:
+                defaults[kwarg] = kwargs[kwarg]
+            else:
+                raise AttributeError("Invalid keyword {}".format(kwarg))
         self.__dict__.update(defaults)
 
     def draw(self, surface):
