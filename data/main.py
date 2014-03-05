@@ -3,11 +3,11 @@ The main function is defined here. It simply creates an instance of
 tools.Control and adds the game states to its dictionary using
 tools.setup_states.  There should be no need (theoretically) to edit
 the tools.Control class.  All modifications should occur in this module
-and in the setup module.
+and in the prepare module.
 """
 
 from . import prepare,tools
-from .states import title,splash,game
+from .states import title, splash, game
 
 
 def main():
@@ -19,5 +19,5 @@ def main():
                   "GAME"   : game.Game(),
 ##                  'REGISTER'  : story.Story()
                   }
-    run_it.setup_states(state_dict,"SPLASH")
+    run_it.setup_states(state_dict, "SPLASH")
     run_it.main()
