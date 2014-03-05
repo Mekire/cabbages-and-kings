@@ -17,9 +17,11 @@ class Game(tools._State):
         self.player.exact_position = list(prepare.SCREEN_RECT.center)
         self.level = level.Level(self.player, "central.map")
 
-    def get_event(self,event):
-        """Process game state events. Add and pop directions from the player's
-        direction stack as necessary."""
+    def get_event(self, event):
+        """
+        Process game state events. Add and pop directions from the player's
+        direction stack as necessary.
+        """
         if event.type == pg.KEYDOWN:
             self.player.add_direction(event.key)
             if event.key == pg.K_SPACE:
@@ -27,9 +29,9 @@ class Game(tools._State):
         elif event.type == pg.KEYUP:
             self.player.pop_direction(event.key)
 
-    def update(self,surface,keys,current_time,time_delta):
+    def update(self, surface, keys, current_time, time_delta):
         """Update phase for the primary game state."""
         self.current_time = current_time
-        self.player.update(current_time,time_delta)
-        self.level.update(current_time)
+        self.player.update(current_time, time_delta)
+        self.level.update(current_time, time_delta)
         self.level.draw(surface)

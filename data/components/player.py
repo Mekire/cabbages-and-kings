@@ -31,9 +31,10 @@ DRAW_ATTACK_ORDER = {"front" : ["shield", "body", "head", "weapon", "armleg"],
                      "right" : ["weapon", "body", "head", "armleg", "shield"]}
 
 
-class Player(object):
+class Player(pg.sprite.Sprite):
     """A class to represent our main protagonist."""
-    def __init__(self,rect,speed,direction="back"):
+    def __init__(self, rect, speed, direction="back"):
+        pg.sprite.Sprite.__init__(self)
         self.rect = pg.Rect(rect)
         self.exact_position = list(self.rect.topleft)
         self.old_position = self.exact_position[:]
