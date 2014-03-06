@@ -37,6 +37,8 @@ class Player(pg.sprite.Sprite):
         self.equipped = self.set_equips()
         self.image_dict = self.make_images()
         self.attack_image_dict = self.make_images(True, DRAW_ATTACK_ORDER)
+        self.hit_images = self.make_hit_images(self.image_dict)
+        self.hit_attack_images = self.make_hit_images(self.attack_image_dict)
         self.frame  = 0
         self.animate_timer = 0.0
         self.animate_fps = 7.0
@@ -48,6 +50,7 @@ class Player(pg.sprite.Sprite):
         self.adjust_images()
         self.flags = self.initialize_flags()
         self.shadow = shadow.Shadow((40,20), self.rect)
+        self.health = 20##
 
     def make_mask(self):
         """Create a collision mask for the player."""
@@ -111,6 +114,36 @@ class Player(pg.sprite.Sprite):
                 frames.append(image)
             images[direction] = frames
         return images
+
+    def make_hit_images(self, from_dict):
+        """
+        Create dictionaries of red and blue versions of the player's sprite
+        to use while getting hit.
+        """
+        hit_images = {}
+        for direction in from_dict:
+            frames = []
+            for i,frame in enumerate(from_dict[direction]):
+                image = pg.Surface(prepare.CELL_SIZE)
+                image.fill((90,0,90))
+                image.blit(frame, (0,0))
+                image = image.convert(8)
+                palette = image.get_palette()
+                if i:
+                    #Color shift red.
+                    for color in palette:
+                        color[0] = min(color[0]+150, 255)
+                    image.set_palette(palette)
+                    image.set_colorkey((235,0,85))
+                else:
+                    #Color shift blue.
+                    for color in palette:
+                        color[2] = min(color[2]+150, 255)
+                    image.set_palette(palette)
+                    image.set_colorkey((85,0,235))
+                frames.append(image)
+            hit_images[direction] = frames
+        return hit_images
 
     def get_part_image(self, direction, part, frame):
         """Get the correct part image based on player direction and frame."""
@@ -176,6 +209,12 @@ class Player(pg.sprite.Sprite):
             direction = self.controls[key]
             if direction in self.direction_stack:
                 self.direction_stack.remove(direction)
+
+    def got_hit(self, enemy_damage):
+        if not self.flags["invincible"]:
+            self.health = min(self.health-enemy_damage, 0)
+            self.flags["invincible"] = True
+        print("player.got_hit")
 
     def attack(self):
         """Change attack flag to True if weapon is ready."""

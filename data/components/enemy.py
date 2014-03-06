@@ -105,6 +105,9 @@ class _Enemy(pg.sprite.Sprite):
         return tools.get_cell_coordinates(prepare.SCREEN_RECT,
                                           self.rect.center, prepare.CELL_SIZE)
 
+    def collide_with_player(self, player):
+        player.got_hit(self.attack)
+
     def update(self, now, dt, obstacles):
         """
         Update the sprite's exact position.  If this results in either of the
@@ -148,9 +151,12 @@ class Cabbage(_Enemy):
         _Enemy.__init__(self, *args)
         self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
                                          ENEMIES["cabbage"], prepare.CELL_SIZE)
-        self.anims = {"walk" : Anim(self.frames[:2], 7),
-                      "hit" : Anim(self.frames[2:4], 20),
-                      "die" : Anim(self.frames[4:], 7, 1)}
+        self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
+                      "hit" : tools.Anim(self.frames[2:4], 20),
+                      "die" : tools.Anim(self.frames[4:], 7, 1)}
+        self.health = 3
+        self.attack = 4
+
 
 class Zombie(_Enemy):
     """The typical stock zombie. (4 directions)"""
@@ -159,19 +165,22 @@ class Zombie(_Enemy):
         self.ai = LinearAI(self)
         self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
                                           ENEMIES["zombie"], prepare.CELL_SIZE)
-        walk = {"front" : Anim(self.frames[:2], 7),
-                "back" : Anim(self.frames[2:4], 7),
-                "left" : Anim([pg.transform.flip(self.frames[4], 1, 0),
+        walk = {"front" : tools.Anim(self.frames[:2], 7),
+                "back" : tools.Anim(self.frames[2:4], 7),
+                "left" : tools.Anim([pg.transform.flip(self.frames[4], 1, 0),
                                pg.transform.flip(self.frames[5], 1, 0)], 7),
-                "right" : Anim(self.frames[4:6], 7)}
-        hit = {"front" : Anim(self.frames[6:8], 20),
-                "back" : Anim(self.frames[8:10], 20),
-                "left" : Anim([pg.transform.flip(self.frames[10], 1, 0),
+                "right" : tools.Anim(self.frames[4:6], 7)}
+        hit = {"front" : tools.Anim(self.frames[6:8], 20),
+                "back" : tools.Anim(self.frames[8:10], 20),
+                "left" : tools.Anim([pg.transform.flip(self.frames[10], 1, 0),
                                pg.transform.flip(self.frames[11], 1, 0)], 20),
-                "right" : Anim(self.frames[10:12], 20)}
+                "right" : tools.Anim(self.frames[10:12], 20)}
+        die_frames = self.frames[12:]+self.frames[16:]
         self.anims = {"walk" : walk,
                       "hit" : hit,
-                      "die" : Anim(self.frames[12:]+self.frames[16:], 5, 1)}
+                      "die" : tools.Anim(die_frames, 5, 1)}
+        self.health = 10
+        self.attack = 8
 
 
 class Snake(_Enemy):
@@ -184,54 +193,14 @@ class Snake(_Enemy):
         self.ai = LinearAI(self)
         self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
                                            ENEMIES["snake"], prepare.CELL_SIZE)
-        walk = {"left" : Anim(self.frames[:2], 7),
-                "right" : Anim([pg.transform.flip(self.frames[0], 1, 0),
+        walk = {"left" : tools.Anim(self.frames[:2], 7),
+                "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
                                 pg.transform.flip(self.frames[1], 1, 0)], 7)}
-        hit = {"left" : Anim(self.frames[2:4], 20),
-                "right" : Anim([pg.transform.flip(self.frames[2], 1, 0),
+        hit = {"left" : tools.Anim(self.frames[2:4], 20),
+               "right" : tools.Anim([pg.transform.flip(self.frames[2], 1, 0),
                                 pg.transform.flip(self.frames[3], 1, 0)], 20)}
         self.anims = {"walk" : walk,
                       "hit" : hit,
-                      "die" : Anim(self.frames[4:], 5, 1)}
-
-
-class Anim(object):
-    """A class to simplify the act of adding animations to sprites."""
-    def __init__(self, frames, fps, loops=-1):
-        """
-        The argument frames is a list of frames in the correct order;
-        fps is the frames per second of the animation;
-        loops is the number of times the animation will loop (a value of -1
-        will loop indefinitely).
-        """
-        self.frames = frames
-        self.fps = fps
-        self.frame = 0
-        self.timer = None
-        self.loops = loops
-        self.loop_count = 0
-        self.done = False
-
-    def get_next_frame(self, now):
-        """
-        Advance the frame if enough time has elapsed and the animation has
-        not finished looping.
-        """
-        if not self.timer:
-            self.timer = now
-        if not self.done and now-self.timer > 1000.0/self.fps:
-            self.frame = (self.frame+1)%len(self.frames)
-            if not self.frame:
-                self.loop_count += 1
-                if self.loops != -1 and self.loop_count >= self.loops:
-                    self.done = True
-                    self.frame -= 1
-            self.timer = now
-        return self.frames[self.frame]
-
-    def reset(self):
-        """Set frame, timer, and loop status back to the initialized state."""
-        self.frame = 0
-        self.timer = None
-        self.loop_count = 0
-        self.done = False
+                      "die" : tools.Anim(self.frames[4:], 5, 1)}
+        self.health = 6
+        self.attack = 6

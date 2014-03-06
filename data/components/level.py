@@ -40,18 +40,13 @@ class Animated_Tile(Tile):
         Currently only used for water.
         """
         Tile.__init__(self, "animsheet", source, target, make_mask)
-        self.frame = 0
-        self.frames = tools.strip_from_sheet(self.sheet, source,
-                                             prepare.CELL_SIZE, frames)
-        self.timer = 0.0
-        self.fps = fps
+        frames = tools.strip_from_sheet(self.sheet, source,
+                                        prepare.CELL_SIZE, frames)
+        self.anim = tools.Anim(frames, fps)
 
     def update(self, current_time):
         """Check if the image should change frame."""
-        if current_time-self.timer > 1000.0/self.fps:
-            self.frame = (self.frame+1)%len(self.frames)
-            self.image = self.frames[self.frame]
-            self.timer = current_time
+        self.image = self.anim.get_next_frame(current_time)
 
 
 class Level(object):
@@ -130,6 +125,9 @@ class Level(object):
         collidable = pg.sprite.collide_mask
         if pg.sprite.spritecollideany(self.player, hits, collidable):
             self.player.collide_with_solid()
+        enemy_collision = pg.sprite.spritecollideany(self.player, self.enemies)
+        if enemy_collision:
+            enemy_collision.collide_with_player(self.player)
 
     def draw(self,surface):
         """
