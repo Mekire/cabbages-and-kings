@@ -163,6 +163,7 @@ class _Weapon(_Equipment):
     def __init__(self,stats,sheet_location):
         _Equipment.__init__(self, stats, "weapons", sheet_location, "other")
         self.attack_images = None
+        self.ready = False
         self.attacking = False
         self.frame = 0
         self.frame_timer = 0.0
@@ -178,6 +179,7 @@ class _Weapon(_Equipment):
         now = pg.time.get_ticks()
         if not self.attacking and (now-self.delay_timer) > self.delay:
             self.delay_timer = now
+            self.attacking = True
             return True
 
     def attack(self, player, now):
@@ -186,9 +188,9 @@ class _Weapon(_Equipment):
         is set.
         """
         direction = player.direction
-        if not self.attacking:
+        if not self.ready:
             self.sound.play()
-            self.attacking = True
+            self.ready = True
             self.frame_timer = now
         elif (now-self.frame_timer) > 1000.0/self.fps:
             self.frame = (self.frame+1)%len(self.attack_frames[direction])
@@ -205,8 +207,10 @@ class _Weapon(_Equipment):
         surface.blit(frame, rect)
 
     def get_attack_position(self, player_rect, direction):
-        """Find the location of the attack rect based on the player's location
-        and direction."""
+        """
+        Find the location of the attack rect based on the player's location
+        and direction.
+        """
         set_direction = {"back"  : ("midbottom", player_rect.midtop),
                          "front" : ("midtop", player_rect.midbottom),
                          "right" : ("midleft", player_rect.midright),
@@ -216,9 +220,11 @@ class _Weapon(_Equipment):
         setattr(rect, attribute, value)
 
     def reset_attack(self, player):
-        """Set the pertinent player flag and weapon attributes to pre-attack."""
-        player.flags["attacking"] = False
+        """
+        Reset the necessary variables to the pre-attack state.
+        """
         self.attacking = False
+        self.ready = False
         self.frame = 0
 
     def get_images(self, sheet, sheet_location):
