@@ -86,7 +86,7 @@ class _ImageProcessing(object):
                 image.set_palette(palette)
                 image.set_colorkey(colorkey)
                 frames.append(image)
-            anims[direction] = tools.Anim(frames, HIT_ANIMATION_FPS, loops=10)
+            anims[direction] = tools.Anim(frames, HIT_ANIMATION_FPS, loops=5)
         return anims
 
     def get_part_image(self, direction, part, frame):
@@ -219,10 +219,16 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             self.action_state = "normal"
             self.redraw = True
         if self.hit_state:
+            #This mess counts the loops of all strobing animations together.
+            #When these animations sum to 5, they all reset.
+            total_loops = 0
             animation_dict = self.all_animations[self.hit_state]
-            animation = animation_dict[self.action_state][self.direction]
-            if animation.done:
-                animation.reset()
+            for action in animation_dict.values():
+                total_loops += sum(anim.loop_count for anim in action.values())
+            if total_loops >= 5:
+                for action in animation_dict.values():
+                    for anim in action.values():
+                        anim.reset()
                 self.hit_state = False
             self.redraw = True
 
