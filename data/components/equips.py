@@ -5,7 +5,7 @@ Contains prototype and specific classes for all types of equipable gear.
 import os
 import pygame as pg
 
-from .. import prepare,tools
+from .. import prepare, tools
 
 
 class _Equipment(object):
@@ -163,13 +163,20 @@ class _Weapon(_Equipment):
     def __init__(self,stats,sheet_location):
         _Equipment.__init__(self, stats, "weapons", sheet_location, "other")
         self.attack_images = None
-        self.ready = False
+        self.anims = None
+        self.anim_rects = None
+        self.frame = None
         self.attacking = False
-        self.frame = 0
-        self.frame_timer = 0.0
-        self.fps = 15.0
         self.delay = 300.0
         self.delay_timer = 0.0
+
+    def get_images(self, sheet, sheet_location):
+        """Get the weapon images assuming a standard layout."""
+        frames = tools.strip_from_sheet(sheet, sheet_location,
+                                        prepare.CELL_SIZE, 8)
+        self.images = {}
+        for i,direction in enumerate(prepare.DIRECTIONS):
+            self.images[direction] = frames[2*i:2*i+2]
 
     def start_attack(self):
         """
@@ -187,24 +194,19 @@ class _Weapon(_Equipment):
         Called from the player's update method if the attacking flag
         is set.
         """
-        direction = player.direction
-        if not self.ready:
+        self.anim = self.anims[player.direction]
+        if self.anim.timer is None:
             self.sound.play()
-            self.ready = True
-            self.frame_timer = now
-        elif (now-self.frame_timer) > 1000.0/self.fps:
-            self.frame = (self.frame+1)%len(self.attack_frames[direction])
-            self.frame_timer = now
-            if not self.frame:
-                self.reset_attack(player)
+        self.frame = self.anim.get_next_frame(now)
+        if self.anim.done:
+            self.reset_attack()
         if self.attacking:
-            self.get_attack_position(player.rect, direction)
+            self.get_attack_position(player.rect, player.direction)
 
     def draw_attack(self, surface, direction):
         """Called from the player's draw method if the attacing flag is set."""
-        rect = self.attack_rects[direction][self.frame]
-        frame = self.attack_frames[direction][self.frame]
-        surface.blit(frame, rect)
+        rect = self.anim_rects[direction][self.anim.frame]
+        surface.blit(self.frame, rect)
 
     def get_attack_position(self, player_rect, direction):
         """
@@ -215,44 +217,28 @@ class _Weapon(_Equipment):
                          "front" : ("midtop", player_rect.midbottom),
                          "right" : ("midleft", player_rect.midright),
                          "left"  : ("midright", player_rect.midleft)}
-        rect = self.attack_rects[direction][self.frame]
-        attribute,value = set_direction[direction]
+        rect = self.anim_rects[direction][self.anim.frame]
+        attribute, value = set_direction[direction]
         setattr(rect, attribute, value)
 
-    def reset_attack(self, player):
+    def reset_attack(self):
         """
         Reset the necessary variables to the pre-attack state.
         """
         self.attacking = False
-        self.ready = False
-        self.frame = 0
+        self.anim.reset()
 
-    def get_images(self, sheet, sheet_location):
-        """Get the weapon images assuming a standard layout."""
-        frames = tools.strip_from_sheet(sheet, sheet_location,
-                                        prepare.CELL_SIZE, 8)
-        self.images = {}
-        for i,direction in enumerate(prepare.DIRECTIONS):
-            self.images[direction] = frames[2*i:2*i+2]
-
-    def get_attack_frames(self, start, size, columns):
+    def get_attack_info(self, start, size, columns, fps=15.0):
         """Get attack frames from the attack sheet."""
         sheet = prepare.GFX["equips"]["attacks1"]
-        frames = tools.strip_from_sheet(sheet, start, size, columns)
-        attacks = {}
-        attacks["right"] = frames[:]
-        attacks["left"] = [pg.transform.flip(pic,True,False) for pic in frames]
-        attacks["back"] = [pg.transform.rotate(pic,90) for pic in frames]
-        attacks["front"] = [pg.transform.rotate(pic,-90) for pic in frames]
-        return attacks
-
-    def get_attack_rects(self):
-        """Get rects for every direction of the attack frames."""
+        raw_frames = tools.strip_from_sheet(sheet, start, size, columns)
+        anims = {}
         rects = {}
-        for direction in self.attack_frames:
-            frames = self.attack_frames[direction]
-            rects[direction] = [pic.get_rect() for pic in frames]
-        return rects
+        for i,direct in enumerate(["right", "back", "left", "front"]):
+            frames = [pg.transform.rotate(pic, i*90) for pic in raw_frames]
+            anims[direct] = tools.Anim(frames, fps, 1)
+            rects[direct] = [pic.get_rect() for pic in frames]
+        return anims, rects
 
 
 class PitchFork(_Weapon):
@@ -263,8 +249,7 @@ class PitchFork(_Weapon):
         self.title = "Angry Mob Pitchfork"
         self.description = "Should vanquish all foes... Eventually."
         self.sound = prepare.SFX["boing"]
-        self.attack_frames = self.get_attack_frames((0,0), (44,20), 2)
-        self.attack_rects = self.get_attack_rects()
+        self.anims, self.anim_rects = self.get_attack_info((0,0), (44,20), 2)
 
 
 class Labrys(_Weapon):
@@ -278,8 +263,7 @@ class Labrys(_Weapon):
         self.title = "Mini-Labrys"
         self.description = "Foliage beware !"
         self.sound = prepare.SFX["whoosh"]
-        self.attack_frames = self.get_attack_frames((0,20), (30,50), 3)
-        self.attack_rects = self.get_attack_rects()
+        self.anims, self.anim_rects = self.get_attack_info((0,20), (30,50), 3)
 
 
 #Organize all equips into a nested dictionary.

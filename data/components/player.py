@@ -165,7 +165,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
                   "body" : self.inventory["body"]["chain"],
                   "shield" : self.inventory["shield"]["tin"],
                   "armleg" : self.inventory["armleg"]["normal"],
-                  "weapon" : self.inventory["weapon"]["labrys"]}
+                  "weapon" : self.inventory["weapon"]["pitch"]}
         return equips
 
     def adjust_frames(self, now):
