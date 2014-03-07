@@ -21,6 +21,7 @@ DRAW_ATTACK_ORDER = {"front" : ["shield", "body", "head", "weapon", "armleg"],
 
 STANDARD_ANIMATION_FPS = 7.0
 HIT_ANIMATION_FPS = 20.0
+KNOCK_SPEED = 750  #Pixels per second.
 
 
 class _ImageProcessing(object):
@@ -132,7 +133,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.all_animations = self.make_all_animations()
         self.image = None
         self.action_state = "normal"
-        self.hit_state = False
+        self.hit_state = False  #When true hit_state is a tools.Timer instance.
+        self.knock_state = False #(direction, tools.Timer()) tuple when true.
         self.redraw = True
         self.shadow = shadow.Shadow((40,20), self.rect)
         self.health = 28
@@ -197,6 +199,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         """Called from level when the player walks into a solid tile."""
         self.exact_position = self.old_position
         self.rect.topleft = self.exact_position
+        self.knock_state = False
 
     def got_hit(self, enemy):
         """Called on collision with enemy."""
@@ -204,6 +207,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             self.health = max(self.health-enemy.attack, 0)
             self.hit_state = tools.Timer(50, 10)
             knock_dir = self.get_collision_direction(enemy)
+            self.knock_state = (knock_dir, tools.Timer(100, 1))
             print("Current health: {}".format(self.health))
             print("Knock direction: {}".format(knock_dir))
 
@@ -253,24 +257,33 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             if self.hit_state.done:
                 self.hit_state = False
             self.redraw = True
+        if self.knock_state:
+            knock_timer = self.knock_state[1]
+            knock_timer.check_tick(now)
+            if knock_timer.done:
+                self.knock_state = False
 
     def update(self, now, dt):
         """Updates our player appropriately every frame."""
         self.check_states(now)
         self.adjust_frames(now)
-        if self.action_state != "attack":
-            self.move(dt)
-        else:
+        self.move(dt)
+        if self.action_state == "attack":
             self.equipped["weapon"].attack(self, now)
         self.rect.topleft = self.exact_position
 
     def move(self, dt):
         """Move the player if not attacking (or interupted some other way)."""
         self.old_position = self.exact_position[:]
-        if self.direction_stack:
-            vector = prepare.DIRECT_DICT[self.direction_stack[-1]]
-            self.exact_position[0] += self.speed*vector[0]*dt
-            self.exact_position[1] += self.speed*vector[1]*dt
+        if self.action_state != "attack":
+            if self.direction_stack:
+                vector = prepare.DIRECT_DICT[self.direction_stack[-1]]
+                self.exact_position[0] += self.speed*vector[0]*dt
+                self.exact_position[1] += self.speed*vector[1]*dt
+        if self.knock_state:
+            vector = prepare.DIRECT_DICT[self.knock_state[0]]
+            self.exact_position[0] += KNOCK_SPEED*vector[0]*dt
+            self.exact_position[1] += KNOCK_SPEED*vector[1]*dt
 
     def draw(self, surface):
         """Draw the appropriate frames to the target surface."""
