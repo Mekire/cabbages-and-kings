@@ -4,6 +4,7 @@ This module initializes the display and creates dictionaries of resources.
 
 import os
 import pygame as pg
+
 from . import tools
 
 

@@ -8,6 +8,7 @@ more and more unmaintainable. This eventually led to it being abandoned.
 
 import sys
 import pygame as pg
+
 from data.main import main
 
 
