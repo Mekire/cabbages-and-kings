@@ -86,7 +86,7 @@ class _ImageProcessing(object):
                 image.set_palette(palette)
                 image.set_colorkey(colorkey)
                 frames.append(image)
-            anims[direction] = tools.Anim(frames, HIT_ANIMATION_FPS, loops=5)
+            anims[direction] = tools.Anim(frames, HIT_ANIMATION_FPS)
         return anims
 
     def get_part_image(self, direction, part, frame):
@@ -172,7 +172,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         """Update the sprite's animation as needed."""
         if self.direction_stack:
             self.direction = self.direction_stack[-1]
-        animation_dict = self.all_animations[self.hit_state]
+        animation_dict = self.all_animations[bool(self.hit_state)]
         animation = animation_dict[self.action_state][self.direction]
         if self.direction_stack or self.hit_state or self.redraw:
             self.image = animation.get_next_frame(now)
@@ -200,10 +200,9 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
 
     def got_hit(self, enemy_damage):
         """Called on collision with enemy."""
-        # Needs generalizing to all objects later.
         if not self.hit_state:
             self.health = min(self.health-enemy_damage, 0)
-            self.hit_state = True
+            self.hit_state = tools.Timer(50, 10)
 
     def attack(self):
         """Change attack flag to True if weapon is ready."""
@@ -212,29 +211,21 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
                 self.action_state = "attack"
                 self.redraw = True
 
-    def check_states(self):
+    def check_states(self, now):
         """Change states when required."""
         attacking = self.action_state == "attack"
         if attacking and not self.equipped["weapon"].attacking:
             self.action_state = "normal"
             self.redraw = True
         if self.hit_state:
-            #This mess counts the loops of all strobing animations together.
-            #When these animations sum to 5, they all reset.
-            total_loops = 0
-            animation_dict = self.all_animations[self.hit_state]
-            for action in animation_dict.values():
-                total_loops += sum(anim.loop_count for anim in action.values())
-            if total_loops >= 5:
-                for action in animation_dict.values():
-                    for anim in action.values():
-                        anim.reset()
+            self.hit_state.check_tick(now)
+            if self.hit_state.done:
                 self.hit_state = False
             self.redraw = True
 
     def update(self, now, dt):
         """Updates our player appropriately every frame."""
-        self.check_states()
+        self.check_states(now)
         self.adjust_frames(now)
         if self.action_state != "attack":
             self.move(dt)

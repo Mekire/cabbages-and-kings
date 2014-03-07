@@ -165,7 +165,7 @@ class _Weapon(_Equipment):
         self.attack_images = None
         self.anims = None
         self.anim_rects = None
-        self.frame = None
+        self.anim_image = None
         self.attacking = False
         self.delay = 300.0
         self.delay_timer = 0.0
@@ -197,7 +197,7 @@ class _Weapon(_Equipment):
         self.anim = self.anims[player.direction]
         if self.anim.timer is None:
             self.sound.play()
-        self.frame = self.anim.get_next_frame(now)
+        self.anim_image = self.anim.get_next_frame(now)
         if self.anim.done:
             self.reset_attack()
         if self.attacking:
@@ -206,7 +206,7 @@ class _Weapon(_Equipment):
     def draw_attack(self, surface, direction):
         """Called from the player's draw method if the attacing flag is set."""
         rect = self.anim_rects[direction][self.anim.frame]
-        surface.blit(self.frame, rect)
+        surface.blit(self.anim_image, rect)
 
     def get_attack_position(self, player_rect, direction):
         """

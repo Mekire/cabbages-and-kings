@@ -86,6 +86,8 @@ class _Enemy(pg.sprite.Sprite):
     def __init__(self, pos, speed, state, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
         self.rect = pg.Rect(pos, prepare.CELL_SIZE)
+        self.mask = pg.Mask(prepare.CELL_SIZE)
+        self.mask.fill()
         self.exact_position = list(self.rect.topleft)
         self.steps = [0, 0]
         self.ai = BasicAI(self)
