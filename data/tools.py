@@ -199,6 +199,7 @@ class Timer(object):
         """Returns true if a tick worth of time has passed."""
         if not self.timer:
             self.timer = now
+            return True
         elif not self.done and now-self.timer > self.delay:
             self.tick_count += 1
             self.timer = now

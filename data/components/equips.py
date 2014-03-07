@@ -167,8 +167,7 @@ class _Weapon(_Equipment):
         self.anim_rects = None
         self.anim_image = None
         self.attacking = False
-        self.delay = 300.0
-        self.delay_timer = 0.0
+        self.delay_timer = tools.Timer(300)
 
     def get_images(self, sheet, sheet_location):
         """Get the weapon images assuming a standard layout."""
@@ -183,9 +182,7 @@ class _Weapon(_Equipment):
         Checks the time to see if the weapon's after attack delay has
         elapsed.
         """
-        now = pg.time.get_ticks()
-        if not self.attacking and (now-self.delay_timer) > self.delay:
-            self.delay_timer = now
+        if self.delay_timer.check_tick(pg.time.get_ticks()):
             self.attacking = True
             return True
 
