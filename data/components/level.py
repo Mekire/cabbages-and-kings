@@ -121,13 +121,15 @@ class Level(object):
         Check collisions and call the appropriate functions of the affected
         sprites.
         """
+        mask_collidable = pg.sprite.collide_mask
+        collide_any = pg.sprite.spritecollideany
         hits = pg.sprite.spritecollide(self.player, self.solid_group, False)
-        collidable = pg.sprite.collide_mask
-        if pg.sprite.spritecollideany(self.player, hits, collidable):
+        if collide_any(self.player, hits, mask_collidable):
             self.player.collide_with_solid()
-        enemy_collision = pg.sprite.spritecollideany(self.player, self.enemies)
-        if enemy_collision:
-            enemy_collision.collide_with_player(self.player)
+        hit_enemies = pg.sprite.spritecollide(self.player, self.enemies, False)
+        hit_enemy = collide_any(self.player, hit_enemies, mask_collidable)
+        if hit_enemy:
+            hit_enemy.collide_with_player(self.player)
 
     def draw(self,surface):
         """

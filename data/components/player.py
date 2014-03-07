@@ -198,11 +198,42 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.exact_position = self.old_position
         self.rect.topleft = self.exact_position
 
-    def got_hit(self, enemy_damage):
+    def got_hit(self, enemy):
         """Called on collision with enemy."""
         if not self.hit_state:
-            self.health = min(self.health-enemy_damage, 0)
+            self.health = max(self.health-enemy.attack, 0)
             self.hit_state = tools.Timer(50, 10)
+            knock_dir = self.get_collision_direction(enemy)
+            print("Current health: {}".format(self.health))
+            print("Knock direction: {}".format(knock_dir))
+
+    def get_collision_direction(self, other_sprite):
+        """
+        Find the direction the player will be knocked after colliding
+        with an enemy.
+        """
+        dx = self.get_finite_difference(other_sprite, 0)
+        dy = self.get_finite_difference(other_sprite, 1)
+        abs_x, abs_y = abs(dx), abs(dy)
+        if abs_x > abs_y:
+            return "right" if dx > 0 else "left"
+        else:
+            return "front" if dy > 0 else "back"
+
+    def get_finite_difference(self, other_sprite, index, delta=1):
+        """
+        Find the finite difference in area of mask collision with the
+        rects position incremented and decremented in axis index by delta.
+        """
+        base_offset = [other_sprite.rect.x-self.rect.x,
+                       other_sprite.rect.y-self.rect.y]
+        offset_high = base_offset[:]
+        offset_low = base_offset[:]
+        offset_high[index] += delta
+        offset_low[index] -= delta
+        first_term = self.mask.overlap_area(other_sprite.mask, offset_high)
+        second_term = self.mask.overlap_area(other_sprite.mask, offset_low)
+        return first_term-second_term
 
     def attack(self):
         """Change attack flag to True if weapon is ready."""

@@ -108,7 +108,7 @@ class _Enemy(pg.sprite.Sprite):
                                           self.rect.center, prepare.CELL_SIZE)
 
     def collide_with_player(self, player):
-        player.got_hit(self.attack)
+        player.got_hit(self)
 
     def update(self, now, dt, obstacles):
         """
