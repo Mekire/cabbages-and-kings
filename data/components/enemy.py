@@ -12,6 +12,8 @@ ENEMIES = {"cabbage" : [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0)],
            "zombie" : [(0,3),(1,3),(6,4),(7,4),(8,2),(9,2),(2,3),(3,3),(8,4),
                        (9,4),(8,6),(9,6),(4,3),(5,3),(6,3),(7,3),(8,3),(9,3)]}
 
+KNOCK_SPEED = 750  #Pixels per second.
+
 
 class BasicAI(object):
     """
@@ -98,6 +100,8 @@ class _Enemy(pg.sprite.Sprite):
         self.shadow = shadow.Shadow((40,20), self.rect)
         self.image = None
         self.state = state
+        self.hit_state = False
+        self.knock_dir = None
 
     def get_occupied_cell(self):
         """
@@ -108,7 +112,15 @@ class _Enemy(pg.sprite.Sprite):
                                           self.rect.center, prepare.CELL_SIZE)
 
     def collide_with_player(self, player):
+        """Call the player's got_hit function doing damage, knocking, etc."""
         player.got_hit(self)
+
+    def got_hit(self, player):
+        if not self.hit_state:
+            self.state = "hit"
+            self.hit_state = tools.Timer(200, 1)
+            self.knock_dir = player.direction
+            print("knocked")
 
     def update(self, now, dt, obstacles):
         """
@@ -118,24 +130,34 @@ class _Enemy(pg.sprite.Sprite):
         direction.  Finally, update the sprite's rect and animation.
         """
         change_dir = False
-        #Update position and steps.
-        for i in (0,1):
-            vec_component = prepare.DIRECT_DICT[self.direction][i]
-            self.exact_position[i] += vec_component*self.speed*dt
-            self.steps[i] += abs(vec_component*self.speed*dt)
-        #Snap to grid if steps exceeds prepare.CELL_SIZE.
+        self.move(dt)
         if any(val >= prepare.CELL_SIZE[i] for i,val in enumerate(self.steps)):
-            self.steps = [0, 0]
-            self.rect.topleft = self.get_occupied_cell()
-            self.exact_position = list(self.rect.topleft)
+            self.snap_to_grid()
             change_dir = True
-        #Query AI for new direction
         if change_dir:
             self.direction = self.ai(obstacles)
             if self.direction in self.anim_directions:
                 self.anim_direction = self.direction
+        if self.hit_state:
+            self.hit_state.check_tick(now)
+            if self.hit_state.done:
+                self.state = "walk"
+                self.hit_state = False
         self.rect.topleft = self.exact_position
-        #Select correct animation.
+        self.adjust_image(now)
+
+    def move(self, dt):
+        for i in (0,1):
+            vec_component = prepare.DIRECT_DICT[self.direction][i]
+            self.exact_position[i] += vec_component*self.speed*dt
+            self.steps[i] += abs(vec_component*self.speed*dt)
+
+    def snap_to_grid(self):
+        self.steps = [0, 0]
+        self.rect.topleft = self.get_occupied_cell()
+        self.exact_position = list(self.rect.topleft)
+
+    def adjust_image(self, now):
         try:
             anim = self.anims[self.state][self.anim_direction]
         except TypeError:

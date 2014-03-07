@@ -56,7 +56,7 @@ class Level(object):
         self.enemies = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
         enemy.Cabbage((500,500), 0, "walk", self.enemies, self.main_sprites)
-        enemy.Zombie((50,300), 200, "walk", self.enemies, self.main_sprites)
+        enemy.Zombie((50,300), 50, "walk", self.enemies, self.main_sprites)
         enemy.Snake((850,300), 120, "walk", self.enemies, self.main_sprites)
 
         self.map_dict = self.load_map(map_name)
@@ -130,6 +130,13 @@ class Level(object):
         hit_enemy = collide_any(self.player, hit_enemies, mask_collidable)
         if hit_enemy:
             hit_enemy.collide_with_player(self.player)
+
+        weap = self.player.equipped["weapon"]
+        for badguy in self.enemies:
+            if weap.attacking:
+                rect = weap.anim_rects[self.player.direction][weap.anim.frame]
+                if rect.colliderect(badguy.rect):
+                    badguy.got_hit(self.player)
 
     def draw(self,surface):
         """

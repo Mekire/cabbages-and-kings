@@ -172,8 +172,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
 
     def adjust_frames(self, now):
         """Update the sprite's animation as needed."""
-        if self.direction_stack:
-            self.direction = self.direction_stack[-1]
         animation_dict = self.all_animations[bool(self.hit_state)]
         animation = animation_dict[self.action_state][self.direction]
         if self.direction_stack or self.hit_state or self.redraw:
@@ -209,7 +207,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             knock_dir = self.get_collision_direction(enemy)
             self.knock_state = (knock_dir, tools.Timer(100, 1))
             print("Current health: {}".format(self.health))
-            print("Knock direction: {}".format(knock_dir))
 
     def get_collision_direction(self, other_sprite):
         """
@@ -266,8 +263,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
     def update(self, now, dt):
         """Updates our player appropriately every frame."""
         self.check_states(now)
-        self.adjust_frames(now)
         self.move(dt)
+        self.adjust_frames(now)
         if self.action_state == "attack":
             self.equipped["weapon"].attack(self, now)
         self.rect.topleft = self.exact_position
@@ -275,11 +272,11 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
     def move(self, dt):
         """Move the player if not attacking (or interupted some other way)."""
         self.old_position = self.exact_position[:]
-        if self.action_state != "attack":
-            if self.direction_stack:
-                vector = prepare.DIRECT_DICT[self.direction_stack[-1]]
-                self.exact_position[0] += self.speed*vector[0]*dt
-                self.exact_position[1] += self.speed*vector[1]*dt
+        if self.action_state != "attack" and self.direction_stack:
+            self.direction = self.direction_stack[-1]
+            vector = prepare.DIRECT_DICT[self.direction]
+            self.exact_position[0] += self.speed*vector[0]*dt
+            self.exact_position[1] += self.speed*vector[1]*dt
         if self.knock_state:
             vector = prepare.DIRECT_DICT[self.knock_state[0]]
             self.exact_position[0] += KNOCK_SPEED*vector[0]*dt
