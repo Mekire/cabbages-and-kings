@@ -206,7 +206,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             self.hit_state = tools.Timer(50, 10)
             knock_dir = self.get_collision_direction(enemy)
             self.knock_state = (knock_dir, tools.Timer(100, 1))
-            print("Current health: {}".format(self.health))
+##            print("Current health: {}".format(self.health))
 
     def get_collision_direction(self, other_sprite):
         """

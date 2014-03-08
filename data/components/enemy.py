@@ -46,8 +46,7 @@ class BasicAI(object):
         Check if the sprite attempts to leave the screen or move into a
         solid obstacle.
         """
-        off_screen = not prepare.PLAY_RECT.contains(self.sprite.rect)
-        return off_screen or pg.sprite.spritecollideany(self.sprite, obstacles)
+        return pg.sprite.spritecollideany(self.sprite, obstacles)
 
 
 class LinearAI(BasicAI):
@@ -101,7 +100,10 @@ class _Enemy(pg.sprite.Sprite):
         self.image = None
         self.state = state
         self.hit_state = False
+
         self.knock_dir = None
+        self.knock_collide = None
+        self.knocked_final = None
 
     def get_occupied_cell(self):
         """
@@ -115,12 +117,62 @@ class _Enemy(pg.sprite.Sprite):
         """Call the player's got_hit function doing damage, knocking, etc."""
         player.got_hit(self)
 
-    def got_hit(self, player):
+    def got_hit(self, player, obstacles):
         if not self.hit_state:
             self.state = "hit"
             self.hit_state = tools.Timer(200, 1)
             self.knock_dir = player.direction
-            print("knocked")
+            self.got_knocked_collision(obstacles)
+
+    def got_knocked_collision(self, obstacles):
+        self.knock_collide = None
+        self.knock_final = None
+        for knocked_distance in (1, 2, 3):
+            move = [0, 0]
+            for j in (0, 1):
+                component = prepare.DIRECT_DICT[self.knock_dir][j]
+                move[j] += component*prepare.CELL_SIZE[j]*knocked_distance
+            self.rect.move_ip(*move)
+            collide = pg.sprite.spritecollideany(self, obstacles)
+            self.rect.move_ip(-move[0], -move[1])
+            if collide:
+                self.knock_collide = collide.rect
+                break
+        else:
+            move = [0, 0]
+            for j in (0, 1):
+                component = prepare.DIRECT_DICT[self.knock_dir][j]
+                move[j] += component*prepare.CELL_SIZE[j]*4
+            self.knock_final = self.rect.move(*move)
+##        print(repr(self.knock_collide), repr(self.knock_final))
+
+    def getting_knocked(self, dt):
+        for i in (0,1):
+            vec_component = prepare.DIRECT_DICT[self.knock_dir][i]
+            self.exact_position[i] += vec_component*KNOCK_SPEED*dt
+        test_rect = pg.Rect(self.exact_position, prepare.CELL_SIZE)
+        if self.knock_collide and test_rect.colliderect(self.knock_collide):
+            index = self.knock_dir in ("front", "back")
+            current = self.direction in ("front", "back")
+            self.adjust_on_collide(test_rect, self.knock_collide, index)
+            self.exact_position = list(test_rect.topleft)
+            if index == current or list(map(int, self.steps)) == [0, 0]:
+                self.steps = [51, 51]
+        elif self.knock_final and test_rect.colliderect(self.knock_final):
+            index = self.knock_dir in ("front", "back")
+            self.adjust_on_collide(test_rect, self.knock_final, index)
+            self.exact_position = list(test_rect.topleft)
+            if list(map(int, self.steps)) == [0, 0]:
+                self.steps = [51, 51]
+
+    def adjust_on_collide(self, rect_to_adjust, collide_rect, i):
+        """
+        Adjust sprites's position if colliding with a block while knocked.
+        """
+        if rect_to_adjust[i] < collide_rect[i]:
+            rect_to_adjust[i] = collide_rect[i]-rect_to_adjust.size[i]
+        else:
+            rect_to_adjust[i] = collide_rect[i]+collide_rect.size[i]
 
     def update(self, now, dt, obstacles):
         """
@@ -129,17 +181,12 @@ class _Enemy(pg.sprite.Sprite):
         will be snapped to the cell and their AI will be queried for a new
         direction.  Finally, update the sprite's rect and animation.
         """
-        change_dir = False
-        self.move(dt)
-        if any(val >= prepare.CELL_SIZE[i] for i,val in enumerate(self.steps)):
-            self.snap_to_grid()
-            change_dir = True
-        if change_dir:
-            self.direction = self.ai(obstacles)
-            if self.direction in self.anim_directions:
-                self.anim_direction = self.direction
+        if not self.hit_state:
+            self.move(dt)
+            self.change_direction(obstacles)
         if self.hit_state:
             self.hit_state.check_tick(now)
+            self.getting_knocked(dt)
             if self.hit_state.done:
                 self.state = "walk"
                 self.hit_state = False
@@ -147,17 +194,31 @@ class _Enemy(pg.sprite.Sprite):
         self.adjust_image(now)
 
     def move(self, dt):
+        """Move the sprites exact position and add to steps appropriately."""
         for i in (0,1):
             vec_component = prepare.DIRECT_DICT[self.direction][i]
             self.exact_position[i] += vec_component*self.speed*dt
             self.steps[i] += abs(vec_component*self.speed*dt)
 
+    def change_direction(self, obstacles):
+        """
+        If either element of steps is greater than the corresponding
+        element of CELL_SIZE, query AI for new direction.
+        """
+        if any(x >= prepare.CELL_SIZE[i] for i,x in enumerate(self.steps)):
+            self.snap_to_grid()
+            self.direction = self.ai(obstacles)
+            if self.direction in self.anim_directions:
+                self.anim_direction = self.direction
+
     def snap_to_grid(self):
+        """Reset steps and snap the sprite to its current cell."""
         self.steps = [0, 0]
         self.rect.topleft = self.get_occupied_cell()
         self.exact_position = list(self.rect.topleft)
 
     def adjust_image(self, now):
+        """Get the current frame from the appropriate animation."""
         try:
             anim = self.anims[self.state][self.anim_direction]
         except TypeError:

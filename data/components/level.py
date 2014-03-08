@@ -17,6 +17,12 @@ else:
 ANIMATED_TILES = {(0,0) : 2}
 
 
+class CollisionRect(pg.sprite.Sprite):
+    def __init__(self, rect, *groups):
+        pg.sprite.Sprite.__init__(self, *groups)
+        self.rect = rect
+
+
 class Tile(pg.sprite.Sprite):
     """A basic tile."""
     def __init__(self, sheet, source, target, make_mask=False):
@@ -62,6 +68,18 @@ class Level(object):
         self.map_dict = self.load_map(map_name)
         self.background = self.make_background()
         self.layer_groups, self.solid_group = self.make_all_layer_groups()
+        self.borders = self.make_borders()
+        self.solids_borders = pg.sprite.Group(self.solid_group, self.borders)
+
+    def make_borders(self):
+        borders = pg.sprite.Group()
+        right = pg.Rect(prepare.PLAY_RECT.w, 0, 50, prepare.PLAY_RECT.h)
+        left = pg.Rect(-50, 0, 50, prepare.PLAY_RECT.h)
+        top = pg.Rect(0, -50, prepare.PLAY_RECT.w, 50)
+        bottom = pg.Rect(0, prepare.PLAY_RECT.h, prepare.PLAY_RECT.w, 50)
+        for rect in (right, left, top, bottom):
+            CollisionRect(rect, borders)
+        return borders
 
     def load_map(self, map_name):
         """Load the map data from a resource file."""
@@ -113,7 +131,7 @@ class Level(object):
         """
         for layer in self.layer_groups:
             self.layer_groups[layer].update(current_time)
-        self.enemies.update(current_time, dt, self.solid_group)
+        self.enemies.update(current_time, dt, self.solids_borders)
         self.check_collisions()
 
     def check_collisions(self):
@@ -130,13 +148,15 @@ class Level(object):
         hit_enemy = collide_any(self.player, hit_enemies, mask_collidable)
         if hit_enemy:
             hit_enemy.collide_with_player(self.player)
+        self.process_attacks()
 
+    def process_attacks(self):
         weap = self.player.equipped["weapon"]
         for badguy in self.enemies:
             if weap.attacking:
                 rect = weap.anim_rects[self.player.direction][weap.anim.frame]
                 if rect.colliderect(badguy.rect):
-                    badguy.got_hit(self.player)
+                    badguy.got_hit(self.player, self.solids_borders)
 
     def draw(self,surface):
         """
