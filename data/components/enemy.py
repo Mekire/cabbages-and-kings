@@ -100,10 +100,10 @@ class _Enemy(pg.sprite.Sprite):
         self.image = None
         self.state = state
         self.hit_state = False
-
+        self.knock_state = False
         self.knock_dir = None
         self.knock_collide = None
-        self.knocked_final = None
+        self.knock_clear = None
 
     def get_occupied_cell(self):
         """
@@ -118,52 +118,63 @@ class _Enemy(pg.sprite.Sprite):
         player.got_hit(self)
 
     def got_hit(self, player, obstacles):
+        """
+        Called from the level class if the player is attacking and the
+        weapon rect collides with the sprite.
+        """
         if not self.hit_state:
             self.state = "hit"
             self.hit_state = tools.Timer(200, 1)
+            self.knock_state = True
             self.knock_dir = player.direction
             self.got_knocked_collision(obstacles)
 
     def got_knocked_collision(self, obstacles):
+        """
+        Check the next 3 cells for collisions and set knock_collide to
+        the first one found.  If none are sound set knock_clear to the 4th rect
+        for a reference point.
+        """
         self.knock_collide = None
-        self.knock_final = None
+        self.knock_clear = None
+        index = self.knock_dir in ("front", "back")
+        cell_size = prepare.CELL_SIZE[index]
+        component = prepare.DIRECT_DICT[self.knock_dir][index]
         for knocked_distance in (1, 2, 3):
-            move = [0, 0]
-            for j in (0, 1):
-                component = prepare.DIRECT_DICT[self.knock_dir][j]
-                move[j] += component*prepare.CELL_SIZE[j]*knocked_distance
-            self.rect.move_ip(*move)
+            move = component*cell_size*knocked_distance
+            self.rect[index] += move
             collide = pg.sprite.spritecollideany(self, obstacles)
-            self.rect.move_ip(-move[0], -move[1])
+            self.rect[index] -= move
             if collide:
                 self.knock_collide = collide.rect
                 break
         else:
-            move = [0, 0]
-            for j in (0, 1):
-                component = prepare.DIRECT_DICT[self.knock_dir][j]
-                move[j] += component*prepare.CELL_SIZE[j]*4
-            self.knock_final = self.rect.move(*move)
-##        print(repr(self.knock_collide), repr(self.knock_final))
+            self.knock_clear = self.rect.copy()
+            self.knock_clear[index] += component*cell_size*(knocked_distance+1)
 
     def getting_knocked(self, dt):
+        """
+        Update exact position based on knock and check if sprite has reached
+        the final rect (either knock_collide or knock_clear).
+        """
         for i in (0,1):
             vec_component = prepare.DIRECT_DICT[self.knock_dir][i]
             self.exact_position[i] += vec_component*KNOCK_SPEED*dt
         test_rect = pg.Rect(self.exact_position, prepare.CELL_SIZE)
-        if self.knock_collide and test_rect.colliderect(self.knock_collide):
+        if self.knock_clear:
+            test_against = self.knock_clear
+        else:
+            test_against = self.knock_collide
+        if test_rect.colliderect(test_against):
             index = self.knock_dir in ("front", "back")
             current = self.direction in ("front", "back")
-            self.adjust_on_collide(test_rect, self.knock_collide, index)
+            step_near_zero = [int(step) for step in self.steps] == [0, 0]
+            self.adjust_on_collide(test_rect, test_against, index)
             self.exact_position = list(test_rect.topleft)
-            if index == current or list(map(int, self.steps)) == [0, 0]:
-                self.steps = [51, 51]
-        elif self.knock_final and test_rect.colliderect(self.knock_final):
-            index = self.knock_dir in ("front", "back")
-            self.adjust_on_collide(test_rect, self.knock_final, index)
-            self.exact_position = list(test_rect.topleft)
-            if list(map(int, self.steps)) == [0, 0]:
-                self.steps = [51, 51]
+            if (index == current and self.knock_collide) or step_near_zero:
+                #Makes update find a new direction next loop.
+                self.steps = list(prepare.CELL_SIZE)
+            self.knock_state = False
 
     def adjust_on_collide(self, rect_to_adjust, collide_rect, i):
         """
@@ -187,7 +198,7 @@ class _Enemy(pg.sprite.Sprite):
         if self.hit_state:
             self.hit_state.check_tick(now)
             self.getting_knocked(dt)
-            if self.hit_state.done:
+            if self.hit_state.done and not self.knock_state:
                 self.state = "walk"
                 self.hit_state = False
         self.rect.topleft = self.exact_position
