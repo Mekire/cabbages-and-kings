@@ -64,9 +64,12 @@ class LinearAI(BasicAI):
         Try all other directions before attempting to go in the opposite
         direction.
         """
-        opposite = prepare.OPPOSITE_DICT[self.sprite.direction]
-        directions = prepare.DIRECTIONS[:]
-        directions.remove(opposite)
+        try:
+            opposite = prepare.OPPOSITE_DICT[self.sprite.direction]
+            directions = prepare.DIRECTIONS[:]
+            directions.remove(opposite)
+        except KeyError:
+            directions = prepare.DIRECTIONS[:]
         random.shuffle(directions)
         new_dir = None
         while directions and not new_dir:
@@ -93,9 +96,9 @@ class _Enemy(pg.sprite.Sprite):
         self.steps = [0, 0]
         self.ai = BasicAI(self)
         self.speed = speed
-        self.direction = random.choice(prepare.DIRECTIONS)
-        self.anim_direction = self.direction
+        self.direction = None
         self.anim_directions = prepare.DIRECTIONS[:]
+        self.anim_direction = random.choice(self.anim_directions)
         self.shadow = shadow.Shadow((40,20), self.rect)
         self.image = None
         self.state = "walk"
@@ -137,7 +140,7 @@ class _Enemy(pg.sprite.Sprite):
     def got_knocked_collision(self, obstacles):
         """
         Check the next 3 cells for collisions and set knock_collide to
-        the first one found.  If none are sound set knock_clear to the 4th rect
+        the first one found.  If none are found set knock_clear to the 4th rect
         for a reference point.
         """
         self.knock_collide = None
@@ -198,8 +201,12 @@ class _Enemy(pg.sprite.Sprite):
         direction.  Finally, update the sprite's rect and animation.
         """
         if self.state not in ("hit", "die"):
-            self.move(dt)
-            self.change_direction(obstacles)
+            if self.direction:
+                self.move(dt)
+            else:
+                self.change_direction(obstacles)
+            if any(x >= prepare.CELL_SIZE[i] for i,x in enumerate(self.steps)):
+                self.change_direction(obstacles)
         if self.hit_state:
             self.hit_state.check_tick(now)
             self.getting_knocked(dt)
@@ -223,11 +230,10 @@ class _Enemy(pg.sprite.Sprite):
         If either element of steps is greater than the corresponding
         element of CELL_SIZE, query AI for new direction.
         """
-        if any(x >= prepare.CELL_SIZE[i] for i,x in enumerate(self.steps)):
-            self.snap_to_grid()
-            self.direction = self.ai(obstacles)
-            if self.direction in self.anim_directions:
-                self.anim_direction = self.direction
+        self.snap_to_grid()
+        self.direction = self.ai(obstacles)
+        if self.direction in self.anim_directions:
+            self.anim_direction = self.direction
 
     def snap_to_grid(self):
         """Reset steps and snap the sprite to its current cell."""

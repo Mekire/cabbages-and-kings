@@ -14,7 +14,8 @@ else:
 
 
 #Location on animsheet : number of frames in animation.
-ANIMATED_TILES = {(0,0) : 2}
+ANIMATED_TILES = {(0, 0) : 2,
+                  (0, 50) : 2}
 
 
 class CollisionRect(pg.sprite.Sprite):
@@ -61,7 +62,7 @@ class Level(object):
         self.player = player
         self.enemies = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
-        enemy.Zombie((400,500), 20, self.enemies, self.main_sprites)
+        enemy.Zombie((400,500), 40, self.enemies, self.main_sprites)
         enemy.Snake((50,300), 50, self.enemies, self.main_sprites)
         enemy.Cabbage((850,300), 120, self.enemies, self.main_sprites)
 
