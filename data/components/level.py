@@ -61,9 +61,9 @@ class Level(object):
         self.player = player
         self.enemies = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
-        enemy.Cabbage((500,500), 0, "walk", self.enemies, self.main_sprites)
-        enemy.Zombie((50,300), 50, "walk", self.enemies, self.main_sprites)
-        enemy.Snake((850,300), 120, "walk", self.enemies, self.main_sprites)
+        enemy.Zombie((400,500), 20, self.enemies, self.main_sprites)
+        enemy.Snake((50,300), 50, self.enemies, self.main_sprites)
+        enemy.Cabbage((850,300), 120, self.enemies, self.main_sprites)
 
         self.map_dict = self.load_map(map_name)
         self.background = self.make_background()

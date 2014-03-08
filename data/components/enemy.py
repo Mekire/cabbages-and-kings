@@ -84,7 +84,7 @@ class _Enemy(pg.sprite.Sprite):
     """
     The base class for all enemies.
     """
-    def __init__(self, pos, speed, state, *groups):
+    def __init__(self, pos, speed, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
         self.rect = pg.Rect(pos, prepare.CELL_SIZE)
         self.mask = pg.Mask(prepare.CELL_SIZE)
@@ -98,7 +98,7 @@ class _Enemy(pg.sprite.Sprite):
         self.anim_directions = prepare.DIRECTIONS[:]
         self.shadow = shadow.Shadow((40,20), self.rect)
         self.image = None
-        self.state = state
+        self.state = "walk"
         self.hit_state = False
         self.knock_state = False
         self.knock_dir = None
@@ -115,7 +115,8 @@ class _Enemy(pg.sprite.Sprite):
 
     def collide_with_player(self, player):
         """Call the player's got_hit function doing damage, knocking, etc."""
-        player.got_hit(self)
+        if self.state != "die":
+            player.got_hit(self)
 
     def got_hit(self, player, obstacles):
         """
@@ -123,11 +124,15 @@ class _Enemy(pg.sprite.Sprite):
         weapon rect collides with the sprite.
         """
         if not self.hit_state:
-            self.state = "hit"
-            self.hit_state = tools.Timer(200, 1)
-            self.knock_state = True
-            self.knock_dir = player.direction
-            self.got_knocked_collision(obstacles)
+            self.health -= player.equipped["weapon"].strength
+            if self.health > 0:
+                self.state = "hit"
+                self.hit_state = tools.Timer(300, 1)
+                self.knock_state = True
+                self.knock_dir = player.direction
+                self.got_knocked_collision(obstacles)
+            else:
+                self.state = "die"
 
     def got_knocked_collision(self, obstacles):
         """
@@ -192,7 +197,7 @@ class _Enemy(pg.sprite.Sprite):
         will be snapped to the cell and their AI will be queried for a new
         direction.  Finally, update the sprite's rect and animation.
         """
-        if not self.hit_state:
+        if self.state not in ("hit", "die"):
             self.move(dt)
             self.change_direction(obstacles)
         if self.hit_state:
@@ -201,8 +206,10 @@ class _Enemy(pg.sprite.Sprite):
             if self.hit_state.done and not self.knock_state:
                 self.state = "walk"
                 self.hit_state = False
+        elif self.state == "die" and self.get_anim().done:
+            self.kill()
         self.rect.topleft = self.exact_position
-        self.adjust_image(now)
+        self.image = self.get_anim().get_next_frame(now)
 
     def move(self, dt):
         """Move the sprites exact position and add to steps appropriately."""
@@ -228,13 +235,13 @@ class _Enemy(pg.sprite.Sprite):
         self.rect.topleft = self.get_occupied_cell()
         self.exact_position = list(self.rect.topleft)
 
-    def adjust_image(self, now):
+    def get_anim(self):
         """Get the current frame from the appropriate animation."""
         try:
             anim = self.anims[self.state][self.anim_direction]
         except TypeError:
             anim = self.anims[self.state]
-        self.image = anim.get_next_frame(now)
+        return anim
 
     def draw(self, surface):
         """Generic draw function."""
@@ -249,7 +256,7 @@ class Cabbage(_Enemy):
                                          ENEMIES["cabbage"], prepare.CELL_SIZE)
         self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
                       "hit" : tools.Anim(self.frames[2:4], 20),
-                      "die" : tools.Anim(self.frames[4:], 7, 1)}
+                      "die" : tools.Anim(self.frames[4:], 5, 1)}
         self.health = 3
         self.attack = 4
 
@@ -295,8 +302,11 @@ class Snake(_Enemy):
         hit = {"left" : tools.Anim(self.frames[2:4], 20),
                "right" : tools.Anim([pg.transform.flip(self.frames[2], 1, 0),
                                 pg.transform.flip(self.frames[3], 1, 0)], 20)}
+        flipped_die = [pg.transform.flip(f, 1, 0) for f in self.frames[4:]]
+        die = {"left" : tools.Anim(self.frames[4:], 5, 1),
+               "right" : tools.Anim(flipped_die, 5, 1)}
         self.anims = {"walk" : walk,
                       "hit" : hit,
-                      "die" : tools.Anim(self.frames[4:], 5, 1)}
+                      "die" : die}
         self.health = 6
         self.attack = 6

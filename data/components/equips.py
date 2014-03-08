@@ -241,7 +241,7 @@ class _Weapon(_Equipment):
 class PitchFork(_Weapon):
     """The first weapon our player will use. Very unimpressive."""
     def __init__(self):
-        stats = (0, 1, 0)
+        stats = (0, 2, 0)
         _Weapon.__init__(self, stats, (0,0))
         self.title = "Angry Mob Pitchfork"
         self.description = "Should vanquish all foes... Eventually."
@@ -255,12 +255,15 @@ class Labrys(_Weapon):
     to chop down certain trees/obstacles.
     """
     def __init__(self):
-        stats = (0, 2, 0)
+        stats = (0, 3, 0)
         _Weapon.__init__(self, stats, (0,50))
         self.title = "Mini-Labrys"
         self.description = "Foliage beware !"
         self.sound = prepare.SFX["whoosh"]
         self.anims, self.anim_rects = self.get_attack_info((0,20), (30,50), 3)
+        #Left frames need to be vertically flipped.
+        lefts = [pg.transform.flip(f,0,1) for f in self.anims["left"].frames]
+        self.anims["left"] = tools.Anim(lefts, 15.0, 1)
 
 
 #Organize all equips into a nested dictionary.
