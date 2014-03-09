@@ -4,8 +4,8 @@ This module contains the primary gameplay state.
 
 import pygame as pg
 
-from .. import prepare,tools
-from ..components import player, level
+from .. import prepare, tools
+from ..components import player, level, sidebar
 
 
 class Game(tools._State):
@@ -16,6 +16,7 @@ class Game(tools._State):
         self.player = player.Player((0,0,50,50),190)
         self.player.exact_position = list(prepare.SCREEN_RECT.center)
         self.level = level.Level(self.player, "central.map")
+        self.sidebar = sidebar.SideBar()
 
     def get_event(self, event):
         """
@@ -34,4 +35,6 @@ class Game(tools._State):
         self.current_time = current_time
         self.player.update(current_time, time_delta)
         self.level.update(current_time, time_delta)
+        self.sidebar.update(self.player)
         self.level.draw(surface)
+        self.sidebar.draw(surface)

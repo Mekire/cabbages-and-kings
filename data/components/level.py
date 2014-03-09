@@ -164,7 +164,6 @@ class Level(object):
         Draw all sprites and layers to the surface.  This may be greatly
         simplified if I implement layered sprite groups.
         """
-        surface.fill(pg.Color("black"),(1000,0,200,700)) ###Until sidebar.
         surface.blit(self.background, (0,0))
         for layer in ("BG Tiles", "Water"):
             self.layer_groups[layer].draw(surface)
