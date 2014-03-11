@@ -4,7 +4,7 @@ import pygame as pg
 
 from operator import attrgetter
 from .. import prepare, tools
-from . import enemy
+from . import enemy_sprites
 
 
 if sys.version_info[0] < 3:
@@ -67,9 +67,9 @@ class Level(object):
         self.enemies = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
-        enemy.Zombie((400,500), 40, self.enemies, self.main_sprites)
-        enemy.Snake((50,300), 50, self.enemies, self.main_sprites)
-        enemy.Cabbage((850,300), 120, self.enemies, self.main_sprites)
+        enemy_sprites.Zombie((400,500), 40, self.enemies, self.main_sprites)
+        enemy_sprites.Snake((50,300), 50, self.enemies, self.main_sprites)
+        enemy_sprites.Cabbage((850,300), 120, self.enemies, self.main_sprites)
 
         self.map_dict = self.load_map(map_name)
         self.background = self.make_background()
