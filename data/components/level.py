@@ -3,7 +3,7 @@ import sys
 import pygame as pg
 
 from operator import attrgetter
-from .. import prepare,tools
+from .. import prepare, tools
 from . import enemy
 
 
@@ -19,6 +19,7 @@ ANIMATED_TILES = {(0, 0) : 2,
 
 
 class CollisionRect(pg.sprite.Sprite):
+    """Just a rect that can be used as a sprite for collision purposes."""
     def __init__(self, rect, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
         self.rect = rect
@@ -77,6 +78,11 @@ class Level(object):
         self.solids_borders = pg.sprite.Group(self.solid_group, self.borders)
 
     def make_borders(self):
+        """
+        Creates a sprite group of rectangles that border the screen.
+        These are used to easily prevent enemies from leaving or being knocked
+        off the map.
+        """
         borders = pg.sprite.Group()
         right = pg.Rect(prepare.PLAY_RECT.w, 0, 50, prepare.PLAY_RECT.h)
         left = pg.Rect(-50, 0, 50, prepare.PLAY_RECT.h)
@@ -140,22 +146,6 @@ class Level(object):
         self.items.update(now)
         self.check_collisions()
 
-##    def check_collisions(self):
-##        """
-##        Check collisions and call the appropriate functions of the affected
-##        sprites.
-##        """
-##        mask_collidable = pg.sprite.collide_mask
-##        collide_any = pg.sprite.spritecollideany
-##        hits = pg.sprite.spritecollide(self.player, self.solid_group, False)
-##        if collide_any(self.player, hits, mask_collidable):
-##            self.player.collide_with_solid()
-##        hit_enemies = pg.sprite.spritecollide(self.player, self.enemies, False)
-##        hit_enemy = collide_any(self.player, hit_enemies, mask_collidable)
-##        if hit_enemy:
-##            hit_enemy.collide_with_player(self.player)
-##        self.process_attacks()
-
     def check_collisions(self):
         """
         Check collisions and call the appropriate functions of the affected
@@ -171,6 +161,10 @@ class Level(object):
         self.process_attacks()
 
     def process_attacks(self):
+        """
+        Check if the player is attacking, and is so, check if the attack rect
+        is hitting any enemies.
+        """
         weap = self.player.equipped["weapon"]
         if weap.attacking:
             rect = weap.anim_rects[self.player.direction][weap.anim.frame]

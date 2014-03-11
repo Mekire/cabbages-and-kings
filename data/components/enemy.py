@@ -53,7 +53,7 @@ class BasicAI(object):
 class LinearAI(BasicAI):
     """
     Another very basic AI.  Makes a sprite choose a new completely random
-    direction, but will not have select the completely opposite direction
+    direction, but will not select the completely opposite direction
     unless there are no other options available. Enemies still walk around
     completely randomly but appear much less chaotic than with the BasicAI.
     """
