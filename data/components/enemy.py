@@ -1,16 +1,17 @@
 import random
 import pygame as pg
 
-from . import shadow
+from . import shadow, item_sprites
 from .. import prepare, tools
 
 
 ENEMY_SHEET = prepare.GFX["enemies"]["enemysheet"]
 
-ENEMIES = {"cabbage" : [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0)],
-           "snake" : [(0,5),(1,5),(2,5),(3,5),(4,5),(5,5),(6,5),(7,5),(8,5)],
-           "zombie" : [(0,3),(1,3),(6,4),(7,4),(8,2),(9,2),(2,3),(3,3),(8,4),
-                       (9,4),(8,6),(9,6),(4,3),(5,3),(6,3),(7,3),(8,3),(9,3)]}
+ENEMY_COORDS = {
+    "cabbage" : [(0,0), (1,0), (2,0), (3,0), (4,0), (5,0), (6,0)],
+    "snake" : [(0,5), (1,5), (2,5), (3,5), (4,5), (5,5), (6,5), (7,5), (8,5)],
+    "zombie" : [(0,3), (1,3), (6,4), (7,4), (8,2), (9,2), (2,3), (3,3), (8,4),
+                (9,4), (8,6), (9,6), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3)]}
 
 KNOCK_SPEED = 750  #Pixels per second.
 
@@ -107,6 +108,7 @@ class _Enemy(pg.sprite.Sprite):
         self.knock_dir = None
         self.knock_collide = None
         self.knock_clear = None
+        self.drops = [None]
 
     def get_occupied_cell(self):
         """
@@ -121,7 +123,7 @@ class _Enemy(pg.sprite.Sprite):
         if self.state != "die":
             player.got_hit(self)
 
-    def got_hit(self, player, obstacles):
+    def got_hit(self, player, obstacles, *item_groups):
         """
         Called from the level class if the player is attacking and the
         weapon rect collides with the sprite.
@@ -134,8 +136,14 @@ class _Enemy(pg.sprite.Sprite):
                 self.knock_state = True
                 self.knock_dir = player.direction
                 self.got_knocked_collision(obstacles)
-            else:
+            elif self.state != "die":
+                self.drop_item(*item_groups)
                 self.state = "die"
+
+    def drop_item(self, *item_groups):
+        drop = random.choice(self.drops)
+        if drop:
+            item_sprites.ITEMS[drop](self.rect, 15, *item_groups)
 
     def got_knocked_collision(self, obstacles):
         """
@@ -259,12 +267,13 @@ class Cabbage(_Enemy):
     def __init__(self, *args):
         _Enemy.__init__(self, *args)
         self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
-                                         ENEMIES["cabbage"], prepare.CELL_SIZE)
+                                    ENEMY_COORDS["cabbage"], prepare.CELL_SIZE)
         self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
                       "hit" : tools.Anim(self.frames[2:4], 20),
                       "die" : tools.Anim(self.frames[4:], 5, 1)}
         self.health = 3
         self.attack = 4
+        self.drops = ["heart"]
 
 
 class Zombie(_Enemy):
@@ -273,7 +282,7 @@ class Zombie(_Enemy):
         _Enemy.__init__(self, *args)
         self.ai = LinearAI(self)
         self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
-                                          ENEMIES["zombie"], prepare.CELL_SIZE)
+                                     ENEMY_COORDS["zombie"], prepare.CELL_SIZE)
         walk = {"front" : tools.Anim(self.frames[:2], 7),
                 "back" : tools.Anim(self.frames[2:4], 7),
                 "left" : tools.Anim([pg.transform.flip(self.frames[4], 1, 0),
@@ -290,6 +299,7 @@ class Zombie(_Enemy):
                       "die" : tools.Anim(die_frames, 5, 1)}
         self.health = 10
         self.attack = 8
+        self.drops = ["heart"]
 
 
 class Snake(_Enemy):
@@ -301,7 +311,7 @@ class Snake(_Enemy):
         self.direction = self.anim_direction
         self.ai = LinearAI(self)
         self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
-                                           ENEMIES["snake"], prepare.CELL_SIZE)
+                                      ENEMY_COORDS["snake"], prepare.CELL_SIZE)
         walk = {"left" : tools.Anim(self.frames[:2], 7),
                 "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
                                 pg.transform.flip(self.frames[1], 1, 0)], 7)}

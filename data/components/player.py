@@ -137,7 +137,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.knock_state = False #(direction, tools.Timer()) tuple when true.
         self.redraw = True
         self.shadow = shadow.Shadow((40,20), self.rect)
-        self.health = 28
+        self.health = prepare.MAX_HEALTH
 
     def make_mask(self):
         """Create a collision mask for the player."""
@@ -206,7 +206,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             self.hit_state = tools.Timer(50, 10)
             knock_dir = self.get_collision_direction(enemy)
             self.knock_state = (knock_dir, tools.Timer(100, 1))
-##            print("Current health: {}".format(self.health))
 
     def get_collision_direction(self, other_sprite):
         """

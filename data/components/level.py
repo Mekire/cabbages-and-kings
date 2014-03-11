@@ -35,6 +35,9 @@ class Tile(pg.sprite.Sprite):
         if make_mask:
             self.mask = pg.mask.from_surface(self.image)
 
+    def collide_with_player(self, player):
+        player.collide_with_solid()
+
 
 class Animated_Tile(Tile):
     """
@@ -51,9 +54,9 @@ class Animated_Tile(Tile):
                                         prepare.CELL_SIZE, frames)
         self.anim = tools.Anim(frames, fps)
 
-    def update(self, current_time):
+    def update(self, now):
         """Check if the image should change frame."""
-        self.image = self.anim.get_next_frame(current_time)
+        self.image = self.anim.get_next_frame(now)
 
 
 class Level(object):
@@ -61,6 +64,7 @@ class Level(object):
     def __init__(self, player, map_name):
         self.player = player
         self.enemies = pg.sprite.Group()
+        self.items = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
         enemy.Zombie((400,500), 40, self.enemies, self.main_sprites)
         enemy.Snake((50,300), 50, self.enemies, self.main_sprites)
@@ -125,39 +129,55 @@ class Level(object):
                 group.add(Tile(sheet, source, target, make_mask))
         return group
 
-    def update(self, current_time, dt):
+    def update(self, now, dt):
         """
         Update all tiles (currently only affects animated water).
         Then check any collisions that may have occured.
         """
         for layer in self.layer_groups:
-            self.layer_groups[layer].update(current_time)
-        self.enemies.update(current_time, dt, self.solids_borders)
+            self.layer_groups[layer].update(now)
+        self.enemies.update(now, dt, self.solids_borders)
+        self.items.update(now)
         self.check_collisions()
+
+##    def check_collisions(self):
+##        """
+##        Check collisions and call the appropriate functions of the affected
+##        sprites.
+##        """
+##        mask_collidable = pg.sprite.collide_mask
+##        collide_any = pg.sprite.spritecollideany
+##        hits = pg.sprite.spritecollide(self.player, self.solid_group, False)
+##        if collide_any(self.player, hits, mask_collidable):
+##            self.player.collide_with_solid()
+##        hit_enemies = pg.sprite.spritecollide(self.player, self.enemies, False)
+##        hit_enemy = collide_any(self.player, hit_enemies, mask_collidable)
+##        if hit_enemy:
+##            hit_enemy.collide_with_player(self.player)
+##        self.process_attacks()
 
     def check_collisions(self):
         """
         Check collisions and call the appropriate functions of the affected
         sprites.
         """
-        mask_collidable = pg.sprite.collide_mask
-        collide_any = pg.sprite.spritecollideany
-        hits = pg.sprite.spritecollide(self.player, self.solid_group, False)
-        if collide_any(self.player, hits, mask_collidable):
-            self.player.collide_with_solid()
-        hit_enemies = pg.sprite.spritecollide(self.player, self.enemies, False)
-        hit_enemy = collide_any(self.player, hit_enemies, mask_collidable)
-        if hit_enemy:
-            hit_enemy.collide_with_player(self.player)
+        call_mask = pg.sprite.collide_mask
+        collide_group = pg.sprite.Group(self.solid_group, self.enemies,
+                                        self.items)
+        hit = pg.sprite.spritecollide(self.player, collide_group, False)
+        mask_hits = pg.sprite.spritecollide(self.player, hit, False, call_mask)
+        for hit in mask_hits:
+            hit.collide_with_player(self.player)
         self.process_attacks()
 
     def process_attacks(self):
         weap = self.player.equipped["weapon"]
-        for badguy in self.enemies:
-            if weap.attacking:
-                rect = weap.anim_rects[self.player.direction][weap.anim.frame]
+        if weap.attacking:
+            rect = weap.anim_rects[self.player.direction][weap.anim.frame]
+            for badguy in self.enemies:
                 if rect.colliderect(badguy.rect):
-                    badguy.got_hit(self.player, self.solids_borders)
+                    badguy.got_hit(self.player, self.solids_borders,
+                                   self.items, self.main_sprites)
 
     def draw(self,surface):
         """
@@ -168,7 +188,8 @@ class Level(object):
         for layer in ("BG Tiles", "Water"):
             self.layer_groups[layer].draw(surface)
         for sprite in self.main_sprites:
-            sprite.shadow.draw(surface)
+            if hasattr(sprite, "shadow"):
+                sprite.shadow.draw(surface)
         self.layer_groups["Solid"].draw(surface)
         for sprite in sorted(self.main_sprites, key=attrgetter("rect.y")):
             sprite.draw(surface)

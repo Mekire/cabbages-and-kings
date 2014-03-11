@@ -5,6 +5,8 @@ from .. import prepare, tools
 
 SIDEBAR_SIZE = (200, 700)
 HEAL_SIZE = (35, 35)
+HEAL_OFFSET = 15, 50
+HEAL_SPACER = 45
 
 
 class SideBar(object):
@@ -26,22 +28,25 @@ class SideBar(object):
             cells.append(one_column)
         return cells*2
 
-    def update(self, player):
-        self.image.blit(self.base, (0,0))
-        self.render_health(player)
-
     def render_health(self, player):
         count_health = 0
         for i,column in enumerate(self.cells):
             for cell in column[::-1]:
                 if count_health != player.health:
-                    if count_health < 14:
-                        self.image.blit(cell, (15+45*i,50))
+                    if count_health < prepare.MAX_HEALTH//2:
+                        pos_x = HEAL_OFFSET[0]+HEAL_SPACER*i
+                        pos_y = HEAL_OFFSET[1]
                     else:
-                        self.image.blit(cell, (15+45*(i-4),95))
+                        pos_x = HEAL_OFFSET[0]+HEAL_SPACER*(i-4)
+                        pos_y = HEAL_OFFSET[1]+HEAL_SPACER
+                    self.image.blit(cell, (pos_x,pos_y))
                     count_health += 1
                 else:
                     return
+
+    def update(self, player):
+        self.image.blit(self.base, (0,0))
+        self.render_health(player)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
