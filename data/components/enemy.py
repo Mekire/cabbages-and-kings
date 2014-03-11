@@ -88,8 +88,10 @@ class _Enemy(pg.sprite.Sprite):
     """
     The base class for all enemies.
     """
-    def __init__(self, pos, speed, *groups):
+    def __init__(self, name, sheet, pos, speed, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
+        coords, size = ENEMY_COORDS[name], prepare.CELL_SIZE
+        self.frames = tools.strip_coords_from_sheet(sheet, coords, size)
         self.rect = pg.Rect(pos, prepare.CELL_SIZE)
         self.mask = pg.Mask(prepare.CELL_SIZE)
         self.mask.fill()
@@ -141,6 +143,10 @@ class _Enemy(pg.sprite.Sprite):
                 self.state = "die"
 
     def drop_item(self, *item_groups):
+        """
+        Drop a random item from self.drop.  If None is chosen then no
+        item is dropped.
+        """
         drop = random.choice(self.drops)
         if drop:
             item_sprites.ITEMS[drop](self.rect, 15, *item_groups)
@@ -265,9 +271,7 @@ class _Enemy(pg.sprite.Sprite):
 class Cabbage(_Enemy):
     """The eponymous Cabbage monster. (1 direction)"""
     def __init__(self, *args):
-        _Enemy.__init__(self, *args)
-        self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
-                                    ENEMY_COORDS["cabbage"], prepare.CELL_SIZE)
+        _Enemy.__init__(self, "cabbage", ENEMY_SHEET, *args)
         self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
                       "hit" : tools.Anim(self.frames[2:4], 20),
                       "die" : tools.Anim(self.frames[4:], 5, 1)}
@@ -279,10 +283,8 @@ class Cabbage(_Enemy):
 class Zombie(_Enemy):
     """The typical stock zombie. (4 directions)"""
     def __init__(self, *args):
-        _Enemy.__init__(self, *args)
+        _Enemy.__init__(self,  "zombie", ENEMY_SHEET, *args)
         self.ai = LinearAI(self)
-        self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
-                                     ENEMY_COORDS["zombie"], prepare.CELL_SIZE)
         walk = {"front" : tools.Anim(self.frames[:2], 7),
                 "back" : tools.Anim(self.frames[2:4], 7),
                 "left" : tools.Anim([pg.transform.flip(self.frames[4], 1, 0),
@@ -299,19 +301,17 @@ class Zombie(_Enemy):
                       "die" : tools.Anim(die_frames, 5, 1)}
         self.health = 10
         self.attack = 8
-        self.drops = ["heart"]
+        self.drops = ["key"]
 
 
 class Snake(_Enemy):
     """An annoying snake. (2 directions)"""
     def __init__(self, *args):
-        _Enemy.__init__(self, *args)
+        _Enemy.__init__(self, "snake", ENEMY_SHEET, *args)
         self.anim_directions = ["left", "right"]
         self.anim_direction = random.choice(self.anim_directions)
         self.direction = self.anim_direction
         self.ai = LinearAI(self)
-        self.frames = tools.strip_coords_from_sheet(ENEMY_SHEET,
-                                      ENEMY_COORDS["snake"], prepare.CELL_SIZE)
         walk = {"left" : tools.Anim(self.frames[:2], 7),
                 "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
                                 pg.transform.flip(self.frames[1], 1, 0)], 7)}
@@ -326,3 +326,4 @@ class Snake(_Enemy):
                       "die" : die}
         self.health = 6
         self.attack = 6
+        self.drops = ["diamond", "potion"]

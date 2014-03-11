@@ -128,6 +128,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.direction_stack = [] #Held keys in the order they were pressed.
         self.controls = self.set_controls()
         self.inventory = equips.make_all_equips() ### Revisit.
+        self.inventory["money"] = 0
+        self.inventory["keys"] = 0
         self.equipped = self.set_equips()
         self.mask = self.make_mask()
         self.all_animations = self.make_all_animations()

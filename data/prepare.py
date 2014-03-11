@@ -26,6 +26,7 @@ SCREEN_RECT = pg.Rect((0,0), SCREEN_SIZE)
 PLAY_RECT = pg.Rect(0, 0, 1000, 700)
 CELL_SIZE = (50, 50)
 MAX_HEALTH = 28
+MAX_MONEY = 9999
 
 DIRECTIONS = ["front", "back", "left", "right"]
 

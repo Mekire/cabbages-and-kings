@@ -14,9 +14,9 @@ ITEM_COORDS = {"heart" : [(0,0), (1,0)],
 class _Item(pg.sprite.Sprite):
     def __init__(self, name, pos, duration, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
-        self.frames = tools.strip_coords_from_sheet(ITEM_SHEET,
-                                          ITEM_COORDS[name], prepare.CELL_SIZE)
-        self.anim = tools.Anim(self.frames, 15)
+        coords, size = ITEM_COORDS[name], prepare.CELL_SIZE
+        self.frames = tools.strip_coords_from_sheet(ITEM_SHEET, coords, size)
+        self.anim = tools.Anim(self.frames, 7)
         self.image = self.anim.get_next_frame(pg.time.get_ticks())
         #Subtract 1 from y axis to make item drop appear behind death anim.
         self.rect = pg.Rect((pos[0],pos[1]-1), prepare.CELL_SIZE)
@@ -47,4 +47,39 @@ class Heart(_Item):
         self.kill()
 
 
-ITEMS = {"heart" : Heart}
+class Diamond(_Item):
+    def __init__(self, pos, duration, *groups):
+        _Item.__init__(self, "diamond", pos, duration, *groups)
+        self.value = 5
+
+    def collide_with_player(self, player):
+##        SFX["money"].play()
+        money = player.inventory["money"]
+        player.inventory["money"] = min(money+self.value, prepare.MAX_MONEY)
+        self.kill()
+
+
+class Potion(_Item):
+    def __init__(self, pos, duration, *groups):
+        _Item.__init__(self, "potion", pos, duration, *groups)
+
+    def collide_with_player(self, player):
+##        SFX["get_item"].play()
+        #Insert effect here.
+        self.kill()
+
+
+class Key(_Item):
+    def __init__(self, pos, duration, *groups):
+        _Item.__init__(self, "key", pos, duration, *groups)
+
+    def collide_with_player(self, player):
+##        SFX["get_item"].play()
+        player.inventory["keys"] += 1
+        self.kill()
+
+
+ITEMS = {"heart" : Heart,
+         "diamond" : Diamond,
+         "potion" : Potion,
+         "key" : Key}
