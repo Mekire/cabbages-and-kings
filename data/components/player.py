@@ -165,11 +165,11 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         Set the equips the player is wearing.  Currently hardcoded.
         Eventually it will load from player data or revert to defaults.
         """
-        equips = {"head" : self.inventory["head"]["goggles"],
+        equips = {"head" : self.inventory["head"]["none"],
                   "body" : self.inventory["body"]["cloth"],
                   "shield" : self.inventory["shield"]["tin"],
                   "armleg" : self.inventory["armleg"]["normal"],
-                  "weapon" : self.inventory["weapon"]["labrys"]}
+                  "weapon" : self.inventory["weapon"]["pitch"]}
         return equips
 
     def adjust_frames(self, now):
