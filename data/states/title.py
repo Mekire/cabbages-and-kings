@@ -43,5 +43,5 @@ class Title(tools._State):
         press.
         """
         if event.type == pg.KEYDOWN:
-            self.next = "GAME"
+            self.next = "SELECT"
             self.done = True

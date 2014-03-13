@@ -7,7 +7,7 @@ and in the prepare module.
 """
 
 from . import prepare,tools
-from .states import title, splash, game
+from .states import title, splash, select, game
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
     app = tools.Control(prepare.ORIGINAL_CAPTION)
     state_dict = {"SPLASH" : splash.Splash(),
                   "TITLE"  : title.Title(),
-##                  'SELECT'  : select.Select(),
+                  "SELECT"  : select.Select(),
                   "GAME"   : game.Game(),
 ##                  'REGISTER'  : register.Register()
                   }
