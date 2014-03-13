@@ -11,7 +11,8 @@ class Title(tools._State):
     """This State is updated while our game shows the title screen."""
     def __init__(self):
         tools._State.__init__(self)
-        self.background = prepare.GFX["misc"]["titlebg"]
+        self.background = pg.Surface(prepare.SCREEN_SIZE).convert()
+        self.background.blit(prepare.GFX["misc"]["titlebg"], (0,0))
         self.ne_key = self.render_font("Fixedsys500c", 20,
                                        "[Press Any Key]", (255,255,0))
         ne_key_center = (prepare.SCREEN_RECT.centerx, 500)
