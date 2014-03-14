@@ -12,7 +12,7 @@ OPTION_SPACE = 59
 
 BACKGROUND_COLOR = (63, 54, 50)
 HIGHLIGHT_COLOR = (108, 148, 136)
-HIGHLIGHT_STEP = 125
+HIGHLIGHT_SPACE = 125
 MAIN_TOPLEFT = (100, 40)
 
 NAME_START = (350, 115)
@@ -87,7 +87,7 @@ class Select(tools._State):
     def render(self, surface):
         surface.fill(BACKGROUND_COLOR)
         if self.state in ("SELECT", "DELETE"):
-            move = (0, HIGHLIGHT_STEP*self.player_index)
+            move = (0, HIGHLIGHT_SPACE*self.player_index)
             highlight = self.highlight_rect.move(*move)
             surface.fill(HIGHLIGHT_COLOR, highlight)
         surface.blit(prepare.GFX["misc"]["charcreate"], MAIN_TOPLEFT)
@@ -126,9 +126,9 @@ class Select(tools._State):
                 self.state = "SELECT"
             elif self.option_index == 1:
                 self.state = "DELETE"
-            else: ###
+            else:
                 self.done = True
-                self.next = "GAME"
+                self.next = "VIEW_CONTROLS"
         else:  ###
             self.done = True
             self.next = "GAME"
