@@ -7,6 +7,16 @@ from ..components import enemy_sprites
 FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
 
 OPTIONS = ["SELECT/REGISTER", "DELETE", "CONTROLS"]
+OPTION_Y = 541
+OPTION_SPACE = 59
+
+BACKGROUND_COLOR = (63, 54, 50)
+HIGHLIGHT_COLOR = (108, 148, 136)
+HIGHLIGHT_STEP = 125
+MAIN_TOPLEFT = (100, 40)
+
+NAME_START = (350, 115)
+NAME_SPACE = 125
 
 
 class Select(tools._State):
@@ -15,19 +25,34 @@ class Select(tools._State):
         tools._State.__init__(self)
         self.next = "GAME"
         self.timeout = 15
-        self.base = pg.Surface((prepare.SCREEN_SIZE)).convert()
-        self.base.blit(prepare.GFX["misc"]["charcreate"], (0,0))
         self.cabbages = pg.sprite.Group(MenuCabbage(25, 225, (25,525), 100),
                                       MenuCabbage(825, 1025, (1025,525), -100))
         self.image = None
+        self.highlight_rect = pg.Rect(129, 83, 942, 124)
         self.options = self.make_options()
-        self.selected = 0
+        self.option_index = 0
+        self.players = ["EMPTY", "EMPTY", "EMPTY"]
+        self.player_index = 0
+        self.names = self.make_player_names()
+        self.state = "OPTIONS"
+
+    def make_player_names(self):
+        names = []
+        for i,player in enumerate(self.players):
+            try:
+                args = FONT, player.name, pg.Color("white"), (0,0)
+            except AttributeError:
+                args = FONT, player, pg.Color("white"), (0,0)
+            msg, rect = self.render_font(*args)
+            rect.topleft = NAME_START[0], NAME_START[1]+NAME_SPACE*i
+            names.append((msg, rect))
+        return names
 
     def make_options(self):
         options = {}
-        args = [FONT, OPTIONS, pg.Color("white"), 541, 59]
+        args = [FONT, OPTIONS, pg.Color("white"), OPTION_Y, OPTION_SPACE]
         options["unselected"] = self.make_text_list(*args)
-        args = [FONT, OPTIONS, pg.Color("yellow"), 541, 59]
+        args = [FONT, OPTIONS, pg.Color("yellow"), OPTION_Y, OPTION_SPACE]
         options["selected"] = self.make_text_list(*args)
         return options
 
@@ -60,31 +85,63 @@ class Select(tools._State):
         self.render(surface)
 
     def render(self, surface):
-        surface.blit(self.base, (0,0))
+        surface.fill(BACKGROUND_COLOR)
+        if self.state in ("SELECT", "DELETE"):
+            move = (0, HIGHLIGHT_STEP*self.player_index)
+            highlight = self.highlight_rect.move(*move)
+            surface.fill(HIGHLIGHT_COLOR, highlight)
+        surface.blit(prepare.GFX["misc"]["charcreate"], MAIN_TOPLEFT)
+        for name_info in self.names:
+            surface.blit(*name_info)
         self.cabbages.draw(surface)
         for i,val in enumerate(OPTIONS):
-            which = "selected" if i==self.selected else "unselected"
+            which = "selected" if i==self.option_index else "unselected"
             msg, rect = self.options[which][i]
             surface.blit(msg, rect)
 
     def get_event(self, event):
         """
-        Get events from Control. Currently changes to next state on any key
-        press.
+        Get events from Control.
         """
         if event.type == pg.KEYDOWN:
             self.start_time = pg.time.get_ticks()
-            if event.key == pg.K_RETURN:
+            if event.key in (pg.K_RETURN, pg.K_KP_ENTER):
+                self.press_enter()
+            elif event.key == pg.K_DOWN:
+                if self.state == "OPTIONS":
+                    self.option_index = (self.option_index+1)%len(OPTIONS)
+                else:
+                    self.player_index = (self.player_index+1)%len(self.players)
+            elif event.key == pg.K_UP:
+                if self.state == "OPTIONS":
+                    self.option_index = (self.option_index-1)%len(OPTIONS)
+                else:
+                    self.player_index = (self.player_index-1)%len(self.players)
+            elif event.key == pg.K_x:
+                self.state = "OPTIONS"
+
+    def press_enter(self):
+        if self.state == "OPTIONS":
+            if self.option_index == 0:
+                self.state = "SELECT"
+            elif self.option_index == 1:
+                self.state = "DELETE"
+            else: ###
                 self.done = True
                 self.next = "GAME"
-            elif event.key == pg.K_DOWN:
-                self.selected = (self.selected+1)%len(OPTIONS)
-            elif event.key == pg.K_UP:
-                self.selected = (self.selected-1)%len(OPTIONS)
+        else:  ###
+            self.done = True
+            self.next = "GAME"
 
 
 class MenuCabbage(enemy_sprites.Cabbage):
+    """A class for the cabbages that animate on the selector menu."""
     def __init__(self, min_x, max_x, pos, speed):
+        """
+        Pass minimum and maximum x value to walk back and forth between.
+        The pos argument is the start position and speed is the walk speed in
+        pixels per second.
+        """
         enemy_sprites.Cabbage.__init__(self, pos, speed)
         self.min = min_x
         self.max = max_x
@@ -92,6 +149,10 @@ class MenuCabbage(enemy_sprites.Cabbage):
         self.image = None
 
     def update(self, now, dt):
+        """
+        Scale up the current image of the animation and reverse direction
+        if a minimum or maximum point is reached.
+        """
         raw = self.anim.get_next_frame(now)
         self.image = pg.transform.scale(raw, (150,150))
         self.exact_position[0] += self.speed*dt
