@@ -20,7 +20,7 @@ class Control(object):
         self.clock = pg.time.Clock()
         self.fps = 60.0
         self.show_fps = True
-        self.current_time = 0.0
+        self.now = 0.0
         self.keys = pg.key.get_pressed()
         self.state_dict = {}
         self.state_name = None
@@ -35,17 +35,17 @@ class Control(object):
         self.state_name = start_state
         self.state = self.state_dict[self.state_name]
 
-    def update(self,dt):
+    def update(self, dt):
         """
         Checks if a state is done or has called for a game quit.
         State is flipped if neccessary and State.update is called.
         """
-        self.current_time = pg.time.get_ticks()
+        self.now = pg.time.get_ticks()
         if self.state.quit:
             self.done = True
         elif self.state.done:
             self.flip_state()
-        self.state.update(self.screen, self.keys, self.current_time, dt)
+        self.state.update(self.screen, self.keys, self.now, dt)
 
     def flip_state(self):
         """
@@ -55,7 +55,7 @@ class Control(object):
         previous, self.state_name = self.state_name, self.state.next
         persist = self.state.cleanup()
         self.state = self.state_dict[self.state_name]
-        self.state.startup(self.current_time, persist)
+        self.state.startup(self.now, persist)
         self.state.previous = previous
 
     def event_loop(self):
@@ -102,7 +102,7 @@ class _State(object):
     """
     def __init__(self):
         self.start_time = 0.0
-        self.current_time = 0.0
+        self.now = 0.0
         self.done = False
         self.quit = False
         self.next = None
@@ -116,13 +116,13 @@ class _State(object):
         """
         pass
 
-    def startup(self, current_time, persistant):
+    def startup(self, now, persistant):
         """
         Add variables passed in persistant to the proper attributes and
         set the start time of the State to the current time.
         """
         self.persist = persistant
-        self.start_time = current_time
+        self.start_time = now
 
     def cleanup(self):
         """
@@ -132,7 +132,7 @@ class _State(object):
         self.done = False
         return self.persist
 
-    def update(self, surface, keys, current_time):
+    def update(self, surface, keys, now):
         """Update function for state.  Must be overloaded in children."""
         pass
 

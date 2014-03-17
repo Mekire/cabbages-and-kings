@@ -40,6 +40,11 @@ OPPOSITE_DICT = {"front" : "back",
                  "left"  : "right",
                  "right" : "left"}
 
+DEFAULT_CONTROLS = {pg.K_DOWN  : "front",
+                    pg.K_UP    : "back",
+                    pg.K_LEFT  : "left",
+                    pg.K_RIGHT : "right"}
+
 
 #Resource loading (Fonts and music just contain path names).
 FONTS = tools.load_all_fonts(os.path.join("resources", "fonts"))

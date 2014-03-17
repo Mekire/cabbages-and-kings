@@ -126,11 +126,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.speed = speed
         self.direction = direction
         self.direction_stack = [] #Held keys in the order they were pressed.
-        self.controls = self.set_controls()
-        self.inventory = equips.make_all_equips() ### Revisit.
-        self.inventory["money"] = 0
-        self.inventory["keys"] = 0
-        self.equipped = self.set_equips()
+        self.controls = prepare.DEFAULT_CONTROLS
+        self.set_player_data()###
         self.mask = self.make_mask()
         self.all_animations = self.make_all_animations()
         self.image = None
@@ -141,24 +138,18 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.shadow = shadow.Shadow((40,20), self.rect)
         self.health = prepare.MAX_HEALTH
 
+    def set_player_data(self):
+        self.inventory = equips.make_all_equips() ### Revisit.
+        self.inventory["money"] = 0
+        self.inventory["keys"] = 0
+        self.equipped = self.set_equips()
+
     def make_mask(self):
         """Create a collision mask for the player."""
         temp = pg.Surface((prepare.CELL_SIZE)).convert_alpha()
         temp.fill((0,0,0,0))
         temp.fill(pg.Color("white"), (10,20,30,30))
         return pg.mask.from_surface(temp)
-
-    def set_controls(self):
-        """
-        A class for linking directions to controls. Currently hardcoded.
-        will possibly go elsewhere eventually if controls are made
-        customizable.
-        """
-        controls = {pg.K_DOWN  : "front",
-                    pg.K_UP    : "back",
-                    pg.K_LEFT  : "left",
-                    pg.K_RIGHT : "right"}
-        return controls
 
     def set_equips(self):
         """

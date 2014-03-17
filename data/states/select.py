@@ -20,21 +20,118 @@ NAME_SPACE = 125
 
 
 class Select(tools._State):
-    """This State is updated while our game shows the player select screen."""
+    """
+    This State is updated while our game shows the player select screen.
+    This state is made up of four substates to organize updating.
+    """
     def __init__(self):
         tools._State.__init__(self)
         self.next = "GAME"
         self.timeout = 15
         self.cabbages = pg.sprite.Group(MenuCabbage(25, 225, (25,525), 100),
                                       MenuCabbage(825, 1025, (1025,525), -100))
-        self.image = None
-        self.highlight_rect = pg.Rect(129, 83, 942, 124)
-        self.options = self.make_options()
-        self.option_index = 0
-        self.players = ["EMPTY", "EMPTY", "EMPTY"]
-        self.player_index = 0
-        self.names = self.make_player_names()
-        self.state = "OPTIONS"
+
+    def startup(self, now, persistant):
+        tools._State.startup(self, now, persistant)
+        self.state_name = "OPTIONS"
+        self.state_dict = {"OPTIONS" : Options(),
+                           "SELECT/REGISTER" : SelectRegister(),
+                           "DELETE" : Delete()}
+        self.state = self.state_dict[self.state_name]
+
+    def cleanup(self):
+        """
+        Add variables that should persist to the self.persist dictionary.
+        Then reset State.done to False.
+        """
+        self.done = False
+        self.persist["save_slot"] = self.state_dict["SELECT/REGISTER"].index
+        return self.persist
+
+    def update(self, surface, keys, now, dt):
+        """Updates the select screen."""
+        self.cabbages.update(now, dt)
+        self.state.update()
+        if now-self.start_time > 1000.0*self.timeout:
+            self.next = "TITLE"
+            self.done = True
+        elif self.state.quit:
+            self.next = self.state.next
+            self.done = True
+        elif self.state.done:
+            self.flip_state()
+        self.render(surface)
+
+    def flip_state(self):
+        """
+        When a State changes to done necessary startup and cleanup functions
+        are called and the current State is changed.
+        """
+        previous, self.state_name = self.state_name, self.state.next
+        persist = self.state.cleanup()
+        self.state = self.state_dict[self.state_name]
+        self.state.startup(self.now, persist)
+        self.state.previous = previous
+
+    def render(self, surface):
+        surface.fill(BACKGROUND_COLOR)
+        self.state.draw(surface)
+        self.cabbages.draw(surface)
+
+    def get_event(self, event):
+        """
+        Get events from Control.
+        """
+        if event.type == pg.KEYDOWN:
+            self.start_time = pg.time.get_ticks()
+        self.state.get_event(event)
+
+
+class SelectState(tools._State):
+    def __init__(self):
+       tools._State.__init__(self)
+       self.index = 0
+       self.options = self.make_options()
+
+    def get_event(self, event):
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_DOWN:
+                self.index = (self.index+1)%self.option_length
+            elif event.key == pg.K_UP:
+                self.index = (self.index-1)%self.option_length
+            elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
+                self.pressed_enter()
+            elif event.key == pg.K_x:
+                self.pressed_exit()
+
+    def update(self, *args):
+        pass
+
+    def make_options(self):
+        pass
+
+    def pressed_enter(self):
+        pass
+
+    def pressed_exit(self):
+        pass
+
+
+class Options(SelectState):
+    def __init__(self):
+       SelectState.__init__(self)
+       self.option_length = 3
+       self.players = ["EMPTY", "EMPTY", "EMPTY"]
+       self.names = self.make_player_names()
+       self.image = pg.Surface(prepare.SCREEN_SIZE, pg.SRCALPHA)
+
+    def make_options(self):
+        options = {}
+        args = [FONT, OPTIONS, pg.Color("white"), OPTION_Y, OPTION_SPACE]
+        options["unselected"] = make_text_list(*args)
+        args = [FONT, OPTIONS, pg.Color("yellow"), OPTION_Y, OPTION_SPACE]
+        options["selected"] = make_text_list(*args)
+        return options
 
     def make_player_names(self):
         names = []
@@ -43,95 +140,74 @@ class Select(tools._State):
                 args = FONT, player.name, pg.Color("white"), (0,0)
             except AttributeError:
                 args = FONT, player, pg.Color("white"), (0,0)
-            msg, rect = self.render_font(*args)
+            msg, rect = render_font(*args)
             rect.topleft = NAME_START[0], NAME_START[1]+NAME_SPACE*i
             names.append((msg, rect))
         return names
 
-    def make_options(self):
-        options = {}
-        args = [FONT, OPTIONS, pg.Color("white"), OPTION_Y, OPTION_SPACE]
-        options["unselected"] = self.make_text_list(*args)
-        args = [FONT, OPTIONS, pg.Color("yellow"), OPTION_Y, OPTION_SPACE]
-        options["selected"] = self.make_text_list(*args)
-        return options
-
-    def render_font(self, font, msg, color, center):
-        """Return the rendered font surface and its rect centered on center."""
-        msg = font.render(msg, 1, color)
-        rect = msg.get_rect(center=center)
-        return msg, rect
-
-    def make_text_list(self, font, strings, color, start_y, y_space):
+    def cleanup(self):
         """
-        Takes a list of strings and returns a list of
-        (rendered_surface, rect) tuples. The rects are centered on the screen
-        and their y coordinates begin at starty, with y_space pixels between
-        each line.
+        Add variables that should persist to the self.persist dictionary.
+        Then reset State.done to False.
         """
-        rendered_text = []
-        for i,string in enumerate(strings):
-            msg_center = (prepare.SCREEN_RECT.centerx, start_y+i*y_space)
-            msg_data = self.render_font(font, string, color, msg_center)
-            rendered_text.append(msg_data)
-        return rendered_text
+        self.done = False
+        self.persist["options_bg"] = self.image
+        self.persist["players"] = self.players  ####
+        return self.persist
 
-    def update(self, surface, keys, now, dt):
-        """Updates the select screen."""
-        self.cabbages.update(now, dt)
-        if now-self.start_time > 1000.0*self.timeout:
-            self.next = "TITLE"
-            self.done = True
-        self.render(surface)
+    def pressed_enter(self):
+        self.done = True
+        self.next = OPTIONS[self.index]
+        if self.next == "CONTROLS":
+            self.quit = True
 
-    def render(self, surface):
-        surface.fill(BACKGROUND_COLOR)
-        if self.state in ("SELECT", "DELETE"):
-            move = (0, HIGHLIGHT_SPACE*self.player_index)
-            highlight = self.highlight_rect.move(*move)
-            surface.fill(HIGHLIGHT_COLOR, highlight)
-        surface.blit(prepare.GFX["misc"]["charcreate"], MAIN_TOPLEFT)
+    def draw(self, surface):
+        self.image.blit(prepare.GFX["misc"]["charcreate"], MAIN_TOPLEFT)
         for name_info in self.names:
-            surface.blit(*name_info)
-        self.cabbages.draw(surface)
+            self.image.blit(*name_info)
         for i,val in enumerate(OPTIONS):
-            which = "selected" if i==self.option_index else "unselected"
+            which = "selected" if i==self.index else "unselected"
             msg, rect = self.options[which][i]
-            surface.blit(msg, rect)
+            self.image.blit(msg, rect)
+        surface.blit(self.image, (0,0))
 
-    def get_event(self, event):
-        """
-        Get events from Control.
-        """
-        if event.type == pg.KEYDOWN:
-            self.start_time = pg.time.get_ticks()
-            if event.key in (pg.K_RETURN, pg.K_KP_ENTER):
-                self.press_enter()
-            elif event.key == pg.K_DOWN:
-                if self.state == "OPTIONS":
-                    self.option_index = (self.option_index+1)%len(OPTIONS)
-                else:
-                    self.player_index = (self.player_index+1)%len(self.players)
-            elif event.key == pg.K_UP:
-                if self.state == "OPTIONS":
-                    self.option_index = (self.option_index-1)%len(OPTIONS)
-                else:
-                    self.player_index = (self.player_index-1)%len(self.players)
-            elif event.key == pg.K_x:
-                self.state = "OPTIONS"
 
-    def press_enter(self):
-        if self.state == "OPTIONS":
-            if self.option_index == 0:
-                self.state = "SELECT"
-            elif self.option_index == 1:
-                self.state = "DELETE"
-            else:
-                self.done = True
-                self.next = "VIEW_CONTROLS"
-        else:  ###
-            self.done = True
+class CharHighlighter(SelectState):
+    def __init__(self):
+       SelectState.__init__(self)
+       self.option_length = 3
+       self.highlight_rect = pg.Rect(129, 83, 942, 124)
+
+    def draw(self, surface):
+        move = (0, HIGHLIGHT_SPACE*self.index)
+        highlight = self.highlight_rect.move(*move)
+        surface.fill(HIGHLIGHT_COLOR, highlight)
+        surface.blit(self.persist["options_bg"], (0,0))
+
+    def pressed_exit(self):
+        self.done = True
+        self.next = "OPTIONS"
+
+
+class SelectRegister(CharHighlighter):
+    def __init__(self):
+        CharHighlighter.__init__(self)
+
+    def pressed_enter(self):
+        if self.persist["players"][self.index] != "EMPTY":
+            self.quit = True
             self.next = "GAME"
+        else:
+            self.quit = True
+            self.next = "REGISTER"
+
+
+class Delete(CharHighlighter):
+    def __init__(self):
+        CharHighlighter.__init__(self)
+
+    def pressed_enter(self):
+        pass
 
 
 class MenuCabbage(enemy_sprites.Cabbage):
@@ -161,3 +237,25 @@ class MenuCabbage(enemy_sprites.Cabbage):
             self.speed *= -1
             self.rect.x = min(max(self.rect.x, self.min), self.max)
             self.exact_position = list(self.rect.topleft)
+
+
+def render_font(font, msg, color, center):
+    """Return the rendered font surface and its rect centered on center."""
+    msg = font.render(msg, 1, color)
+    rect = msg.get_rect(center=center)
+    return msg, rect
+
+
+def make_text_list(font, strings, color, start_y, y_space):
+    """
+    Takes a list of strings and returns a list of
+    (rendered_surface, rect) tuples. The rects are centered on the screen
+    and their y coordinates begin at starty, with y_space pixels between
+    each line.
+    """
+    rendered_text = []
+    for i,string in enumerate(strings):
+        msg_center = (prepare.SCREEN_RECT.centerx, start_y+i*y_space)
+        msg_data = render_font(font, string, color, msg_center)
+        rendered_text.append(msg_data)
+    return rendered_text
