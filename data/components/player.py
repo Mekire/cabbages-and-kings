@@ -118,7 +118,7 @@ class _ImageProcessing(object):
 
 class Player(pg.sprite.Sprite, _ImageProcessing):
     """A class to represent our main protagonist."""
-    def __init__(self, rect, speed, direction="back"):
+    def __init__(self, rect, speed, direction="front"):
         pg.sprite.Sprite.__init__(self)
         self.rect = pg.Rect(rect)
         self.exact_position = list(self.rect.topleft)
@@ -158,7 +158,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         """
         equips = {"head" : self.inventory["head"]["none"],
                   "body" : self.inventory["body"]["cloth"],
-                  "shield" : self.inventory["shield"]["tin"],
+##                  "shield" : self.inventory["shield"]["tin"],
+                  "shield" : None,
                   "armleg" : self.inventory["armleg"]["normal"],
                   "weapon" : self.inventory["weapon"]["pitch"]}
         return equips

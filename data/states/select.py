@@ -123,7 +123,9 @@ class Options(SelectState):
        self.option_length = 3
        self.players = ["EMPTY", "EMPTY", "EMPTY"]
        self.names = self.make_player_names()
-       self.image = pg.Surface(prepare.SCREEN_SIZE, pg.SRCALPHA)
+       self.image = pg.Surface(prepare.SCREEN_SIZE).convert()
+       self.image.set_colorkey(prepare.COLOR_KEY)
+       self.image.fill(prepare.COLOR_KEY)
 
     def make_options(self):
         options = {}

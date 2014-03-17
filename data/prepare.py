@@ -45,6 +45,17 @@ DEFAULT_CONTROLS = {pg.K_DOWN  : "front",
                     pg.K_LEFT  : "left",
                     pg.K_RIGHT : "right"}
 
+DEFAULT_GEAR = {"head" : "none",
+                "body" : "cloth",
+                "shield" : None,
+                "armleg" : "normal",
+                "weapon" : "pitch"}
+
+DEFAULT_PLAYER = {"name" : None,
+                  "money" : 0,
+                  "keys" : 0,
+                  "gear" : DEFAULT_GEAR,
+                  "equipped" : DEFAULT_GEAR}
 
 #Resource loading (Fonts and music just contain path names).
 FONTS = tools.load_all_fonts(os.path.join("resources", "fonts"))

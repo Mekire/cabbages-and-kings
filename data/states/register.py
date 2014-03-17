@@ -8,7 +8,6 @@ BACKGROUND_COLOR = (63, 54, 50)
 
 MAX_LETTERS = 8
 
-
 CURSOR = pg.Rect(292, 141, 41, 45)
 CURSOR_SPACE = 82
 
@@ -60,7 +59,6 @@ class Register(tools._State):
                 if self.index == END_CELL:
                     self.done = True###
                     self.next = "GAME"###
-                    print("Done")###
                 elif self.index == BACKSPACE_CELL:
                     if self.name:
                         self.name.pop()
