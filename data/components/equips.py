@@ -11,9 +11,7 @@ from .. import prepare, tools
 class _Equipment(object):
     """A base prototype class for all equipment."""
     def __init__(self, stats, sheet_name, sheet_location, arrange="standard"):
-        self.defense = stats[0]
-        self.strength = stats[1]
-        self.speed = stats[2]
+        self.defense, self.strength, self.speed = stats
         self.attack_images = "normal"
         sheet = prepare.GFX["equips"][sheet_name]
         if arrange == "attack":
@@ -130,6 +128,12 @@ class TinShield(_Equipment):
         self.title = "Tin Shield"
         self.description = "Only slightly better than having no shield at all."
         self.deflect = 1
+
+class NoShield(_Equipment):
+    def __init__(self):
+        self.defense, self.strength, self.speed = (0, 0, 0)
+        self.images = None
+        self.attack_images = None
 
 
 #Specific arms and legs
@@ -276,7 +280,8 @@ _HEADS = {"none" : NoHeadGear,
 _BODIES = {"cloth" : Cloth,
            "chain" : ChainMail}
 
-_SHIELDS = {"tin" : TinShield}
+_SHIELDS = {"none" : NoShield,
+            "tin" : TinShield}
 
 _ARMS_LEGS = {"normal" : ArmsLegs}
 
@@ -288,6 +293,15 @@ EQUIP_DICT = {"head" : _HEADS,
               "shield" : _SHIELDS,
               "armleg" : _ARMS_LEGS,
               "weapon" : _WEAPONS}
+
+
+def make_equips(equips):
+    instances = {}
+    for category in EQUIP_DICT:
+        instances[category] = {}
+        for part in equips[category]:
+            instances[category][part] = EQUIP_DICT[category][part]()
+    return instances
 
 
 def make_all_equips():

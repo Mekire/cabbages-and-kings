@@ -92,10 +92,13 @@ class _ImageProcessing(object):
 
     def get_part_image(self, direction, part, frame):
         """Get the correct part image based on player direction and frame."""
-        if part=="armleg" and direction=="right" and self.equipped["shield"]:
+        with_shield = not isinstance(self.equipped["shield"], equips.NoShield)
+        if part=="armleg" and direction=="right" and with_shield:
             to_blit = self.equipped[part].images["right_with_shield"]
-        else:
+        elif self.equipped[part].images:
             to_blit = self.equipped[part].images[direction]
+        else:
+            return None
         try:
             return to_blit[frame]
         except TypeError:
@@ -118,16 +121,16 @@ class _ImageProcessing(object):
 
 class Player(pg.sprite.Sprite, _ImageProcessing):
     """A class to represent our main protagonist."""
-    def __init__(self, rect, speed, direction="front"):
+    def __init__(self, rect, direction="front", data=prepare.DEFAULT_PLAYER):
         pg.sprite.Sprite.__init__(self)
         self.rect = pg.Rect(rect)
         self.exact_position = list(self.rect.topleft)
         self.old_position = self.exact_position[:]
-        self.speed = speed
+        self.speed = 190  ##Calculate from gear later.
         self.direction = direction
         self.direction_stack = [] #Held keys in the order they were pressed.
         self.controls = prepare.DEFAULT_CONTROLS
-        self.set_player_data()###
+        self.set_player_data(data)###
         self.mask = self.make_mask()
         self.all_animations = self.make_all_animations()
         self.image = None
@@ -138,11 +141,12 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.shadow = shadow.Shadow((40,20), self.rect)
         self.health = prepare.MAX_HEALTH
 
-    def set_player_data(self):
-        self.inventory = equips.make_all_equips() ### Revisit.
-        self.inventory["money"] = 0
-        self.inventory["keys"] = 0
-        self.equipped = self.set_equips()
+    def set_player_data(self, player_data):
+        self.name = player_data["name"]
+        self.inventory = equips.make_equips(player_data["gear"]) ### Revisit.
+        self.inventory["money"] = player_data["money"]
+        self.inventory["keys"] = player_data["keys"]
+        self.equipped = self.set_equips(player_data["equipped"])
 
     def make_mask(self):
         """Create a collision mask for the player."""
@@ -151,17 +155,14 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         temp.fill(pg.Color("white"), (10,20,30,30))
         return pg.mask.from_surface(temp)
 
-    def set_equips(self):
+    def set_equips(self, equipped):
         """
         Set the equips the player is wearing.  Currently hardcoded.
         Eventually it will load from player data or revert to defaults.
         """
-        equips = {"head" : self.inventory["head"]["none"],
-                  "body" : self.inventory["body"]["cloth"],
-##                  "shield" : self.inventory["shield"]["tin"],
-                  "shield" : None,
-                  "armleg" : self.inventory["armleg"]["normal"],
-                  "weapon" : self.inventory["weapon"]["pitch"]}
+        equips = {}
+        for part,gear in equipped.items():
+            equips[part] = self.inventory[part][gear]
         return equips
 
     def adjust_frames(self, now):

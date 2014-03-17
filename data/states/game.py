@@ -11,9 +11,11 @@ from ..components import player, level, sidebar
 class Game(tools._State):
     """Core state for the actual gameplay."""
     def __init__(self):
-        """Currently just creates a player."""
         tools._State.__init__(self)
-        self.player = player.Player((0,0,50,50),190)
+
+    def startup(self, now, persistant):
+        tools._State.startup(self, now, persistant)
+        self.player = self.persist["player"]
         self.player.exact_position = list(prepare.SCREEN_RECT.center)
         self.level = level.Level(self.player, "central.map")
         self.sidebar = sidebar.SideBar()

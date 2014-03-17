@@ -1,6 +1,15 @@
+import os
+import sys
+import copy
 import pygame as pg
 
 from .. import prepare, tools
+
+
+if sys.version_info[0] < 3:
+    import yaml
+else:
+    import yaml3 as yaml
 
 
 FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
@@ -13,7 +22,6 @@ CURSOR_SPACE = 82
 
 HIGHLIGHT = pg.Rect(80, 270, 80, 85)
 HIGHLIGHT_SPACE = (80, 75)
-##HIGHLIGHT_COLOR = (108, 148, 136)
 HIGHLIGHT_COLOR = pg.Color("darkslateblue")
 
 ALPHAGRID = ["ABCDEFGHIJKLM",
@@ -43,6 +51,20 @@ class Register(tools._State):
         self.index = [0,0]
         self.name = []
 
+    def save_new(self):
+        path = os.path.join("resources", "save_data", "save_data.dat")
+        player_data = copy.deepcopy(prepare.DEFAULT_PLAYER)
+        player_data["name"] = "".join(self.name)
+        try:
+            with open(path) as my_file:
+                players = yaml.load(my_file)
+        except IOError:
+            players = ["EMPTY", "EMPTY", "EMPTY"]
+        save_slot = self.persist["save_slot"]
+        players[save_slot] = player_data
+        with open(path, 'w') as my_file:
+            yaml.dump(players, my_file)
+
     def update(self, surface, keys, now, dt):
         if self.timer.check_tick(now):
             self.blink = not self.blink
@@ -56,9 +78,10 @@ class Register(tools._State):
                 self.index[0] = (self.index[0]+vector[0])%len(ALPHAGRID[0])
                 self.index[1] = (self.index[1]+vector[1])%len(ALPHAGRID)
             elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
-                if self.index == END_CELL:
-                    self.done = True###
-                    self.next = "GAME"###
+                if self.index == END_CELL and self.name:
+                    self.save_new()
+                    self.done = True
+                    self.next = "SELECT"
                 elif self.index == BACKSPACE_CELL:
                     if self.name:
                         self.name.pop()

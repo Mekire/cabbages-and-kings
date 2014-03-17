@@ -1,7 +1,15 @@
+import os
+import sys
 import pygame as pg
 
 from .. import prepare, tools
-from ..components import enemy_sprites
+from ..components import enemy_sprites, player
+
+
+if sys.version_info[0] < 3:
+    import yaml
+else:
+    import yaml3 as yaml
 
 
 FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
@@ -45,7 +53,10 @@ class Select(tools._State):
         Then reset State.done to False.
         """
         self.done = False
-        self.persist["save_slot"] = self.state_dict["SELECT/REGISTER"].index
+        regi = self.state_dict["SELECT/REGISTER"]
+        options = self.state_dict["OPTIONS"]
+        self.persist["save_slot"] = regi.index
+        self.persist["player"] = options.players[regi.index]
         return self.persist
 
     def update(self, surface, keys, now, dt):
@@ -121,11 +132,24 @@ class Options(SelectState):
     def __init__(self):
        SelectState.__init__(self)
        self.option_length = 3
-       self.players = ["EMPTY", "EMPTY", "EMPTY"]
+       self.players = self.load_players()
        self.names = self.make_player_names()
        self.image = pg.Surface(prepare.SCREEN_SIZE).convert()
        self.image.set_colorkey(prepare.COLOR_KEY)
        self.image.fill(prepare.COLOR_KEY)
+
+    def load_players(self):
+        path = os.path.join("resources", "save_data", "save_data.dat")
+        players = ["EMPTY", "EMPTY", "EMPTY"]
+        try:
+            with open(path) as my_file:
+                data = yaml.load(my_file)
+            for i,play_data in enumerate(data):
+                if play_data != "EMPTY":
+                    players[i] = player.Player((0,0,50,50), "front", play_data)
+        except IOError:
+            pass
+        return players
 
     def make_options(self):
         options = {}
@@ -154,7 +178,7 @@ class Options(SelectState):
         """
         self.done = False
         self.persist["options_bg"] = self.image
-        self.persist["players"] = self.players  ####
+        self.persist["players"] = self.players
         return self.persist
 
     def pressed_enter(self):
@@ -162,6 +186,7 @@ class Options(SelectState):
         self.next = OPTIONS[self.index]
         if self.next == "CONTROLS":
             self.quit = True
+
 
     def draw(self, surface):
         self.image.blit(prepare.GFX["misc"]["charcreate"], MAIN_TOPLEFT)
