@@ -13,7 +13,7 @@ else:
 
 
 FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
-BACKGROUND_COLOR = (63, 54, 50)
+BACKGROUND_COLOR = (50, 40, 50)
 
 MAX_LETTERS = 8
 
@@ -82,6 +82,7 @@ class Register(tools._State):
                     self.save_new()
                     self.done = True
                     self.next = "SELECT"
+                    pg.key.set_repeat()
                 elif self.index == BACKSPACE_CELL:
                     if self.name:
                         self.name.pop()

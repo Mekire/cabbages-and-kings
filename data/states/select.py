@@ -18,7 +18,7 @@ OPTIONS = ["SELECT/REGISTER", "DELETE", "CONTROLS"]
 OPTION_Y = 541
 OPTION_SPACE = 59
 
-BACKGROUND_COLOR = (63, 54, 50)
+BACKGROUND_COLOR = (50, 40, 50)
 HIGHLIGHT_COLOR = (108, 148, 136)
 HIGHLIGHT_SPACE = 125
 MAIN_TOPLEFT = (100, 40)
@@ -115,6 +115,14 @@ class SelectState(tools._State):
             elif event.key == pg.K_x:
                 self.pressed_exit()
 
+    def draw_player(self, surface, player_sprite, index, redraw=False):
+        if player_sprite != "EMPTY":
+            if player_sprite.image:
+                player_sprite.redraw = redraw
+            player_sprite.adjust_frames(pg.time.get_ticks())
+            expand = pg.transform.scale(player_sprite.image, (100,100))
+            surface.blit(expand, (170,95+125*index))
+
     def update(self, *args):
         pass
 
@@ -187,16 +195,18 @@ class Options(SelectState):
         if self.next == "CONTROLS":
             self.quit = True
 
-
     def draw(self, surface):
         self.image.blit(prepare.GFX["misc"]["charcreate"], MAIN_TOPLEFT)
         for name_info in self.names:
             self.image.blit(*name_info)
+
         for i,val in enumerate(OPTIONS):
             which = "selected" if i==self.index else "unselected"
             msg, rect = self.options[which][i]
             self.image.blit(msg, rect)
         surface.blit(self.image, (0,0))
+        for i,player_sprite in enumerate(self.players):
+            self.draw_player(surface, player_sprite, i)
 
 
 class CharHighlighter(SelectState):
@@ -210,6 +220,9 @@ class CharHighlighter(SelectState):
         highlight = self.highlight_rect.move(*move)
         surface.fill(HIGHLIGHT_COLOR, highlight)
         surface.blit(self.persist["options_bg"], (0,0))
+        for i,player_sprite in enumerate(self.persist["players"]):
+            redraw = i == self.index
+            self.draw_player(surface, player_sprite, i, redraw)
 
     def pressed_exit(self):
         self.done = True
