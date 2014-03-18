@@ -296,6 +296,9 @@ EQUIP_DICT = {"head" : _HEADS,
 
 
 def make_equips(equips):
+    """
+    Creates instances of all equips passed in.
+    """
     instances = {}
     for category in EQUIP_DICT:
         instances[category] = {}
@@ -305,10 +308,4 @@ def make_equips(equips):
 
 
 def make_all_equips():
-    """Return a dict with instances of all equips."""
-    instances = {}
-    for category in EQUIP_DICT:
-        instances[category] = {}
-        for part in EQUIP_DICT[category]:
-            instances[category][part] = EQUIP_DICT[category][part]()
-    return instances
+    return make_equips(EQUIP_DICT)

@@ -19,7 +19,7 @@ ANIMATED_TILES = {(0, 0) : 2,
 
 
 class CollisionRect(pg.sprite.Sprite):
-    """Just a rect that can be used as a sprite for collision purposes."""
+    """A rect that can be used as a sprite for collision purposes."""
     def __init__(self, rect, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
         self.rect = rect

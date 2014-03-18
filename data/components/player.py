@@ -2,7 +2,7 @@
 This module contains the primary class for the player.
 """
 
-import os
+import random
 import pygame as pg
 
 from . import equips, shadow
@@ -142,11 +142,30 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.health = prepare.MAX_HEALTH
 
     def set_player_data(self, player_data):
+        """Set required stats based on player data."""
         self.name = player_data["name"]
-        self.inventory = equips.make_equips(player_data["gear"]) ### Revisit.
+##        self.inventory = equips.make_equips(player_data["gear"])
+        self.inventory = equips.make_all_equips() ###
         self.inventory["money"] = player_data["money"]
         self.inventory["keys"] = player_data["keys"]
-        self.equipped = self.set_equips(player_data["equipped"])
+##        self.equipped = self.set_equips(player_data["equipped"])
+        self.equipped = self.set_equips_random() ###
+
+    def set_equips(self, equipped):
+        """
+        Set the equips the player is wearing.  Currently hardcoded.
+        Eventually it will load from player data or revert to defaults.
+        """
+        equipped = {}
+        for part,gear in equipped.items():
+            equipped[part] = self.inventory[part][gear]
+        return equipped
+
+    def set_equips_random(self):
+        equipped = {}
+        for part in equips.EQUIP_DICT:
+            equipped[part] = random.choice(self.inventory[part].values())
+        return equipped
 
     def make_mask(self):
         """Create a collision mask for the player."""
@@ -154,16 +173,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         temp.fill((0,0,0,0))
         temp.fill(pg.Color("white"), (10,20,30,30))
         return pg.mask.from_surface(temp)
-
-    def set_equips(self, equipped):
-        """
-        Set the equips the player is wearing.  Currently hardcoded.
-        Eventually it will load from player data or revert to defaults.
-        """
-        equips = {}
-        for part,gear in equipped.items():
-            equips[part] = self.inventory[part][gear]
-        return equips
 
     def adjust_frames(self, now):
         """Update the sprite's animation as needed."""

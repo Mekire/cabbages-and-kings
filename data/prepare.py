@@ -1,5 +1,6 @@
 """
 This module initializes the display and creates dictionaries of resources.
+Also contained are various constants used throughout the program.
 """
 
 import os
@@ -22,6 +23,7 @@ pg.display.set_mode(SCREEN_SIZE)
 
 #General constants
 COLOR_KEY = (255, 0, 255)
+BACKGROUND_COLOR = (50, 40, 50)
 SCREEN_RECT = pg.Rect((0,0), SCREEN_SIZE)
 PLAY_RECT = pg.Rect(0, 0, 1000, 700)
 CELL_SIZE = (50, 50)

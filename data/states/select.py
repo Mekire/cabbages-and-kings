@@ -20,16 +20,15 @@ FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
 SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32)
 
 OPTIONS = ["SELECT/REGISTER", "DELETE", "CONTROLS"]
-OPTION_Y = 541
-OPTION_SPACE = 59
-
-BACKGROUND_COLOR = (50, 40, 50)
 HIGHLIGHT_COLOR = (108, 148, 136)
-HIGHLIGHT_SPACE = 125
-MAIN_TOPLEFT = (100, 40)
 
+#Placement and spacing constants.
+OPTION_Y = 541
+OPTION_SPACER = 59
+SLOT_SPACER = 125
+MAIN_TOPLEFT = (100, 40)
 NAME_START = (350, 115)
-NAME_SPACE = 125
+PLAYER_START = (170, 95)
 
 
 class Select(tools._State):
@@ -103,7 +102,7 @@ class Select(tools._State):
         Fill the screen; let the substates handle their own rendering;
         then draw the Cabbages.
         """
-        surface.fill(BACKGROUND_COLOR)
+        surface.fill(prepare.BACKGROUND_COLOR)
         self.state.draw(surface)
         self.cabbages.draw(surface)
 
@@ -146,7 +145,8 @@ class SelectState(tools._State):
                 player_sprite.redraw = redraw
             player_sprite.adjust_frames(pg.time.get_ticks())
             expand = pg.transform.scale(player_sprite.image, (100,100))
-            surface.blit(expand, (170,95+125*index))
+            position = (PLAYER_START[0], PLAYER_START[1]+SLOT_SPACER*index)
+            surface.blit(expand, position)
 
     def make_options(self, font, choices, y_start, y_space):
         """
@@ -180,7 +180,7 @@ class Options(SelectState):
        self.option_length = 3
        self.players = self.load_players()
        self.names = self.make_player_names()
-       self.options = self.make_options(FONT, OPTIONS, OPTION_Y, OPTION_SPACE)
+       self.options = self.make_options(FONT, OPTIONS, OPTION_Y, OPTION_SPACER)
        self.image = pg.Surface(prepare.SCREEN_SIZE).convert()
        self.image.set_colorkey(prepare.COLOR_KEY)
        self.image.fill(prepare.COLOR_KEY)
@@ -218,7 +218,7 @@ class Options(SelectState):
             except AttributeError:
                 args = FONT, player, pg.Color("white"), (0,0)
             msg, rect = render_font(*args)
-            rect.topleft = NAME_START[0], NAME_START[1]+NAME_SPACE*i
+            rect.topleft = NAME_START[0], NAME_START[1]+SLOT_SPACER*i
             names.append((msg, rect))
         return names
 
@@ -275,8 +275,7 @@ class CharHighlighter(SelectState):
         Draw the highlight first; then the base screen image; finally draw
         the players, animating the currently selected player.
         """
-        move = (0, HIGHLIGHT_SPACE*self.index)
-        highlight = self.highlight_rect.move(*move)
+        highlight = self.highlight_rect.move(0, SLOT_SPACER*self.index)
         surface.fill(HIGHLIGHT_COLOR, highlight)
         surface.blit(self.persist["options_bg"], (0,0))
         for i,player_sprite in enumerate(self.persist["players"]):

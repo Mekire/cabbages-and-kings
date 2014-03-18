@@ -7,7 +7,7 @@
     weapon: [pitch]
   keys: 0
   money: 0
-  name: Bob
+  name: Alice
 - equipped: {armleg: normal, body: cloth, head: none, shield: none, weapon: pitch}
   gear:
     armleg: [normal]
@@ -17,5 +17,5 @@
     weapon: [pitch]
   keys: 0
   money: 0
-  name: Alice
+  name: Bob
 - EMPTY

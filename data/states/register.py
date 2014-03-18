@@ -17,15 +17,15 @@ else:
 
 
 FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
-BACKGROUND_COLOR = (50, 40, 50)
+##BACKGROUND_COLOR = (50, 40, 50)
 
 MAX_LETTERS = 8
 
 CURSOR = pg.Rect(292, 141, 41, 45)
-CURSOR_SPACE = 82
+CURSOR_SPACER = 82
 
 HIGHLIGHT = pg.Rect(80, 270, 80, 85)
-HIGHLIGHT_SPACE = (80, 75)
+HIGHLIGHT_SPACER = (80, 75)
 HIGHLIGHT_COLOR = pg.Color("darkslateblue")
 
 ALPHAGRID = ["ABCDEFGHIJKLM",
@@ -133,15 +133,15 @@ class Register(tools._State):
         Draw highlighter (in two parts); base screen; letter cursor; and
         currently entered name.
         """
-        surface.fill(BACKGROUND_COLOR)
-        move = [HIGHLIGHT_SPACE[i]*self.index[i] for i in (0,1)]
+        surface.fill(prepare.BACKGROUND_COLOR)
+        move = [HIGHLIGHT_SPACER[i]*self.index[i] for i in (0,1)]
         surface.fill(HIGHLIGHT_COLOR, HIGHLIGHT.move(*move))
         surface.blit(prepare.GFX["misc"]["register"], (0,0))
         pg.draw.rect(surface, pg.Color("yellow"), HIGHLIGHT.move(*move), 5)
         if self.blink and len(self.name) < MAX_LETTERS:
-            rect = CURSOR.move(CURSOR_SPACE*len(self.name), 0)
+            rect = CURSOR.move(CURSOR_SPACER*len(self.name), 0)
             surface.fill(pg.Color("white"), rect)
         for i,letter in enumerate(self.name):
-            rect = CURSOR.move(CURSOR_SPACE*i, 0)
-            surface.fill(BACKGROUND_COLOR, rect)
+            rect = CURSOR.move(CURSOR_SPACER*i, 0)
+            surface.fill(prepare.BACKGROUND_COLOR, rect)
             surface.blit(self.letter_images[letter], rect)
