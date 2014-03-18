@@ -1,3 +1,7 @@
+"""
+Contains class for creating a new player and registering their name.
+"""
+
 import os
 import sys
 import copy
@@ -46,31 +50,45 @@ class Register(tools._State):
         self.letter_images = {}
 
     def startup(self, now, persistant):
+        """
+        When this state is switched to, turn key-repeat on; set the alpha
+        select cursor to the first position; and clear name.
+        """
         tools._State.startup(self, now, persistant)
         pg.key.set_repeat(200,100)
         self.index = [0,0]
         self.name = []
 
     def save_new(self):
-        path = os.path.join("resources", "save_data", "save_data.dat")
+        """
+        Save newly created player to the save data file.
+        If the file doesn't exist it will be created.
+        """
         player_data = copy.deepcopy(prepare.DEFAULT_PLAYER)
         player_data["name"] = "".join(self.name)
         try:
-            with open(path) as my_file:
+            with open(prepare.SAVE_PATH) as my_file:
                 players = yaml.load(my_file)
         except IOError:
             players = ["EMPTY", "EMPTY", "EMPTY"]
         save_slot = self.persist["save_slot"]
         players[save_slot] = player_data
-        with open(path, 'w') as my_file:
+        with open(prepare.SAVE_PATH, 'w') as my_file:
             yaml.dump(players, my_file)
 
     def update(self, surface, keys, now, dt):
+        """
+        Update cursor blink timer and draw the screen.
+        """
         if self.timer.check_tick(now):
             self.blink = not self.blink
         self.render(surface)
 
     def get_event(self, event):
+        """
+        Navigate grid with arrow keys; confirm selections with enter keys;
+        Cancel and return to previous menu with X or Escape.
+        """
         if event.type == pg.KEYDOWN:
             if event.key in prepare.DEFAULT_CONTROLS:
                 direction = prepare.DEFAULT_CONTROLS[event.key]
@@ -78,11 +96,10 @@ class Register(tools._State):
                 self.index[0] = (self.index[0]+vector[0])%len(ALPHAGRID[0])
                 self.index[1] = (self.index[1]+vector[1])%len(ALPHAGRID)
             elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
-                if self.index == END_CELL and self.name:
-                    self.save_new()
-                    self.done = True
-                    self.next = "SELECT"
-                    pg.key.set_repeat()
+                if self.index == END_CELL:
+                    if self.name:
+                        self.save_new()
+                        self.pressed_exit()
                 elif self.index == BACKSPACE_CELL:
                     if self.name:
                         self.name.pop()
@@ -91,13 +108,31 @@ class Register(tools._State):
                     letter = ALPHAGRID[j][i]
                     self.name.append(ALPHAGRID[j][i])
                     self.render_letter(letter)
+            elif event.key in (pg.K_x, pg.K_ESCAPE):
+                self.pressed_exit()
+
+    def pressed_exit(self):
+        """
+        Turn key-repeat off and return to menu.
+        """
+        self.done = True
+        self.next = "SELECT"
+        pg.key.set_repeat()
 
     def render_letter(self, letter):
+        """
+        If selected letter has not been cached, render it and place it
+        in the letter_images dictionary.
+        """
         if letter not in self.letter_images:
-            rendered = FONT.render(letter, 1, pg.Color("yellow"))
+            rendered = FONT.render(letter, 0, pg.Color("yellow"))
             self.letter_images[letter] = rendered
 
     def render(self, surface):
+        """
+        Draw highlighter (in two parts); base screen; letter cursor; and
+        currently entered name.
+        """
         surface.fill(BACKGROUND_COLOR)
         move = [HIGHLIGHT_SPACE[i]*self.index[i] for i in (0,1)]
         surface.fill(HIGHLIGHT_COLOR, HIGHLIGHT.move(*move))

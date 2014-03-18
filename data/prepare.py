@@ -58,6 +58,7 @@ DEFAULT_PLAYER = {"name" : None,
                   "equipped" : {k:v[0] for k,v in DEFAULT_GEAR.items()}}
 
 #Resource loading (Fonts and music just contain path names).
+SAVE_PATH = os.path.join("resources", "save_data", "save_data.dat")
 FONTS = tools.load_all_fonts(os.path.join("resources", "fonts"))
 MUSIC = tools.load_all_music(os.path.join("resources", "music"))
 SFX   = tools.load_all_sfx(os.path.join("resources", "sound"))
