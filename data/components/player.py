@@ -162,6 +162,10 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         return equipped
 
     def set_equips_random(self):
+        """
+        Equip the player with random gear chosen from the items in their
+        inventory.
+        """
         equipped = {}
         for part in equips.EQUIP_DICT:
             equipped[part] = random.choice(self.inventory[part].values())

@@ -75,47 +75,33 @@ class Register(tools._State):
         with open(prepare.SAVE_PATH, 'w') as my_file:
             yaml.dump(players, my_file)
 
-    def update(self, surface, keys, now, dt):
-        """
-        Update cursor blink timer and draw the screen.
-        """
-        if self.timer.check_tick(now):
-            self.blink = not self.blink
-        self.render(surface)
+    def move_on_grid(self, event):
+        """Called when user moves the selection cursor with the arrow keys."""
+        direction = prepare.DEFAULT_CONTROLS[event.key]
+        vector = prepare.DIRECT_DICT[direction]
+        self.index[0] = (self.index[0]+vector[0])%len(ALPHAGRID[0])
+        self.index[1] = (self.index[1]+vector[1])%len(ALPHAGRID)
 
-    def get_event(self, event):
-        """
-        Navigate grid with arrow keys; confirm selections with enter keys;
-        Cancel and return to previous menu with X or Escape.
-        """
-        if event.type == pg.KEYDOWN:
-            if event.key in prepare.DEFAULT_CONTROLS:
-                direction = prepare.DEFAULT_CONTROLS[event.key]
-                vector = prepare.DIRECT_DICT[direction]
-                self.index[0] = (self.index[0]+vector[0])%len(ALPHAGRID[0])
-                self.index[1] = (self.index[1]+vector[1])%len(ALPHAGRID)
-            elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
-                if self.index == END_CELL:
-                    if self.name:
-                        self.save_new()
-                        self.pressed_exit()
-                elif self.index == BACKSPACE_CELL:
-                    if self.name:
-                        self.name.pop()
-                elif len(self.name) < MAX_LETTERS:
-                    i, j = self.index
-                    letter = ALPHAGRID[j][i]
-                    self.name.append(ALPHAGRID[j][i])
-                    self.render_letter(letter)
-            elif event.key in (pg.K_x, pg.K_ESCAPE):
+    def select_from_grid(self):
+        """Called if the user selects an item with the enter key(s)."""
+        if self.index == END_CELL:
+            if self.name:
+                self.save_new()
                 self.pressed_exit()
+        elif self.index == BACKSPACE_CELL:
+            if self.name:
+                self.name.pop()
+        elif len(self.name) < MAX_LETTERS:
+            i, j = self.index
+            letter = ALPHAGRID[j][i]
+            self.name.append(ALPHAGRID[j][i])
+            self.render_letter(letter)
 
     def pressed_exit(self):
         """
         Turn key-repeat off and return to menu.
         """
         self.done = True
-        self.next = "SELECT"
         pg.key.set_repeat()
 
     def render_letter(self, letter):
@@ -144,3 +130,24 @@ class Register(tools._State):
             rect = CURSOR.move(CURSOR_SPACER*i, 0)
             surface.fill(prepare.BACKGROUND_COLOR, rect)
             surface.blit(self.letter_images[letter], rect)
+
+    def get_event(self, event):
+        """
+        Navigate grid with arrow keys; confirm selections with enter keys;
+        Cancel and return to previous menu with X or Escape.
+        """
+        if event.type == pg.KEYDOWN:
+            if event.key in prepare.DEFAULT_CONTROLS:
+                self.move_on_grid(event)
+            elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
+                self.select_from_grid()
+            elif event.key in (pg.K_x, pg.K_ESCAPE):
+                self.pressed_exit()
+
+    def update(self, surface, keys, now, dt):
+        """
+        Update cursor blink timer and draw the screen.
+        """
+        if self.timer.check_tick(now):
+            self.blink = not self.blink
+        self.render(surface)
