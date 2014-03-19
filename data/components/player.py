@@ -44,6 +44,14 @@ class _ImageProcessing(object):
         strobing["attack"] = self.make_hit_images(standard["attack"])
         return [standard, strobing]
 
+    def make_death_animation(self):
+        """Return a tools.Anim object with the player's death sequence."""
+        sheet = prepare.GFX["enemies"]["enemysheet"]
+        cell_coords = [(3,1), (4,1), (5,1), (6,1)]
+        args = (sheet, cell_coords, prepare.CELL_SIZE)
+        death_cells = tools.strip_coords_from_sheet(*args)
+        return tools.Anim(death_cells, 3, loops=1)
+
     def make_images(self, attack=False, order=DRAW_ORDER):
         """Create the player's animations any time he changes equipment."""
         base = pg.Surface(prepare.CELL_SIZE).convert()
@@ -133,6 +141,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.set_player_data(data)###
         self.mask = self.make_mask()
         self.all_animations = self.make_all_animations()
+        self.death_anim = self.make_death_animation()
         self.image = None
         self.action_state = "normal"
         self.hit_state = False  #When true hit_state is a tools.Timer instance.
@@ -178,14 +187,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         temp.fill(pg.Color("white"), (10,20,30,30))
         return pg.mask.from_surface(temp)
 
-    def adjust_frames(self, now):
-        """Update the sprite's animation as needed."""
-        animation_dict = self.all_animations[bool(self.hit_state)]
-        animation = animation_dict[self.action_state][self.direction]
-        if self.direction_stack or self.hit_state or self.redraw:
-            self.image = animation.get_next_frame(now)
-        self.redraw = False
-
     def add_direction(self, key):
         """Add a pressed direction key on the direction stack."""
         if key in self.controls:
@@ -208,12 +209,22 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.knock_state = False
 
     def got_hit(self, enemy):
-        """Called on collision with enemy."""
+        """Called on collision with enemy. """
         if not self.hit_state:
             self.health = max(self.health-enemy.attack, 0)
             self.hit_state = tools.Timer(50, 10)
             knock_dir = self.get_collision_direction(enemy)
             self.knock_state = (knock_dir, tools.Timer(100, 1))
+
+    def check_death(self):
+        """
+        If player's health has dropped to zero set action_state to "death" and
+        reset weapon attack if necessary.
+        """
+        if self.health == 0:
+            self.action_state = "dead"
+            if self.equipped["weapon"].anim:
+                self.equipped["weapon"].reset_attack()
 
     def get_collision_direction(self, other_sprite):
         """
@@ -267,15 +278,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             if knock_timer.done:
                 self.knock_state = False
 
-    def update(self, now, dt):
-        """Updates our player appropriately every frame."""
-        self.check_states(now)
-        self.move(dt)
-        self.adjust_frames(now)
-        if self.action_state == "attack":
-            self.equipped["weapon"].attack(self, now)
-        self.rect.topleft = self.exact_position
-
     def move(self, dt):
         """Move the player if not attacking (or interupted some other way)."""
         self.old_position = self.exact_position[:]
@@ -288,6 +290,29 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             vector = prepare.DIRECT_DICT[self.knock_state[0]]
             self.exact_position[0] += KNOCK_SPEED*vector[0]*dt
             self.exact_position[1] += KNOCK_SPEED*vector[1]*dt
+
+    def adjust_frames(self, now):
+        """Update the sprite's animation as needed."""
+        if self.action_state != "dead":
+            animation_dict = self.all_animations[bool(self.hit_state)]
+            animation = animation_dict[self.action_state][self.direction]
+        else:
+            animation = self.death_anim
+            self.redraw = True
+        if self.direction_stack or self.hit_state or self.redraw:
+            self.image = animation.get_next_frame(now)
+        self.redraw = False
+
+    def update(self, now, dt):
+        """Updates our player appropriately every frame."""
+        self.check_death()
+        if self.action_state != "dead":
+            self.check_states(now)
+            self.move(dt)
+        self.adjust_frames(now)
+        if self.action_state == "attack":
+            self.equipped["weapon"].attack(self, now)
+        self.rect.topleft = self.exact_position
 
     def draw(self, surface):
         """Draw the appropriate frames to the target surface."""

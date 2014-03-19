@@ -168,6 +168,7 @@ class _Weapon(_Equipment):
         _Equipment.__init__(self, stats, "weapons", sheet_location, "other")
         self.attack_images = None
         self.anims = None
+        self.anim = None
         self.anim_rects = None
         self.anim_image = None
         self.attacking = False
