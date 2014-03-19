@@ -47,7 +47,7 @@ class _ImageProcessing(object):
     def make_death_animation(self):
         """Return a tools.Anim object with the player's death sequence."""
         sheet = prepare.GFX["enemies"]["enemysheet"]
-        cell_coords = [(3,1), (4,1), (5,1), (6,1)]
+        cell_coords = [(3,1), (4,1), (5,1), (6,1), (6,1)]
         args = (sheet, cell_coords, prepare.CELL_SIZE)
         death_cells = tools.strip_coords_from_sheet(*args)
         return tools.Anim(death_cells, 3, loops=1)
@@ -177,7 +177,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         """
         equipped = {}
         for part in equips.EQUIP_DICT:
-            equipped[part] = random.choice(self.inventory[part].values())
+            parts = list(self.inventory[part].values())
+            equipped[part] = random.choice(parts)
         return equipped
 
     def make_mask(self):
