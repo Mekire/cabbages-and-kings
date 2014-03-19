@@ -23,7 +23,7 @@ pg.display.set_mode(SCREEN_SIZE)
 
 #General constants
 COLOR_KEY = (255, 0, 255)
-BACKGROUND_COLOR = (50, 40, 50)
+BACKGROUND_COLOR = (30, 40, 50)
 SCREEN_RECT = pg.Rect((0,0), SCREEN_SIZE)
 PLAY_RECT = pg.Rect(0, 0, 1000, 700)
 CELL_SIZE = (50, 50)

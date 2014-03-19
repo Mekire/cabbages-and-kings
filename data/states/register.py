@@ -17,7 +17,6 @@ else:
 
 
 FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
-##BACKGROUND_COLOR = (50, 40, 50)
 
 MAX_LETTERS = 8
 
