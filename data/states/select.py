@@ -345,6 +345,7 @@ class Confirm(SelectState):
        self.option_length = 2
        self.options = self.make_options(SMALL_FONT, ["Confirm", "Cancel"],
                                         self.rect.y+130, 35)
+       self.player = None
 
     def startup(self, now, persistant):
         """
@@ -353,7 +354,8 @@ class Confirm(SelectState):
         """
         tools._State.startup(self, now, persistant)
         del_index = self.persist["del_index"]
-        self.persist["players"][del_index].hit_state = True
+        self.player = self.persist["players"][del_index]
+        self.player.hit_state = True
         self.index = 1
 
     def draw(self, surface):
@@ -370,19 +372,40 @@ class Confirm(SelectState):
             msg, rect = self.options[which][i]
             surface.blit(msg, rect)
 
-    def pressed_enter(self):
+    def save_change(self):
         """
-        If user selects confirm, overwrite the save file of the player with
+        Overwrite the save data of the player with
         the string EMPTY.
         """
-        if not self.index:
-            with open(prepare.SAVE_PATH) as my_file:
+        with open(prepare.SAVE_PATH) as my_file:
                 data = yaml.load(my_file)
-            del_index = self.persist["del_index"]
-            data[del_index] = "EMPTY"
-            with open(prepare.SAVE_PATH, 'w') as my_file:
-                yaml.dump(data, my_file)
-        self.pressed_exit()
+        del_index = self.persist["del_index"]
+        data[del_index] = "EMPTY"
+        with open(prepare.SAVE_PATH, 'w') as my_file:
+            yaml.dump(data, my_file)
+
+    def pressed_enter(self):
+        """
+        Return to menu on 'Cancel'; set player to 'dead' on 'Confirm'.
+        """
+        if not self.index:
+            self.player.action_state = "dead"
+        else:
+            self.pressed_exit()
+
+    def update(self, *args):
+        """
+        If a player deletion has been confirmed and death animation completed,
+        return to menu.
+        """
+        if self.player.death_anim.done:
+            self.save_change()
+            self.pressed_exit()
+
+    def get_event(self, event):
+        """Don't process events if a player deletion has been confirmed."""
+        if self.player.action_state != "dead":
+            SelectState.get_event(self, event)
 
     def pressed_exit(self):
         """Return to options menu."""
