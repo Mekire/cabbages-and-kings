@@ -131,7 +131,7 @@ class _Enemy(pg.sprite.Sprite):
         weapon rect collides with the sprite.
         """
         if not self.hit_state:
-            self.health -= player.equipped["weapon"].strength
+            self.health -= player.strength
             if self.health > 0:
                 self.state = "hit"
                 self.hit_state = tools.Timer(300, 1)

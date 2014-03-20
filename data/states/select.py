@@ -27,8 +27,14 @@ OPTION_Y = 541
 OPTION_SPACER = 59
 SLOT_SPACER = 125
 MAIN_TOPLEFT = (100, 40)
-NAME_START = (350, 115)
+NAME_START = (320, 115)
 PLAYER_START = (170, 95)
+ITEM_IMAGES = (625, 95)
+ITEM_START = (ITEM_IMAGES[0]+85, ITEM_IMAGES[1])
+ITEM_SPACER = 60
+STAT_START = (805, 128)
+STAT_SPACER = 75
+STAT_TEXT_SPACE = 45
 
 
 class Select(tools._State):
@@ -120,6 +126,7 @@ class SelectState(tools._State):
     def __init__(self):
        tools._State.__init__(self)
        self.index = 0
+       self.rendered = {}
 
     def get_event(self, event):
         """
@@ -150,14 +157,31 @@ class SelectState(tools._State):
             self.draw_player_stats(surface, player_sprite, index)
 
     def draw_player_stats(self, surface, player_sprite, index):
+        """Draw the player's key items and stats to their character slot."""
         items = prepare.GFX["misc"]["sidebargfx"].subsurface(20, 160, 80, 100)
         icons = prepare.GFX["misc"]["icons"]
-        topleft = (MAIN_TOPLEFT[0]+525, MAIN_TOPLEFT[1]+55+index*SLOT_SPACER)
-        surface.blit(items, topleft)
-        for i in (0, 1, 2):
-            topleft = (MAIN_TOPLEFT[0]+665+i*75,
-                       MAIN_TOPLEFT[1]+57+index*SLOT_SPACER)
-            surface.blit(icons, topleft, (34*i,0,34,34))
+        surface.blit(items, (ITEM_IMAGES[0],ITEM_IMAGES[1]+index*SLOT_SPACER))
+        for i,stat in enumerate(["money", "keys"]):
+            num = player_sprite.inventory[stat]
+            pos_y = ITEM_START[1]+index*SLOT_SPACER+i*ITEM_SPACER
+            surface.blit(self.get_rendered(str(num)), (ITEM_START[0], pos_y))
+        defense = str(player_sprite.defense)
+        strength = str(player_sprite.strength)
+        speed = "{:.1f}".format(player_sprite.speed/20.0)
+        for i,stat in enumerate((strength,defense,speed)):
+            pos = STAT_START[0]+STAT_SPACER*i, STAT_START[1]+SLOT_SPACER*index
+            surface.blit(icons, pos, (34*i,0,34,34))
+            rendered = self.get_rendered(stat)
+            surface.blit(rendered, (pos[0]+STAT_TEXT_SPACE,pos[1]))
+
+    def get_rendered(self, to_render):
+        """Simple cache to avoid rerendering text."""
+        if to_render in self.rendered:
+            image = self.rendered[to_render]
+        else:
+            image = SMALL_FONT.render(to_render, 0, pg.Color("white"))
+            self.rendered[to_render] = image
+        return image
 
     def make_options(self, font, choices, y_start, y_space):
         """

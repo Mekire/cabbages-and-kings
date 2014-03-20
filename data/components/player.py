@@ -21,7 +21,7 @@ DRAW_ATTACK_ORDER = {"front" : ["shield", "body", "head", "weapon", "armleg"],
 
 STANDARD_ANIMATION_FPS = 7.0
 HIT_ANIMATION_FPS = 20.0
-BASE_SPEED = 190
+BASE_SPEED = 180
 KNOCK_SPEED = 750
 
 
@@ -218,9 +218,10 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.knock_state = False
 
     def got_hit(self, enemy):
-        """Called on collision with enemy. """
+        """Called on collision with enemy."""
         if not self.hit_state:
-            self.health = max(self.health-enemy.attack, 0)
+            damage = max(enemy.attack-self.defense, 1)
+            self.health = max(self.health-damage, 0)
             self.hit_state = tools.Timer(50, 10)
             knock_dir = self.get_collision_direction(enemy)
             self.knock_state = (knock_dir, tools.Timer(100, 1))

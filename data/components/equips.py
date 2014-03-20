@@ -115,7 +115,7 @@ class Cloth(_Equipment):
 class ChainMail(_Equipment):
     """Higher defense at the cost of speed."""
     def __init__(self):
-        stats = (3, 0, -50)
+        stats = (3, 0, -40)
         _Equipment.__init__(self, stats, "bodies", (200,0))
         self.title = "Chainmail"
         self.description = ("What it has in defense it "
