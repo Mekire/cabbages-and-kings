@@ -378,7 +378,7 @@ class Confirm(SelectState):
         the string EMPTY.
         """
         with open(prepare.SAVE_PATH) as my_file:
-                data = yaml.load(my_file)
+            data = yaml.load(my_file)
         del_index = self.persist["del_index"]
         data[del_index] = "EMPTY"
         with open(prepare.SAVE_PATH, 'w') as my_file:

@@ -7,11 +7,15 @@ SIDEBAR_SIZE = (200, 700)
 HEAL_SIZE = (35, 35)
 HEAL_OFFSET = 15, 50
 HEAL_SPACER = 45
+PRIMARY_EQUIP = pg.Rect(20, 405, 64, 64)
+SECONDARY_EQUIP = pg.Rect(115, 405, 64, 64)
+
 
 STAT_LOCATIONS = {"money" : (110, 160),
                   "keys"  : (110, 220)}
 
 SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 34)
+
 
 
 class SideBar(object):
@@ -68,12 +72,20 @@ class SideBar(object):
                 self.stats[stat] = (current, image)
             self.image.blit(image, STAT_LOCATIONS[stat])
 
+    def render_gear(self, player):
+        """Draw player's primary and secondary equips to sidebar."""
+        self.image.fill((190,190,255), PRIMARY_EQUIP)###
+        display_image = player.equipped["weapon"].display
+        primary = display_image.get_rect(center=PRIMARY_EQUIP.center)
+        self.image.blit(display_image, primary)
+
     def update(self, player):
         """Update and redraw all elements to the image."""
         self.image.fill(prepare.BACKGROUND_COLOR)
         self.image.blit(prepare.GFX["misc"]["sidebargfx"], (0,0))
         self.render_health(player)
         self.render_numbers(player)
+        self.render_gear(player)
 
     def draw(self, surface):
         """Standard draw function."""

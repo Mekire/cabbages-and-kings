@@ -8,6 +8,9 @@ import pygame as pg
 from .. import prepare, tools
 
 
+DISPLAY_SHEET = prepare.GFX["equips"]["geardisplay"]
+
+
 class _Equipment(object):
     """A base prototype class for all equipment."""
     def __init__(self, stats, sheet_name, sheet_location, arrange="standard"):
@@ -252,6 +255,7 @@ class PitchFork(_Weapon):
         self.description = "Should vanquish all foes... Eventually."
         self.sound = prepare.SFX["boing"]
         self.anims, self.anim_rects = self.get_attack_info((0,0), (44,20), 2)
+        self.display = DISPLAY_SHEET.subsurface((50,0,50,50))
 
 
 class Labrys(_Weapon):
@@ -269,6 +273,7 @@ class Labrys(_Weapon):
         #Left frames need to be vertically flipped.
         lefts = [pg.transform.flip(f,0,1) for f in self.anims["left"].frames]
         self.anims["left"] = tools.Anim(lefts, 15.0, 1)
+        self.display = DISPLAY_SHEET.subsurface(((0,0),prepare.CELL_SIZE))
 
 
 #Organize all equips into a nested dictionary.
