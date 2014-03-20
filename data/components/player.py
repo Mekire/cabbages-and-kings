@@ -21,7 +21,8 @@ DRAW_ATTACK_ORDER = {"front" : ["shield", "body", "head", "weapon", "armleg"],
 
 STANDARD_ANIMATION_FPS = 7.0
 HIT_ANIMATION_FPS = 20.0
-KNOCK_SPEED = 750  #Pixels per second.
+BASE_SPEED = 190
+KNOCK_SPEED = 750
 
 
 class _ImageProcessing(object):
@@ -134,7 +135,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.rect = pg.Rect(rect)
         self.exact_position = list(self.rect.topleft)
         self.old_position = self.exact_position[:]
-        self.speed = 190  ##Calculate from gear later.
+        self.speed = BASE_SPEED  ##Calculate from gear later.
         self.direction = direction
         self.direction_stack = [] #Held keys in the order they were pressed.
         self.controls = prepare.DEFAULT_CONTROLS
@@ -159,6 +160,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.inventory["keys"] = player_data["keys"]
 ##        self.equipped = self.set_equips(player_data["equipped"])
         self.equipped = self.set_equips_random() ###
+        self.defense,self.strength,self.speed = self.calc_stats(self.equipped)
 
     def set_equips(self, equipped):
         """
@@ -180,6 +182,12 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             parts = list(self.inventory[part].values())
             equipped[part] = random.choice(parts)
         return equipped
+
+    def calc_stats(self, gear):
+        """Calculate stats based on current gear."""
+        stat_mods = zip(*[g.stats for g in gear.values()])
+        defense, attack, speed_mod = [sum(stats) for stats in stat_mods]
+        return (defense, attack, BASE_SPEED+speed_mod)
 
     def make_mask(self):
         """Create a collision mask for the player."""

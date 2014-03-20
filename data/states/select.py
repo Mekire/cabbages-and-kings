@@ -147,6 +147,17 @@ class SelectState(tools._State):
             expand = pg.transform.scale(player_sprite.image, (100,100))
             position = (PLAYER_START[0], PLAYER_START[1]+SLOT_SPACER*index)
             surface.blit(expand, position)
+            self.draw_player_stats(surface, player_sprite, index)
+
+    def draw_player_stats(self, surface, player_sprite, index):
+        items = prepare.GFX["misc"]["sidebargfx"].subsurface(20, 160, 80, 100)
+        icons = prepare.GFX["misc"]["icons"]
+        topleft = (MAIN_TOPLEFT[0]+525, MAIN_TOPLEFT[1]+55+index*SLOT_SPACER)
+        surface.blit(items, topleft)
+        for i in (0, 1, 2):
+            topleft = (MAIN_TOPLEFT[0]+665+i*75,
+                       MAIN_TOPLEFT[1]+57+index*SLOT_SPACER)
+            surface.blit(icons, topleft, (34*i,0,34,34))
 
     def make_options(self, font, choices, y_start, y_space):
         """

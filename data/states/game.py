@@ -10,6 +10,8 @@ from ..components import player, level, sidebar
 
 
 IRIS_MIN_RADIUS = 30
+IRIS_TRANSPARENCY = (0,0,0,175)
+IRIS_STRIP_RECT = pg.Rect(prepare.PLAY_RECT.w-5, 0, 5, prepare.PLAY_RECT.h)
 
 
 class Game(tools._State):
@@ -20,8 +22,8 @@ class Game(tools._State):
     def startup(self, now, persistant):
         tools._State.startup(self, now, persistant)
         self.player = self.persist["player"]
-        self.player.exact_position = list(prepare.SCREEN_RECT.center)
-        self.level = level.Level(self.player, "central.map")
+        self.player.exact_position = list(prepare.SCREEN_RECT.center) ###
+        self.level = level.Level(self.player, "central.map") ###
         self.sidebar = sidebar.SideBar()
         self.iris = None
 
@@ -99,11 +101,10 @@ class IrisIn(object):
         self.rad = max(self.rad-self.speed*dt, IRIS_MIN_RADIUS)
         if self.rad == IRIS_MIN_RADIUS:
             self.done = True
-        self.image.fill((0,0,0,175))
-        self.image.fill(pg.Color("yellow"), (995,0,5,700)) #Yellow strip.
+        self.image.fill(IRIS_TRANSPARENCY)
+        self.image.fill(pg.Color("yellow"), IRIS_STRIP_RECT)
         pg.draw.circle(self.image, (0,0,0,0), self.center, int(self.rad))
 
     def draw(self, surface):
         """Standard draw method."""
         surface.blit(self.image, self.rect)
-

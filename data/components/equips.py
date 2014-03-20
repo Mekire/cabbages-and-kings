@@ -14,7 +14,7 @@ DISPLAY_SHEET = prepare.GFX["equips"]["geardisplay"]
 class _Equipment(object):
     """A base prototype class for all equipment."""
     def __init__(self, stats, sheet_name, sheet_location, arrange="standard"):
-        self.defense, self.strength, self.speed = stats
+        self.stats = self.defense, self.strength, self.speed = stats
         self.attack_images = "normal"
         sheet = prepare.GFX["equips"][sheet_name]
         if arrange == "attack":
@@ -134,7 +134,7 @@ class TinShield(_Equipment):
 
 class NoShield(_Equipment):
     def __init__(self):
-        self.defense, self.strength, self.speed = (0, 0, 0)
+        self.stats = self.defense, self.strength, self.speed = (0, 0, 0)
         self.images = None
         self.attack_images = None
 

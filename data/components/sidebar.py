@@ -74,7 +74,6 @@ class SideBar(object):
 
     def render_gear(self, player):
         """Draw player's primary and secondary equips to sidebar."""
-        self.image.fill((190,190,255), PRIMARY_EQUIP)###
         display_image = player.equipped["weapon"].display
         primary = display_image.get_rect(center=PRIMARY_EQUIP.center)
         self.image.blit(display_image, primary)
