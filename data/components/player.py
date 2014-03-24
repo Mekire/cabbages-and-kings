@@ -154,21 +154,21 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
     def set_player_data(self, player_data):
         """Set required stats based on player data."""
         self.name = player_data["name"]
-##        self.inventory = equips.make_equips(player_data["gear"])
-        self.inventory = equips.make_all_equips() ###
+        self.inventory = equips.make_equips(player_data["gear"])
+##        self.inventory = equips.make_all_equips() ###
         self.inventory["money"] = player_data["money"]
         self.inventory["keys"] = player_data["keys"]
-##        self.equipped = self.set_equips(player_data["equipped"])
-        self.equipped = self.set_equips_random() ###
+        self.equipped = self.set_equips(player_data["equipped"])
+##        self.equipped = self.set_equips_random() ###
         self.defense,self.strength,self.speed = self.calc_stats(self.equipped)
 
-    def set_equips(self, equipped):
+    def set_equips(self, equip_data):
         """
         Set the equips the player is wearing.  Currently hardcoded.
         Eventually it will load from player data or revert to defaults.
         """
         equipped = {}
-        for part,gear in equipped.items():
+        for part,gear in equip_data.items():
             equipped[part] = self.inventory[part][gear]
         return equipped
 

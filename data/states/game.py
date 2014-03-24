@@ -10,7 +10,7 @@ from ..components import player, level, sidebar
 
 
 IRIS_MIN_RADIUS = 30
-IRIS_TRANSPARENCY = (0,0,0,175)
+IRIS_TRANSPARENCY = (0, 0, 0, 175)
 IRIS_STRIP_RECT = pg.Rect(prepare.PLAY_RECT.w-5, 0, 5, prepare.PLAY_RECT.h)
 
 
@@ -18,14 +18,23 @@ class Game(tools._State):
     """Core state for the actual gameplay."""
     def __init__(self):
         tools._State.__init__(self)
+        self.map_scrolling = False
+        self.level = None
 
     def startup(self, now, persistant):
         tools._State.startup(self, now, persistant)
-        self.player = self.persist["player"]
-        self.player.exact_position = list(prepare.SCREEN_RECT.center) ###
-        self.level = level.Level(self.player, "central.map") ###
-        self.sidebar = sidebar.SideBar()
-        self.iris = None
+        if not self.level:
+            self.player = self.persist["player"]
+            self.player.exact_position = list(prepare.SCREEN_RECT.center) ###
+            self.level = level.Level(self.player, "central.map") ###
+            self.sidebar = sidebar.SideBar()
+            self.iris = None
+
+    def cleanup(self):
+        self.done = False
+        self.persist["bg_color"] = self.level.background_color
+        self.persist["sidebar"] = self.sidebar
+        return self.persist
 
     def get_event(self, event):
         """
@@ -35,8 +44,12 @@ class Game(tools._State):
         if self.player.action_state != "dead":
             if event.type == pg.KEYDOWN:
                 self.player.add_direction(event.key)
-                if event.key == pg.K_SPACE:
-                    self.player.attack()
+                if not self.map_scrolling:
+                    if event.key == pg.K_SPACE:
+                        self.player.attack()
+                    elif event.key == pg.K_s:
+                        self.done = True
+                        self.next = "CAMP"
             elif event.type == pg.KEYUP:
                 self.player.pop_direction(event.key)
 

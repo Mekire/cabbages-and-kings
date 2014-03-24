@@ -7,18 +7,19 @@ and in the prepare module.
 """
 
 from . import prepare,tools
-from .states import title, splash, select, register, viewcontrols, game
+from .states import title, splash, select, register, viewcontrols, game, camp
 
 
 def main():
     """Add states to control here."""
     app = tools.Control(prepare.ORIGINAL_CAPTION)
-    state_dict = {"SPLASH" : splash.Splash(),
-                  "TITLE"  : title.Title(),
-                  "SELECT"  : select.Select(),
-                  "REGISTER"  : register.Register(),
+    state_dict = {"SPLASH"   : splash.Splash(),
+                  "TITLE"    : title.Title(),
+                  "SELECT"   : select.Select(),
+                  "REGISTER" : register.Register(),
                   "CONTROLS" : viewcontrols.ViewControls(),
-                  "GAME"   : game.Game(),
+                  "GAME"     : game.Game(),
+                  "CAMP"     : camp.Camp()
                   }
     app.setup_states(state_dict, "SPLASH")
     app.main()

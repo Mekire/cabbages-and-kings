@@ -101,7 +101,8 @@ class Level(object):
     def make_background(self):
         """Create the background as one big surface."""
         background = pg.Surface((1000,700)).convert()
-        background.fill(self.map_dict["BG Colors"]["fill"])
+        self.background_color = self.map_dict["BG Colors"]["fill"]
+        background.fill(self.background_color)
         for target in self.map_dict["BG Colors"]:
             if target != "fill":
                 color = self.map_dict["BG Colors"][target][1]

@@ -86,6 +86,6 @@ class SideBar(object):
         self.render_numbers(player)
         self.render_gear(player)
 
-    def draw(self, surface):
+    def draw(self, surface, offset=0):
         """Standard draw function."""
-        surface.blit(self.image, self.rect)
+        surface.blit(self.image, (self.rect.x+offset, self.rect.y))
