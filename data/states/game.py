@@ -50,6 +50,7 @@ class Game(tools._State):
                     elif event.key == pg.K_s:
                         self.done = True
                         self.next = "CAMP"
+                        self.player.direction_stack = []
             elif event.type == pg.KEYUP:
                 self.player.pop_direction(event.key)
 

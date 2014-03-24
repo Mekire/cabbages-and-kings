@@ -54,9 +54,10 @@ class Camp(tools._State):
         self.draw(surface)
 
     def  get_event(self, event):
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_s:
-                self.done = True
+        if not self.is_scrolling:
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_s:
+                    self.done = True
 
     def draw(self, surface):
         if self.is_scrolling:
