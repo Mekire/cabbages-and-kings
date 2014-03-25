@@ -61,7 +61,6 @@ class Select(state_machine._State):
                       "DELETE" : Delete(),
                       "CONFIRM" : Confirm()}
         self.state_machine.setup_states(state_dict, "OPTIONS")
-        self.state_machine.done = False
 
     def cleanup(self):
         """
@@ -69,6 +68,7 @@ class Select(state_machine._State):
         Then reset State.done to False.
         """
         self.done = False
+        self.state_machine.done = False
         regi = self.state_machine.state_dict["SELECT/REGISTER"]
         options = self.state_machine.state_dict["OPTIONS"]
         self.persist["save_slot"] = regi.index

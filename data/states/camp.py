@@ -15,11 +15,10 @@ GEAR_POSITION = (473, 375)
 
 GEAR_ORDER = ("head", "body", "armleg", "weapon", "shield")
 
-FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60) ###
-SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 50) ###
+MEDIUM_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 50) ###
 
 OPTIONS = ["EQUIP", "ABILITY", "ITEMS", "MAP"]
-OPT_Y = 500
+OPT_Y = 497
 OPT_SPACER = 50
 OPT_CENTER_X = 382
 
@@ -43,6 +42,11 @@ class Camp(state_machine._State):
         self.gear = self.make_gear_image()
         self.offset = 0
         self.is_scrolling = True
+
+    def cleanup(self):
+        self.done = False
+        self.state_machine.done = False
+        return self.persist
 
     def make_base_image(self):
         base = pg.Surface(prepare.PLAY_RECT.size).convert()
@@ -103,7 +107,7 @@ class Camp(state_machine._State):
 class Options(menu_helpers.BasicMenu):
     def __init__(self):
         menu_helpers.BasicMenu.__init__(self, 4)
-        self.options = self.make_options(SMALL_FONT, OPTIONS, OPT_Y,
+        self.options = self.make_options(MEDIUM_FONT, OPTIONS, OPT_Y,
                                          OPT_SPACER, OPT_CENTER_X)
 
     def draw(self, surface):
