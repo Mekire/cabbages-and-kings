@@ -6,7 +6,7 @@ import os
 import sys
 import pygame as pg
 
-from .. import prepare, state_machine
+from .. import prepare, state_machine, menu_helpers
 from ..components import enemy_sprites, player
 
 
@@ -16,15 +16,15 @@ else:
     import yaml3 as yaml
 
 
-FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
-SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32)
+FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60) ###
+SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32) ###
 
 OPTIONS = ["SELECT/REGISTER", "DELETE", "CONTROLS"]
 HIGHLIGHT_COLOR = (108, 148, 136)
 
 #Placement and spacing constants.
-OPTION_Y = 541
-OPTION_SPACER = 59
+OPT_Y = 541
+OPT_SPACER = 59
 SLOT_SPACER = 125
 MAIN_TOPLEFT = (100, 40)
 NAME_START = (320, 115)
@@ -109,26 +109,11 @@ class Select(state_machine._State):
         self.state_machine.get_event(event)
 
 
-class SelectState(state_machine._State):
+class SelectState(menu_helpers.BasicMenu):
     """Base class for all Select state substates."""
-    def __init__(self):
-       state_machine._State.__init__(self)
-       self.index = 0
-       self.rendered = {}
-
-    def get_event(self, event):
-        """
-        Generic event getter for scrolling through menus.
-        """
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_DOWN:
-                self.index = (self.index+1)%self.option_length
-            elif event.key == pg.K_UP:
-                self.index = (self.index-1)%self.option_length
-            elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
-                self.pressed_enter()
-            elif event.key in (pg.K_x, pg.K_ESCAPE):
-                self.pressed_exit()
+    def __init__(self, option_length):
+        menu_helpers.BasicMenu.__init__(self, option_length)
+        self.rendered = {}
 
     def draw_player(self, surface, player_sprite, index, redraw=False):
         """
@@ -171,42 +156,19 @@ class SelectState(state_machine._State):
             self.rendered[to_render] = image
         return image
 
-    def make_options(self, font, choices, y_start, y_space):
-        """
-        Makes prerendered (text,rect) tuples for basic text menus.
-        Both selected and non-selected versions are made of each.
-        Used by both the Option and Confirm menus.
-        """
-        options = {}
-        args = [font, choices, pg.Color("white"), y_start, y_space]
-        options["unselected"] = make_text_list(*args)
-        args = [font, choices, pg.Color("yellow"), y_start, y_space]
-        options["selected"] = make_text_list(*args)
-        return options
-
-    def update(self, *args):
-        pass
-
-    def pressed_enter(self):
-        pass
-
-    def pressed_exit(self):
-        pass
-
 
 class Options(SelectState):
     """
     Essentially the main menu state of the whole game.
     """
     def __init__(self):
-       SelectState.__init__(self)
-       self.option_length = 3
-       self.players = self.load_players()
-       self.names = self.make_player_names()
-       self.options = self.make_options(FONT, OPTIONS, OPTION_Y, OPTION_SPACER)
-       self.image = pg.Surface(prepare.SCREEN_SIZE).convert()
-       self.image.set_colorkey(prepare.COLOR_KEY)
-       self.image.fill(prepare.COLOR_KEY)
+        SelectState.__init__(self, 3)
+        self.players = self.load_players()
+        self.names = self.make_player_names()
+        self.options = self.make_options(FONT, OPTIONS, OPT_Y, OPT_SPACER)
+        self.image = pg.Surface(prepare.SCREEN_SIZE).convert()
+        self.image.set_colorkey(prepare.COLOR_KEY)
+        self.image.fill(prepare.COLOR_KEY)
 
     def startup(self, now, persistant):
         """Reload all players and rerender their names on startup."""
@@ -237,12 +199,13 @@ class Options(SelectState):
         names = []
         for i,player in enumerate(self.players):
             try:
-                args = FONT, player.name, pg.Color("white"), (0,0)
+                message = FONT.render(player.name, 0, pg.Color("white"))
             except AttributeError:
+                message = FONT.render(player, 0, pg.Color("white"))
                 args = FONT, player, pg.Color("white"), (0,0)
-            msg, rect = render_font(*args)
-            rect.topleft = NAME_START[0], NAME_START[1]+SLOT_SPACER*i
-            names.append((msg, rect))
+            pos = NAME_START[0], NAME_START[1]+SLOT_SPACER*i
+            rect = message.get_rect(topleft=pos)
+            names.append((message, rect))
         return names
 
     def cleanup(self):
@@ -289,9 +252,8 @@ class CharHighlighter(SelectState):
     Contains the logic for drawing the player selection highlight cursor.
     """
     def __init__(self):
-       SelectState.__init__(self)
-       self.option_length = 3
-       self.highlight_rect = pg.Rect(129, 83, 942, 124)
+        SelectState.__init__(self, 3)
+        self.highlight_rect = pg.Rect(129, 83, 942, 124)
 
     def draw(self, surface):
         """
@@ -360,15 +322,14 @@ class Confirm(SelectState):
     deletion of a character.
     """
     def __init__(self):
-       self.box_image = prepare.GFX["misc"]["delete"]
-       centerx = prepare.SCREEN_RECT.centerx
-       top = MAIN_TOPLEFT[1]+130
-       self.rect = self.box_image.get_rect(centerx=centerx, top=top)
-       SelectState.__init__(self)
-       self.option_length = 2
-       self.options = self.make_options(SMALL_FONT, ["Confirm", "Cancel"],
-                                        self.rect.y+130, 35)
-       self.player = None
+        self.box_image = prepare.GFX["misc"]["delete"]
+        centerx = prepare.SCREEN_RECT.centerx
+        top = MAIN_TOPLEFT[1]+130
+        self.rect = self.box_image.get_rect(centerx=centerx, top=top)
+        SelectState.__init__(self, 2)
+        self.options = self.make_options(SMALL_FONT, ["Confirm", "Cancel"],
+                                         self.rect.y+130, 35)
+        self.player = None
 
     def startup(self, now, persistant):
         """
@@ -416,7 +377,7 @@ class Confirm(SelectState):
         else:
             self.pressed_exit()
 
-    def update(self, *args):
+    def update(self, surface, keys, now, dt):
         """
         If a player deletion has been confirmed and death animation completed,
         return to menu.
@@ -463,25 +424,3 @@ class MenuCabbage(enemy_sprites.Cabbage):
             self.speed *= -1
             self.rect.x = min(max(self.rect.x, self.min), self.max)
             self.exact_position = list(self.rect.topleft)
-
-
-def render_font(font, msg, color, center):
-    """Return the rendered font surface and its rect centered on center."""
-    msg = font.render(msg, 0, color)
-    rect = msg.get_rect(center=center)
-    return msg, rect
-
-
-def make_text_list(font, strings, color, start_y, y_space):
-    """
-    Takes a list of strings and returns a list of
-    (rendered_surface, rect) tuples. The rects are centered on the screen
-    and their y coordinates begin at starty, with y_space pixels between
-    each line.
-    """
-    rendered_text = []
-    for i,string in enumerate(strings):
-        msg_center = (prepare.SCREEN_RECT.centerx, start_y+i*y_space)
-        msg_data = render_font(font, string, color, msg_center)
-        rendered_text.append(msg_data)
-    return rendered_text

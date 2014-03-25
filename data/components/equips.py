@@ -10,22 +10,22 @@ from .. import prepare, tools
 
 DISPLAY_SHEET = prepare.GFX["equips"]["geardisplay"]
 
-
 class _Equipment(object):
     """A base prototype class for all equipment."""
-    def __init__(self, stats, sheet_name, sheet_location, arrange="standard"):
+    def __init__(self, name, stats, sheet, sheet_pos, arrange="standard"):
+        self.name = name
         self.stats = self.defense, self.strength, self.speed = stats
         self.attack_images = "normal"
-        sheet = prepare.GFX["equips"][sheet_name]
+        sheet = prepare.GFX["equips"][sheet]
         if arrange == "attack":
             step = prepare.CELL_SIZE[0]*2
-            start = (sheet_location[0]+prepare.CELL_SIZE[0], sheet_location[1])
-            self.images = self.get_images(sheet, sheet_location, step)
+            start = (sheet_pos[0]+prepare.CELL_SIZE[0], sheet_pos[1])
+            self.images = self.get_images(sheet, sheet_pos, step)
             self.attack_images = self.get_images(sheet, start, step)
         elif arrange == "standard":
-            self.images = self.get_images(sheet, sheet_location)
+            self.images = self.get_images(sheet, sheet_pos)
         else:
-            self.get_images(sheet, sheet_location)
+            self.get_images(sheet, sheet_pos)
 
     def get_images(self, sheet, coords, step=prepare.CELL_SIZE[0]):
         """Rip frames from sheet and place them in a dict by direction."""
@@ -42,32 +42,35 @@ class NoHeadGear(_Equipment):
     """The initial headgearless player."""
     def __init__(self):
         stats = (0, 0, 0)
-        _Equipment.__init__(self, stats, "heads", (0,0), "attack")
+        _Equipment.__init__(self, "none", stats, "heads", (0,0), "attack")
         self.title = "No headgear"
         self.description = "You should really find a helmet."
         self.vision_impair = None
+        self.display = DISPLAY_SHEET.subsurface(0, 150, 50, 50)
 
 
 class Helm(_Equipment):
     """A minor improvement on having no helmet."""
     def __init__(self):
         stats = (1, 0, 0)
-        _Equipment.__init__(self, stats, "heads", (0,50), "attack")
+        _Equipment.__init__(self, "helm", stats, "heads", (0,50), "attack")
         self.title = "Helmet"
         self.description = ("Average defense, average visibility. "
                             "Just pretty average.")
         self.vision_impair = None
+        self.display = DISPLAY_SHEET.subsurface(50, 150, 50, 50)
 
 
 class Sader(_Equipment):
     """Very high defense, but the vision impairment is a tough tradeoff."""
     def __init__(self):
         stats = (3, 0, 0)
-        _Equipment.__init__(self, stats, "heads", (0,100), "attack")
+        _Equipment.__init__(self, "sader", stats, "heads", (0,100), "attack")
         self.title = "Crusader Helm"
         self.description = ("Great for protection, but limited visibility... "
                             "seriously.")
         self.vision_impair = self.make_impair()
+        self.display = DISPLAY_SHEET.subsurface(100, 150, 50, 50)
 
     def make_impair(self):
         pass
@@ -77,11 +80,12 @@ class Diver(_Equipment):
     """Impaired vision is the price one pays for underwater breathing."""
     def __init__(self):
         stats = (1, 0, 0)
-        _Equipment.__init__(self, stats, "heads", (0,150), "attack")
+        _Equipment.__init__(self, "diver", stats, "heads", (0,150), "attack")
         self.title = "Helm of the Mariner"
         self.description = ("Underwater breathing, and you can almost see "
                             "where you're going. Amazing.")
         self.vision_impair = self.make_impair()
+        self.display = DISPLAY_SHEET.subsurface(150, 150, 50, 50)
 
     def make_impair(self):
         pass
@@ -91,11 +95,12 @@ class TopGoggles(_Equipment):
     """A novelty hat in which form seems to completely ignore function."""
     def __init__(self):
         stats = (1, 0, 0)
-        _Equipment.__init__(self, stats, "heads", (0,200), "attack")
+        _Equipment.__init__(self, "goggles", stats, "heads", (0,200), "attack")
         self.title = "Begoggled Tophat"
         self.description = ("Wait, I don't get it.  Are there holes in the "
                             "tophat underneath the goggles?")
         self.vision_impair = self.make_impair()
+        self.display = DISPLAY_SHEET.subsurface(200, 150, 50, 50)
 
     def make_impair(self):
         pass
@@ -106,20 +111,22 @@ class Cloth(_Equipment):
     """At least he doesn't start naked. Be thankful."""
     def __init__(self):
         stats = (0, 0, 0)
-        _Equipment.__init__(self, stats, "bodies", (0,0))
+        _Equipment.__init__(self, "cloth", stats, "bodies", (0,0))
         self.title = "Peasant Clothes"
         self.description = ("Leaves something to be desired "
                             "in the defense department.")
+        self.display = DISPLAY_SHEET.subsurface(0, 300, 50, 50)
 
 
 class ChainMail(_Equipment):
     """Higher defense at the cost of speed."""
     def __init__(self):
         stats = (3, 0, -40)
-        _Equipment.__init__(self, stats, "bodies", (200,0))
+        _Equipment.__init__(self, "chain", stats, "bodies", (200,0))
         self.title = "Chainmail"
         self.description = ("What it has in defense it "
                             "lacks in freedom of movement.")
+        self.display = DISPLAY_SHEET.subsurface(50, 300, 50, 50)
 
 
 #Specific types of shields
@@ -127,16 +134,19 @@ class TinShield(_Equipment):
     """The first shield. Should only deflect basic projectiles."""
     def __init__(self):
         stats = (0, 0, 0)
-        _Equipment.__init__(self, stats, "shields", (0,0), "attack")
+        _Equipment.__init__(self, "tin", stats, "shields", (0,0), "attack")
         self.title = "Tin Shield"
         self.description = "Only slightly better than having no shield at all."
         self.deflect = 1
+        self.display = DISPLAY_SHEET.subsurface(0, 450, 50, 50)
 
 class NoShield(_Equipment):
     def __init__(self):
+        self.name = "none"
         self.stats = self.defense, self.strength, self.speed = (0, 0, 0)
         self.images = None
         self.attack_images = None
+        self.display = DISPLAY_SHEET.subsurface(350, 450, 50, 50)
 
 
 #Specific arms and legs
@@ -144,17 +154,18 @@ class ArmsLegs(_Equipment):
     """Starting shoes.  No gloves."""
     def __init__(self):
         stats = (0, 0, 0)
-        _Equipment.__init__(self, stats, "armslegs", (0,0), "other")
+        _Equipment.__init__(self, "normal", stats, "armslegs", (0,0), "other")
         self.title = "Basic Shoes"
         self.description = "Just your basic shoes... Nothing special."
+        self.display = DISPLAY_SHEET.subsurface(0, 600, 50, 50)
 
-    def get_images(self, sheet, sheet_location):
+    def get_images(self, sheet, sheet_pos):
         """
         Slice images from the sheet with respect to a standard layout.
         Note that an exception must be made for right facing while holding a
         shield.
         """
-        frames = tools.strip_from_sheet(sheet, sheet_location,
+        frames = tools.strip_from_sheet(sheet, sheet_pos,
                                         prepare.CELL_SIZE, 18)
         self.images = {}
         self.attack_images = {}
@@ -167,8 +178,8 @@ class ArmsLegs(_Equipment):
 #Weapons follow.
 class _Weapon(_Equipment):
     """Prototype class for weapons."""
-    def __init__(self,stats,sheet_location):
-        _Equipment.__init__(self, stats, "weapons", sheet_location, "other")
+    def __init__(self, name, stats, sheet_pos):
+        _Equipment.__init__(self, name, stats, "weapons", sheet_pos, "other")
         self.attack_images = None
         self.anims = None
         self.anim = None
@@ -177,9 +188,9 @@ class _Weapon(_Equipment):
         self.attacking = False
         self.delay_timer = tools.Timer(300)
 
-    def get_images(self, sheet, sheet_location):
+    def get_images(self, sheet, sheet_pos):
         """Get the weapon images assuming a standard layout."""
-        frames = tools.strip_from_sheet(sheet, sheet_location,
+        frames = tools.strip_from_sheet(sheet, sheet_pos,
                                         prepare.CELL_SIZE, 8)
         self.images = {}
         for i,direction in enumerate(prepare.DIRECTIONS):
@@ -250,7 +261,7 @@ class PitchFork(_Weapon):
     """The first weapon our player will use. Very unimpressive."""
     def __init__(self):
         stats = (0, 2, 0)
-        _Weapon.__init__(self, stats, (0,0))
+        _Weapon.__init__(self, "pitch", stats, (0,0))
         self.title = "Angry Mob Pitchfork"
         self.description = "Should vanquish all foes... Eventually."
         self.sound = prepare.SFX["boing"]
@@ -265,7 +276,7 @@ class Labrys(_Weapon):
     """
     def __init__(self):
         stats = (0, 3, 0)
-        _Weapon.__init__(self, stats, (0,50))
+        _Weapon.__init__(self, "labrys", stats, (0,50))
         self.title = "Mini-Labrys"
         self.description = "Foliage beware !"
         self.sound = prepare.SFX["whoosh"]
@@ -273,7 +284,7 @@ class Labrys(_Weapon):
         #Left frames need to be vertically flipped.
         lefts = [pg.transform.flip(f,0,1) for f in self.anims["left"].frames]
         self.anims["left"] = tools.Anim(lefts, 15.0, 1)
-        self.display = DISPLAY_SHEET.subsurface(((0,0),prepare.CELL_SIZE))
+        self.display = DISPLAY_SHEET.subsurface(((0,0), prepare.CELL_SIZE))
 
 
 #Organize all equips into a nested dictionary.
