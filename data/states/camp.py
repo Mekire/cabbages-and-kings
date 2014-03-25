@@ -22,6 +22,8 @@ OPT_Y = 497
 OPT_SPACER = 50
 OPT_CENTER_X = 382
 
+NOT_IMPLEMENTED = ["ABILITY", "ITEMS", "MAP"]
+
 
 class Camp(state_machine._State):
     """State for changing gear, selecting items, etc."""
@@ -34,7 +36,8 @@ class Camp(state_machine._State):
 
     def startup(self, now, persistant):
         state_machine._State.startup(self, now, persistant)
-        state_dict = {"OPTIONS" : Options()}
+        state_dict = {"OPTIONS" : Options(),
+                      "EQUIP" : EquipGeneral()}
         self.state_machine.setup_states(state_dict, "OPTIONS")
         self.player = self.persist["player"]
         self.game_screen = pg.display.get_surface().copy()
@@ -119,7 +122,28 @@ class Options(menu_helpers.BasicMenu):
             msg, rect = self.options[which][i]
             surface.blit(msg, rect)
 
+    def pressed_enter(self):
+        """Enter next substate or view the controls screen on enter."""
+        self.next = OPTIONS[self.index]
+        if self.next not in NOT_IMPLEMENTED:
+            self.done = True
+
     def pressed_exit(self):
         self.quit = True
         self.next = "GAME"
+
+
+class EquipGeneral(menu_helpers.BasicMenu):
+    def __init__(self):
+        menu_helpers.BasicMenu.__init__(self, 5)
+
+    def draw(self, surface):
+        rect = pg.Rect(GEAR_POSITION, prepare.CELL_SIZE)
+        rect.move_ip(52*self.index,0)
+        surface.fill(pg.Color("yellow"), rect.inflate(4,4))
+        surface.fill((108, 148, 200), rect)
+
+    def pressed_exit(self):
+        self.done = True
+        self.next = "OPTIONS"
 
