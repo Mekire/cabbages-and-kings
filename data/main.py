@@ -1,6 +1,6 @@
 """
 The main function is defined here. It simply creates an instance of
-tools.Control and adds the game states to its state_machine dictionary using.
+tools.Control and adds the game states to its state_machine dictionary.
 There should be no need (theoretically) to edit the tools.Control class.
 All modifications should occur in this module
 and in the prepare module.
