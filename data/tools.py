@@ -245,3 +245,13 @@ def cursor_from_image(image):
             this_row.append(colors.get(pixel," "))
         icon_string.append("".join(this_row))
     return icon_string
+
+
+def get_rendered(font, text, color, cache):
+    """Simple font renderer that caches render."""
+    if text in cache:
+        image = cache[text]
+    else:
+        image = font.render(text, 0, color)
+        cache[text] = image
+    return image

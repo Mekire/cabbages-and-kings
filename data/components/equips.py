@@ -15,6 +15,7 @@ class _Equipment(object):
     def __init__(self, name, stats, sheet, sheet_pos, arrange="standard"):
         self.name = name
         self.stats = self.defense, self.strength, self.speed = stats
+        self.sort_stat = self.defense
         self.attack_images = "normal"
         sheet = prepare.GFX["equips"][sheet]
         if arrange == "attack":
@@ -130,6 +131,17 @@ class ChainMail(_Equipment):
 
 
 #Specific types of shields
+class NoShield(_Equipment):
+    def __init__(self):
+        self.name = "none"
+        self.stats = self.defense, self.strength, self.speed = (0, 0, 0)
+        self.images = None
+        self.attack_images = None
+        self.deflect = 0
+        self.display = DISPLAY_SHEET.subsurface(350, 450, 50, 50)
+        self.sort_stat = self.deflect
+
+
 class TinShield(_Equipment):
     """The first shield. Should only deflect basic projectiles."""
     def __init__(self):
@@ -139,14 +151,7 @@ class TinShield(_Equipment):
         self.description = "Only slightly better than having no shield at all."
         self.deflect = 1
         self.display = DISPLAY_SHEET.subsurface(0, 450, 50, 50)
-
-class NoShield(_Equipment):
-    def __init__(self):
-        self.name = "none"
-        self.stats = self.defense, self.strength, self.speed = (0, 0, 0)
-        self.images = None
-        self.attack_images = None
-        self.display = DISPLAY_SHEET.subsurface(350, 450, 50, 50)
+        self.sort_stat = self.deflect
 
 
 #Specific arms and legs
@@ -187,6 +192,7 @@ class _Weapon(_Equipment):
         self.anim_image = None
         self.attacking = False
         self.delay_timer = tools.Timer(300)
+        self.sort_stat = self.strength
 
     def get_images(self, sheet, sheet_pos):
         """Get the weapon images assuming a standard layout."""

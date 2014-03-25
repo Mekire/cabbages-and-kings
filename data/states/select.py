@@ -6,7 +6,7 @@ import os
 import sys
 import pygame as pg
 
-from .. import prepare, state_machine, menu_helpers
+from .. import prepare, tools, state_machine, menu_helpers
 from ..components import enemy_sprites, player
 
 
@@ -137,24 +137,17 @@ class SelectState(menu_helpers.BasicMenu):
         for i,stat in enumerate(["money", "keys"]):
             num = player_sprite.inventory[stat]
             pos_y = ITEM_START[1]+index*SLOT_SPACER+i*ITEM_SPACER
-            surface.blit(self.get_rendered(str(num)), (ITEM_START[0], pos_y))
+            rend_it = (SMALL_FONT, str(num), pg.Color("white"), self.rendered)
+            surface.blit(tools.get_rendered(*rend_it), (ITEM_START[0], pos_y))
         defense = str(player_sprite.defense)
         strength = str(player_sprite.strength)
         speed = "{:.1f}".format(player_sprite.speed/20.0)
         for i,stat in enumerate((strength,defense,speed)):
             pos = STAT_START[0]+STAT_SPACER*i, STAT_START[1]+SLOT_SPACER*index
             surface.blit(icons, pos, (34*i,0,34,34))
-            rendered = self.get_rendered(stat)
+            rend_it = (SMALL_FONT, stat, pg.Color("white"), self.rendered)
+            rendered = tools.get_rendered(*rend_it)
             surface.blit(rendered, (pos[0]+STAT_TEXT_SPACE,pos[1]))
-
-    def get_rendered(self, to_render):
-        """Simple cache to avoid rerendering text."""
-        if to_render in self.rendered:
-            image = self.rendered[to_render]
-        else:
-            image = SMALL_FONT.render(to_render, 0, pg.Color("white"))
-            self.rendered[to_render] = image
-        return image
 
 
 class Options(SelectState):
