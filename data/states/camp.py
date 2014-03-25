@@ -58,7 +58,10 @@ class Camp(state_machine._State):
 
     def make_player_image(self):
         image = pg.Surface(PLAYER_SIZE).convert()
-        image.fill(self.persist["bg_color"])
+        field = prepare.GFX["misc"]["charcreate"].subsurface(70, 55, 100, 100)#
+        field = pg.transform.scale(field, (400,400))##
+##        image.fill(self.persist["bg_color"])
+        image.blit(field, (0,0))
         player_anim = self.player.all_animations[0]["normal"]["front"]
         player_large = pg.transform.scale(player_anim.frames[0], PLAYER_SIZE)
         image.blit(player_large, (0,0))
