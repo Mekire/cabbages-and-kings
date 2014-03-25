@@ -1,15 +1,15 @@
 import pygame as pg
 
-from .. import prepare, tools
+from .. import prepare, tools, state_machine
 
 
 FONT_BIG = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
 
 
-class ViewControls(tools._State):
+class ViewControls(state_machine._State):
     """This State is updated while our game shows the player select screen."""
     def __init__(self):
-        tools._State.__init__(self)
+        state_machine._State.__init__(self)
         self.next = "SELECT"
         self.timer = tools.Timer(300)
         self.blink = False

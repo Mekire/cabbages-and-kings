@@ -4,23 +4,24 @@ This module contains the logic for the camp menu screen.
 
 import pygame as pg
 
-from .. import prepare, tools
+from .. import prepare, state_machine
 from ..components import player, level, sidebar
 
 
 MAX_SCROLL = -prepare.PLAY_RECT.width
-PLAYER_SIZE = 400, 400
+PLAYER_POSITION = (32, 27)
+PLAYER_SIZE = (400, 400)
 
 
-class Camp(tools._State):
+class Camp(state_machine._State):
     """State for changing gear, selecting items, etc."""
     def __init__(self):
-        tools._State.__init__(self)
+        state_machine._State.__init__(self)
         self.scroll_speed = 1200
         self.next = "GAME"
 
     def startup(self, now, persistant):
-        tools._State.startup(self, now, persistant)
+        state_machine._State.startup(self, now, persistant)
         self.game_screen = pg.display.get_surface().copy()
         self.base = self.make_base_image()
         self.offset = 0
@@ -31,7 +32,7 @@ class Camp(tools._State):
         base.fill(prepare.BACKGROUND_COLOR)
         base.blit(prepare.GFX["misc"]["campscreen"], (0,0))
         player = self.make_player_image()
-        base.blit(player, (30,50))
+        base.blit(player, PLAYER_POSITION)
         return base
 
     def make_player_image(self):

@@ -4,13 +4,13 @@ The splash screen of the game. The first thing the user sees.
 
 import pygame as pg
 
-from .. import prepare, tools
+from .. import prepare, state_machine
 
 
-class Splash(tools._State):
+class Splash(state_machine._State):
     """This State is updated while our game shows the splash screen."""
     def __init__(self):
-        tools._State.__init__(self)
+        state_machine._State.__init__(self)
         self.next = "TITLE"
         self.timeout = 5
         self.cover = pg.Surface((prepare.SCREEN_SIZE)).convert()

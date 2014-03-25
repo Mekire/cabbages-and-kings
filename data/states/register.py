@@ -7,7 +7,7 @@ import sys
 import copy
 import pygame as pg
 
-from .. import prepare, tools
+from .. import prepare, tools, state_machine
 
 
 if sys.version_info[0] < 3:
@@ -37,12 +37,12 @@ END_CELL = [12, 4]
 BACKSPACE_CELL = [11, 4]
 
 
-class Register(tools._State):
+class Register(state_machine._State):
     """
     This State is updated while our game shows the name registration screen.
     """
     def __init__(self):
-        tools._State.__init__(self)
+        state_machine._State.__init__(self)
         self.next = "SELECT"
         self.timer = tools.Timer(333)
         self.blink = True
@@ -53,7 +53,7 @@ class Register(tools._State):
         When this state is switched to, turn key-repeat on; set the alpha
         select cursor to the first position; and clear name.
         """
-        tools._State.startup(self, now, persistant)
+        state_machine._State.startup(self, now, persistant)
         pg.key.set_repeat(200,100)
         self.index = [0,0]
         self.name = []

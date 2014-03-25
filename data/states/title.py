@@ -4,13 +4,13 @@ This is currently a placeholder for the Title State of the game.
 
 import pygame as pg
 
-from .. import prepare, tools
+from .. import prepare, state_machine
 
 
-class Title(tools._State):
+class Title(state_machine._State):
     """This State is updated while our game shows the title screen."""
     def __init__(self):
-        tools._State.__init__(self)
+        state_machine._State.__init__(self)
         self.background = pg.Surface(prepare.SCREEN_SIZE).convert()
         self.background.blit(prepare.GFX["misc"]["titlebg"], (0,0))
         self.ne_key = self.render_font("Fixedsys500c", 20,

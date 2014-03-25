@@ -5,7 +5,7 @@ This module contains the primary gameplay state.
 import math
 import pygame as pg
 
-from .. import prepare, tools
+from .. import prepare, state_machine
 from ..components import player, level, sidebar
 
 
@@ -14,15 +14,15 @@ IRIS_TRANSPARENCY = (0, 0, 0, 175)
 IRIS_STRIP_RECT = pg.Rect(prepare.PLAY_RECT.w-5, 0, 5, prepare.PLAY_RECT.h)
 
 
-class Game(tools._State):
+class Game(state_machine._State):
     """Core state for the actual gameplay."""
     def __init__(self):
-        tools._State.__init__(self)
+        state_machine._State.__init__(self)
         self.map_scrolling = False
         self.level = None
 
     def startup(self, now, persistant):
-        tools._State.startup(self, now, persistant)
+        state_machine._State.startup(self, now, persistant)
         if not self.level:
             self.player = self.persist["player"]
             self.player.exact_position = list(prepare.SCREEN_RECT.center) ###

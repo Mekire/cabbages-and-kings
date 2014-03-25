@@ -6,7 +6,7 @@ import os
 import sys
 import pygame as pg
 
-from .. import prepare, tools
+from .. import prepare, state_machine
 from ..components import enemy_sprites, player
 
 
@@ -37,30 +37,31 @@ STAT_SPACER = 75
 STAT_TEXT_SPACE = 45
 
 
-class Select(tools._State):
+class Select(state_machine._State):
     """
     This State is updated while our game shows the player select screen.
     This state is made up of four substates to organize updating;
     Options, SelectRegister, Delete, and Confirm.
     """
     def __init__(self):
-        tools._State.__init__(self)
+        state_machine._State.__init__(self)
         self.next = "GAME"
         self.timeout = 15
         self.cabbages = pg.sprite.Group(MenuCabbage(25, 225, (25,525), 100),
                                       MenuCabbage(825, 1025, (1025,525), -100))
+        self.state_machine = state_machine.StateMachine()
 
     def startup(self, now, persistant):
         """
         Recreate the substates and substate dict when this state starts up.
         """
-        tools._State.startup(self, now, persistant)
-        self.state_name = "OPTIONS"
-        self.state_dict = {"OPTIONS" : Options(),
-                           "SELECT/REGISTER" : SelectRegister(),
-                           "DELETE" : Delete(),
-                           "CONFIRM" : Confirm()}
-        self.state = self.state_dict[self.state_name]
+        state_machine._State.startup(self, now, persistant)
+        state_dict = {"OPTIONS" : Options(),
+                      "SELECT/REGISTER" : SelectRegister(),
+                      "DELETE" : Delete(),
+                      "CONFIRM" : Confirm()}
+        self.state_machine.setup_states(state_dict, "OPTIONS")
+        self.state_machine.done = False
 
     def cleanup(self):
         """
@@ -68,8 +69,8 @@ class Select(tools._State):
         Then reset State.done to False.
         """
         self.done = False
-        regi = self.state_dict["SELECT/REGISTER"]
-        options = self.state_dict["OPTIONS"]
+        regi = self.state_machine.state_dict["SELECT/REGISTER"]
+        options = self.state_machine.state_dict["OPTIONS"]
         self.persist["save_slot"] = regi.index
         self.persist["player"] = options.players[regi.index]
         return self.persist
@@ -80,28 +81,15 @@ class Select(tools._State):
         checks to see if the game state or substate needs to change.
         """
         self.cabbages.update(now, dt)
-        self.state.update()
+        self.state_machine.update(surface, keys, now, dt)
         check_timeout = now-self.start_time > 1000.0*self.timeout
-        if self.state_name == "OPTIONS" and check_timeout:
+        if self.state_machine.state_name == "OPTIONS" and check_timeout:
             self.next = "TITLE"
             self.done = True
-        elif self.state.quit:
-            self.next = self.state.next
+        elif self.state_machine.done:
+            self.next = self.state_machine.state.next
             self.done = True
-        elif self.state.done:
-            self.flip_state()
         self.render(surface)
-
-    def flip_state(self):
-        """
-        When a State changes to done necessary startup and cleanup functions
-        are called and the current State is changed.
-        """
-        previous, self.state_name = self.state_name, self.state.next
-        persist = self.state.cleanup()
-        self.state = self.state_dict[self.state_name]
-        self.state.startup(self.now, persist)
-        self.state.previous = previous
 
     def render(self, surface):
         """
@@ -109,7 +97,7 @@ class Select(tools._State):
         then draw the Cabbages.
         """
         surface.fill(prepare.BACKGROUND_COLOR)
-        self.state.draw(surface)
+        self.state_machine.state.draw(surface)
         self.cabbages.draw(surface)
 
     def get_event(self, event):
@@ -118,13 +106,13 @@ class Select(tools._State):
         """
         if event.type == pg.KEYDOWN:
             self.start_time = pg.time.get_ticks()
-        self.state.get_event(event)
+        self.state_machine.get_event(event)
 
 
-class SelectState(tools._State):
+class SelectState(state_machine._State):
     """Base class for all Select state substates."""
     def __init__(self):
-       tools._State.__init__(self)
+       state_machine._State.__init__(self)
        self.index = 0
        self.rendered = {}
 
@@ -222,7 +210,7 @@ class Options(SelectState):
 
     def startup(self, now, persistant):
         """Reload all players and rerender their names on startup."""
-        tools._State.startup(self, now, persistant)
+        state_machine._State.startup(self, now, persistant)
         self.image.fill(prepare.COLOR_KEY)
         self.players = self.load_players()
         self.names = self.make_player_names()
@@ -387,7 +375,7 @@ class Confirm(SelectState):
         Make options default to Cancel to be polite.
         Set the currently selected player's hit_state so they damage strobe.
         """
-        tools._State.startup(self, now, persistant)
+        state_machine._State.startup(self, now, persistant)
         del_index = self.persist["del_index"]
         self.player = self.persist["players"][del_index]
         self.player.hit_state = True
