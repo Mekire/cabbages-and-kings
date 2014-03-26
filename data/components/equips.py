@@ -45,8 +45,8 @@ class NoHeadGear(_Equipment):
     def __init__(self):
         stats = (0, 0, 0)
         _Equipment.__init__(self, "none", stats, "heads", (0,0), "attack")
-        self.title = "No headgear"
-        self.description = "You should really find a helmet."
+        self.title = "No Headgear"
+        self.descript = ["You should really find a helmet."]
         self.vision_impair = None
         self.display = DISPLAY_SHEET.subsurface(0, 150, 50, 50)
 
@@ -56,9 +56,9 @@ class Helm(_Equipment):
     def __init__(self):
         stats = (1, 0, 0)
         _Equipment.__init__(self, "helm", stats, "heads", (0,50), "attack")
-        self.title = "Helmet"
-        self.description = ("Average defense, average visibility. "
-                            "Just pretty average.")
+        self.title = "Helm"
+        self.descript = ["Average defense, average visibility.",
+                         "Just pretty average."]
         self.vision_impair = None
         self.display = DISPLAY_SHEET.subsurface(50, 150, 50, 50)
 
@@ -69,8 +69,8 @@ class Sader(_Equipment):
         stats = (3, 0, 0)
         _Equipment.__init__(self, "sader", stats, "heads", (0,100), "attack")
         self.title = "Crusader Helm"
-        self.description = ("Great for protection, but limited visibility... "
-                            "seriously.")
+        self.descript = ["Great for protection,",
+                         "but limited visibility... Seriously."]
         self.vision_impair = self.make_impair()
         self.display = DISPLAY_SHEET.subsurface(100, 150, 50, 50)
 
@@ -84,8 +84,8 @@ class Diver(_Equipment):
         stats = (1, 0, 0)
         _Equipment.__init__(self, "diver", stats, "heads", (0,150), "attack")
         self.title = "Helm of the Mariner"
-        self.description = ("Underwater breathing, and you can almost see "
-                            "where you're going. Amazing.")
+        self.descript = ["Underwater breathing, and you can almost see",
+                         "where you're going. Amazing."]
         self.vision_impair = self.make_impair()
         self.display = DISPLAY_SHEET.subsurface(150, 150, 50, 50)
 
@@ -99,8 +99,8 @@ class TopGoggles(_Equipment):
         stats = (1, 0, 0)
         _Equipment.__init__(self, "goggles", stats, "heads", (0,200), "attack")
         self.title = "Begoggled Tophat"
-        self.description = ("Wait, I don't get it.  Are there holes in the "
-                            "tophat underneath the goggles?")
+        self.descript = ["Wait, I don't get it.  Are there holes in the",
+                         "tophat underneath the goggles?"]
         self.vision_impair = self.make_impair()
         self.display = DISPLAY_SHEET.subsurface(200, 150, 50, 50)
 
@@ -115,8 +115,8 @@ class Cloth(_Equipment):
         stats = (0, 0, 0)
         _Equipment.__init__(self, "cloth", stats, "bodies", (0,0))
         self.title = "Peasant Clothes"
-        self.description = ("Leaves something to be desired "
-                            "in the defense department.")
+        self.descript = ["Leaves something to be desired",
+                         "in the defense department."]
         self.display = DISPLAY_SHEET.subsurface(0, 300, 50, 50)
 
 
@@ -126,8 +126,8 @@ class ChainMail(_Equipment):
         stats = (3, 0, -40)
         _Equipment.__init__(self, "chain", stats, "bodies", (200,0))
         self.title = "Chainmail"
-        self.description = ("What it has in defense it "
-                            "lacks in freedom of movement.")
+        self.descript = ["What it has in defense,",
+                         "it lacks in freedom of movement."]
         self.display = DISPLAY_SHEET.subsurface(50, 300, 50, 50)
 
 
@@ -136,7 +136,7 @@ class NoShield(_Equipment):
     def __init__(self):
         self.name = "none"
         self.title = "No Shield"
-        self.description = "Those arrows aren't going to block themselves."
+        self.descript = ["Those arrows aren't going to block themselves."]
         self.stats = self.defense, self.strength, self.speed = (0, 0, 0)
         self.images = None
         self.attack_images = None
@@ -151,7 +151,8 @@ class TinShield(_Equipment):
         stats = (0, 0, 0)
         _Equipment.__init__(self, "tin", stats, "shields", (0,0), "attack")
         self.title = "Tin Shield"
-        self.description = "Only slightly better than having no shield at all."
+        self.descript = ["Only slightly better than",
+                         "having no shield at all."]
         self.deflect = 1
         self.display = DISPLAY_SHEET.subsurface(0, 450, 50, 50)
         self.sort_stat = self.deflect
@@ -164,7 +165,7 @@ class ArmsLegs(_Equipment):
         stats = (0, 0, 0)
         _Equipment.__init__(self, "normal", stats, "armslegs", (0,0), "other")
         self.title = "Basic Shoes"
-        self.description = "Just your basic shoes... Nothing special."
+        self.descript = ["Just your basic shoes... Nothing special."]
         self.display = DISPLAY_SHEET.subsurface(0, 600, 50, 50)
 
     def get_images(self, sheet, sheet_pos):
@@ -272,7 +273,7 @@ class PitchFork(_Weapon):
         stats = (0, 2, 0)
         _Weapon.__init__(self, "pitch", stats, (0,0))
         self.title = "Angry Mob Pitchfork"
-        self.description = "Should vanquish all foes... Eventually."
+        self.descript = ["Should vanquish all foes... Eventually."]
         self.sound = prepare.SFX["boing"]
         self.anims, self.anim_rects = self.get_attack_info((0,0), (44,20), 2)
         self.display = DISPLAY_SHEET.subsurface((50,0,50,50))
@@ -287,7 +288,7 @@ class Labrys(_Weapon):
         stats = (0, 3, 0)
         _Weapon.__init__(self, "labrys", stats, (0,50))
         self.title = "Mini-Labrys"
-        self.description = "Foliage beware !"
+        self.descript = ["Foliage beware !"]
         self.sound = prepare.SFX["whoosh"]
         self.anims, self.anim_rects = self.get_attack_info((0,20), (30,50), 3)
         #Left frames need to be vertically flipped.

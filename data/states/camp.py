@@ -11,8 +11,11 @@ from ..components import player, level, sidebar
 
 FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
 MEDIUM_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 50) ###
+SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32) ###
+TINY_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 28) ###
 
 HIGHLIGHT_COLOR = (108, 148, 200)
+DIM_YELLOW = (255, 200, 0)
 
 ARROWS = prepare.GFX["misc"]["menu_arrows"]
 ARROW_SIZE = (86, 101)
@@ -32,6 +35,9 @@ GEAR_BOX = prepare.GFX["misc"]["gear_box"]
 GEAR_BOX_CENTER = (OPT_CENTER_X, 615)
 GEAR_ORDER = ("head", "body", "armleg", "weapon", "shield")
 GEAR_TITLE = ("Headgear", "Armor", "Gloves/Shoes", "Weapon", "Shield")
+GEAR_SPEC_TITLE_CENTER = (OPT_CENTER_X, 485)
+GEAR_DESCRIP_CENTER = (OPT_CENTER_X, 517)
+GEAR_DESCRIP_SPACE = 27
 
 NOT_IMPLEMENTED = ["ABILITY", "ITEMS", "MAP"]  ###
 
@@ -258,6 +264,11 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         menu_helpers.BidirectionalMenu.__init__(self, (5,2))
         self.rendered = {}
 
+    @property
+    def true_index(self):
+        """The real index of the selected gear in the sorted_gear list."""
+        return self.index[1]*self.option_lengths[1]+self.index[0]
+
     def startup(self, now, persistant):
         """Get player and player-gear related variables from persist."""
         self.persist = persistant
@@ -274,9 +285,8 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         """
         old_index = self.index[:]
         menu_helpers.BidirectionalMenu.get_event(self, event)
-        un_divmod = self.index[1]*self.option_lengths[1]+self.index[0]
         try:
-            self.sorted_gear[un_divmod]
+            self.sorted_gear[self.true_index]
         except IndexError:
             self.index = old_index
 
@@ -287,12 +297,19 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         surface.blit(self.gear_image, self.gear_rect)
 
     def draw_text(self, surface):
-        un_divmod = self.index[1]*self.option_lengths[1]+self.index[0]
-        title = self.sorted_gear[un_divmod].title
-        rend_it = (MEDIUM_FONT, title, pg.Color("white"), self.rendered)
+        """Draw specific gear title and description to the screen."""
+        gear = self.sorted_gear[self.true_index]
+        rend_it = (SMALL_FONT, gear.title, DIM_YELLOW, self.rendered)
         rended = tools.get_rendered(*rend_it)
-        rend_rect = rended.get_rect(center=(OPT_CENTER_X,OPT_Y))
+        rend_rect = rended.get_rect(center=GEAR_SPEC_TITLE_CENTER)
         surface.blit(rended, rend_rect)
+        for i,line in enumerate(gear.descript):
+            rend_it = (TINY_FONT, line, pg.Color("white"), self.rendered)
+            rended = tools.get_rendered(*rend_it)
+            center_y = GEAR_DESCRIP_CENTER[1]+GEAR_DESCRIP_SPACE*i
+            center = GEAR_DESCRIP_CENTER[0], center_y
+            rend_rect = rended.get_rect(center=center)
+            surface.blit(rended, rend_rect)
 
     def draw_highlight(self, surface):
         """Draw the specific gear selection cursor to the screen."""
@@ -309,8 +326,8 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         Change the player's selected equipment;
         the return to equip type select.
         """
-        un_divmod = self.index[1]*self.option_lengths[1]+self.index[0]
-        self.player.change_equip(self.gear_type, self.sorted_gear[un_divmod])
+        new_gear = self.sorted_gear[self.true_index]
+        self.player.change_equip(self.gear_type, new_gear)
         self.pressed_exit()
 
     def pressed_exit(self):
