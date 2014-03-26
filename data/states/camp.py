@@ -12,23 +12,26 @@ from ..components import player, level, sidebar
 FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
 MEDIUM_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 50) ###
 
+HIGHLIGHT_COLOR = (108, 148, 200)
+
 ARROWS = prepare.GFX["misc"]["menu_arrows"]
 ARROW_SIZE = (86, 101)
 ARROW_POS = [(62,520), (617,520)]
 
 MAX_SCROLL = -prepare.PLAY_RECT.width
-PLAYER_POSITION = (32, 27)
-PLAYER_SIZE = (400, 400)
-
-GEAR_BOX = prepare.GFX["misc"]["gear_box"]
-GEAR_ORDER = ("head", "body", "armleg", "weapon", "shield")
-GEAR_TITLE = ("Headgear", "Armor", "Gloves/Shoes", "Weapon", "Shield")
-GEAR_POSITION = (473, 375)
+PLAYER_RECT = pg.Rect((32, 27), (400,400))
 
 OPTIONS = ["EQUIP", "ABILITY", "ITEMS", "MAP"]
 OPT_Y = 497
 OPT_SPACER = 50
 OPT_CENTER_X = 382
+
+EQUIPPED_RECT = pg.Rect((473, 375), (258,50))
+
+GEAR_BOX = prepare.GFX["misc"]["gear_box"]
+GEAR_BOX_CENTER = (OPT_CENTER_X, 615)
+GEAR_ORDER = ("head", "body", "armleg", "weapon", "shield")
+GEAR_TITLE = ("Headgear", "Armor", "Gloves/Shoes", "Weapon", "Shield")
 
 NOT_IMPLEMENTED = ["ABILITY", "ITEMS", "MAP"]  ###
 
@@ -43,6 +46,9 @@ class Camp(state_machine._State):
         self.image = pg.Surface(prepare.PLAY_RECT.size).convert()
 
     def startup(self, now, persistant):
+        """
+        State machine, base images, and scrolling variables reset on startup.
+        """
         state_machine._State.startup(self, now, persistant)
         state_dict = {"OPTIONS" : Options(),
                       "EQUIP" : EquipGeneral()}
@@ -51,36 +57,43 @@ class Camp(state_machine._State):
         self.state_machine.state.persist["player"] = self.player ###
         self.game_screen = pg.display.get_surface().copy()
         self.base = self.make_base_image()
-        self.gear = self.make_gear_image()
+        self.equipped = self.make_equipped_image()
         self.offset = 0
         self.is_scrolling = True
 
     def cleanup(self):
+        """The state_machine.done variable must also be reset."""
         self.done = False
         self.state_machine.done = False
         return self.persist
 
     def make_base_image(self):
+        """
+        Build the main background image for the menu.
+        """
         base = pg.Surface(prepare.PLAY_RECT.size).convert()
         base.fill(prepare.BACKGROUND_COLOR)
         base.blit(prepare.GFX["misc"]["campscreen"], (0,0))
         player = self.make_player_image()
-        base.blit(player, PLAYER_POSITION)
+        base.blit(player, PLAYER_RECT)
         return base
 
     def make_player_image(self):
-        image = pg.Surface(PLAYER_SIZE).convert()
+        """Scale an image of the player up to approriate size."""
+        size = PLAYER_RECT.size
+        image = pg.Surface(size).convert()
         field = prepare.GFX["misc"]["charcreate"].subsurface(70, 55, 100, 100)#
-        field = pg.transform.scale(field, (400,400))##
+        field = pg.transform.scale(field, size)##
 ##        image.fill(self.persist["bg_color"])
         image.blit(field, (0,0))
         player_anim = self.player.all_animations[0]["normal"]["front"]
-        player_large = pg.transform.scale(player_anim.frames[0], PLAYER_SIZE)
+        player_large = pg.transform.scale(player_anim.frames[0], size)
         image.blit(player_large, (0,0))
         return image
 
-    def make_gear_image(self):
-        image = pg.Surface((258,50)).convert()
+    def make_equipped_image(self):
+        """Make image for player's currently equipped gear display."""
+        image = pg.Surface(EQUIPPED_RECT.size).convert()
         image.fill(prepare.COLOR_KEY)
         image.set_colorkey(prepare.COLOR_KEY)
         for i,gear in enumerate(GEAR_ORDER):
@@ -89,11 +102,16 @@ class Camp(state_machine._State):
         return image
 
     def scroll(self, dt):
+        """Offset the scrolling images until MAX_SCROLL is reached."""
         self.offset = max(self.offset-self.scroll_speed*dt, MAX_SCROLL)
         if self.offset == MAX_SCROLL:
             self.is_scrolling = False
 
     def update(self, surface, keys, now, dt):
+        """
+        Scroll if needed; update state machine; check if state_machine has
+        quit; and draw everything.
+        """
         if self.is_scrolling:
             self.scroll(dt)
         self.state_machine.update(surface, keys, now, dt)
@@ -103,6 +121,10 @@ class Camp(state_machine._State):
         self.draw(surface)
 
     def get_event(self, event):
+        """
+        The "S-key" immediately returns to game from all substates.
+        All other events are passed down to the state machine.
+        """
         if not self.is_scrolling:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_s:
@@ -110,9 +132,13 @@ class Camp(state_machine._State):
             self.state_machine.get_event(event)
 
     def draw(self, surface):
+        """
+        Blit camp items to seperate surface; blit game_screen if still
+        scrolling; finally draw sidebar.
+        """
         self.image.blit(self.base, (0,0))
         self.state_machine.state.draw(self.image)
-        self.image.blit(self.gear, GEAR_POSITION)
+        self.image.blit(self.equipped, EQUIPPED_RECT)
         if self.is_scrolling:
             surface.blit(self.game_screen, (self.offset, 0))
         surface.blit(self.image, (prepare.SCREEN_RECT.w+self.offset,0))
@@ -120,12 +146,14 @@ class Camp(state_machine._State):
 
 
 class Options(menu_helpers.BasicMenu):
+    """The root options in the camp menu."""
     def __init__(self):
         menu_helpers.BasicMenu.__init__(self, 4)
         self.options = self.make_options(MEDIUM_FONT, OPTIONS, OPT_Y,
                                          OPT_SPACER, OPT_CENTER_X)
 
     def draw(self, surface):
+        """Draw menu options highlighting the currently selected one."""
         for i,val in enumerate(OPTIONS):
             which = "selected" if i==self.index else "unselected"
             msg, rect = self.options[which][i]
@@ -138,23 +166,30 @@ class Options(menu_helpers.BasicMenu):
             self.done = True
 
     def pressed_exit(self):
+        """Return to game."""
         self.quit = True
         self.next = "GAME"
 
 
 class EquipGeneral(menu_helpers.BasicMenu):
+    """Substate for player to select the type of gear to equip."""
     def __init__(self):
         menu_helpers.BasicMenu.__init__(self, 5)
         self.arrows = tools.strip_from_sheet(ARROWS, (0,0), ARROW_SIZE, 2)
         self.rendered = {}
 
     def startup(self, now, persistant):
+        """Remake the gear display image on startup."""
         self.persist = persistant
         self.player = persistant["player"]
         self.gear_box, self.gear_box_rect = self.make_gear_box()
         self.start_time = now
 
     def make_gear_box(self):
+        """
+        Create display image for all gear of a specific type.
+        Display order is determined by the sort stat attribute of the items.
+        """
         gear_box = pg.Surface(GEAR_BOX.get_size()).convert()
         gear_box.fill(prepare.COLOR_KEY)
         gear_box.set_colorkey(prepare.COLOR_KEY)
@@ -162,22 +197,26 @@ class EquipGeneral(menu_helpers.BasicMenu):
         relevant = list(self.player.inventory[gear_type].values())
         sorted_relevant = sorted(relevant, key=attrgetter("sort_stat"))
         for i,item in enumerate(sorted_relevant):
-            y,x = divmod(i, 5)
+            y,x = divmod(i, 5) #2 rows of 5 columns.
             pos = (2+x*(prepare.CELL_SIZE[0]+2), 2+y*(prepare.CELL_SIZE[0]+2))
-##            item = self.player.inventory[gear_type][item]
             gear_box.blit(item.display, pos)
-        return gear_box, gear_box.get_rect(center=(OPT_CENTER_X,615))
+        return gear_box, gear_box.get_rect(center=GEAR_BOX_CENTER)
 
     def get_event(self, event):
+        """
+        Process events as any other menu, but remake the gear box display if
+        the menu index changes.
+        """
         menu_helpers.BasicMenu.get_event(self, event)
         if event.type == pg.KEYDOWN and event.key in prepare.DEFAULT_CONTROLS:
             self.gear_box, self.gear_box_rect = self.make_gear_box()
 
     def draw(self, surface):
-        rect = pg.Rect(GEAR_POSITION, prepare.CELL_SIZE)
-        rect.move_ip(52*self.index,0)
-        surface.fill(pg.Color("yellow"), rect.inflate(4,4))
-        surface.fill((108, 148, 200), rect)
+        """Draw equipped highlight; title; arrows; and gear box."""
+        highlight = pg.Rect(EQUIPPED_RECT.topleft, prepare.CELL_SIZE)
+        highlight.move_ip((prepare.CELL_SIZE[0]+2)*self.index, 0)
+        surface.fill(pg.Color("yellow"), highlight.inflate(4,4))
+        surface.fill(HIGHLIGHT_COLOR, highlight)
         title = GEAR_TITLE[self.index]
         rend_it = (FONT, title, pg.Color("white"), self.rendered)
         rended = tools.get_rendered(*rend_it)
@@ -189,5 +228,6 @@ class EquipGeneral(menu_helpers.BasicMenu):
         surface.blit(self.gear_box, self.gear_box_rect)
 
     def pressed_exit(self):
+        """Return to main camp options if a cancel key is pressed."""
         self.done = True
         self.next = "OPTIONS"
