@@ -119,6 +119,9 @@ class Camp(state_machine._State):
         if self.state_machine.done:
             self.next = self.state_machine.state.next
             self.done = True
+        if self.player.redraw:
+            self.base.blit(self.make_player_image(), PLAYER_RECT)
+            self.persist["sidebar"].update(self.player)
         self.draw(surface)
 
     def get_event(self, event):
@@ -206,7 +209,7 @@ class EquipGeneral(menu_helpers.BasicMenu):
         self.persist["sorted_gear"] = sorted_gear
         for i,item in enumerate(sorted_gear):
             y,x = divmod(i, 5) #2 rows of 5 columns.
-            if item is self.player.equipped[gear_type]: ###
+            if item is self.player.equipped[gear_type]: #Save current gear ind.
                 self.persist["equipped"] = (gear_type, [x,y])
             pos = (2+x*(prepare.CELL_SIZE[0]+2), 2+y*(prepare.CELL_SIZE[0]+2))
             gear_box.blit(item.display, pos)
@@ -254,6 +257,7 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         self.rendered = {}
 
     def startup(self, now, persistant):
+        """Get player and player-gear related variables from persist."""
         self.persist = persistant
         self.player = persistant["player"]
         self.gear_image, self.gear_rect = self.persist["gear_display"]
@@ -276,6 +280,11 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
 
     def draw(self, surface):
         surface.blit(GEAR_BOX, self.gear_rect)
+        self.draw_highlight(surface)
+        surface.blit(self.gear_image, self.gear_rect)
+
+    def draw_highlight(self, surface):
+        """Draw the specific gear selection cursor to the screen."""
         highlight_pos = self.gear_rect.x+2, self.gear_rect.y+2
         highlight = pg.Rect(highlight_pos, prepare.CELL_SIZE)
         spacer = prepare.CELL_SIZE[0]+2
@@ -283,7 +292,15 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         highlight.move_ip(spacer*x, spacer*y)
         surface.fill(pg.Color("yellow"), highlight.inflate(4,4))
         surface.fill(HIGHLIGHT_COLOR, highlight)
-        surface.blit(self.gear_image, self.gear_rect)
+
+    def pressed_enter(self):
+        """
+        Change the player's selected equipment;
+        the return to equip type select.
+        """
+        un_divmod = self.index[1]*self.option_lengths[1]+self.index[0]
+        self.player.change_equip(self.gear_type, self.sorted_gear[un_divmod])
+        self.pressed_exit()
 
     def pressed_exit(self):
         """Return to equip type select if a cancel key is pressed."""

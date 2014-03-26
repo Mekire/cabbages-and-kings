@@ -183,6 +183,17 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             equipped[part] = random.choice(parts)
         return equipped
 
+    def change_equip(self, gear_type, gear):
+        """
+        Called if the player switches out one gear for another.
+        All animations are reconstructed and stats recalced.
+        Do not call at performance critical times.
+        """
+        self.equipped[gear_type] = gear
+        self.all_animations = self.make_all_animations()
+        self.defense,self.strength,self.speed = self.calc_stats(self.equipped)
+        self.redraw = True
+
     def calc_stats(self, gear):
         """Calculate stats based on current gear."""
         stat_mods = zip(*[g.stats for g in gear.values()])

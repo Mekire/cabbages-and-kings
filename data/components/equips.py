@@ -10,6 +10,7 @@ from .. import prepare, tools
 
 DISPLAY_SHEET = prepare.GFX["equips"]["geardisplay"]
 
+
 class _Equipment(object):
     """A base prototype class for all equipment."""
     def __init__(self, name, stats, sheet, sheet_pos, arrange="standard"):
