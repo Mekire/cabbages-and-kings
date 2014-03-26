@@ -51,7 +51,8 @@ class Camp(state_machine._State):
         """
         state_machine._State.startup(self, now, persistant)
         state_dict = {"OPTIONS" : Options(),
-                      "EQUIP" : EquipGeneral()}
+                      "EQUIP" : EquipGeneral(),
+                      "EQUIP_SPECIFIC" : EquipSpecific()}
         self.state_machine.setup_states(state_dict, "OPTIONS")
         self.player = self.persist["player"]
         self.state_machine.state.persist["player"] = self.player ###
@@ -206,7 +207,7 @@ class EquipGeneral(menu_helpers.BasicMenu):
         for i,item in enumerate(sorted_gear):
             y,x = divmod(i, 5) #2 rows of 5 columns.
             if item is self.player.equipped[gear_type]: ###
-                self.persist["equipped"] = (gear_type, (x,y))
+                self.persist["equipped"] = (gear_type, [x,y])
             pos = (2+x*(prepare.CELL_SIZE[0]+2), 2+y*(prepare.CELL_SIZE[0]+2))
             gear_box.blit(item.display, pos)
         return gear_box, gear_box.get_rect(center=GEAR_BOX_CENTER)
@@ -244,3 +245,47 @@ class EquipGeneral(menu_helpers.BasicMenu):
         """Return to main camp options if a cancel key is pressed."""
         self.done = True
         self.next = "OPTIONS"
+
+
+class EquipSpecific(menu_helpers.BidirectionalMenu):
+    """Substate for player to select the specific gear to equip."""
+    def __init__(self):
+        menu_helpers.BidirectionalMenu.__init__(self, (5,2))
+        self.rendered = {}
+
+    def startup(self, now, persistant):
+        self.persist = persistant
+        self.player = persistant["player"]
+        self.gear_image, self.gear_rect = self.persist["gear_display"]
+        self.gear_type, self.index = self.persist["equipped"]
+        self.sorted_gear = self.persist["sorted_gear"]
+        self.start_time = now
+
+    def get_event(self, event):
+        """
+        Run standard BiDirectional get_event, but don't let the player move
+        cursor to an unoccupied cell.
+        """
+        old_index = self.index[:]
+        menu_helpers.BidirectionalMenu.get_event(self, event)
+        un_divmod = self.index[1]*self.option_lengths[1]+self.index[0]
+        try:
+            self.sorted_gear[un_divmod]
+        except IndexError:
+            self.index = old_index
+
+    def draw(self, surface):
+        surface.blit(GEAR_BOX, self.gear_rect)
+        highlight_pos = self.gear_rect.x+2, self.gear_rect.y+2
+        highlight = pg.Rect(highlight_pos, prepare.CELL_SIZE)
+        spacer = prepare.CELL_SIZE[0]+2
+        x,y = self.index
+        highlight.move_ip(spacer*x, spacer*y)
+        surface.fill(pg.Color("yellow"), highlight.inflate(4,4))
+        surface.fill(HIGHLIGHT_COLOR, highlight)
+        surface.blit(self.gear_image, self.gear_rect)
+
+    def pressed_exit(self):
+        """Return to equip type select if a cancel key is pressed."""
+        self.done = True
+        self.next = "EQUIP"
