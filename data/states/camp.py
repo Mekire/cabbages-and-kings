@@ -121,6 +121,7 @@ class Camp(state_machine._State):
             self.done = True
         if self.player.redraw:
             self.base.blit(self.make_player_image(), PLAYER_RECT)
+            self.equipped = self.make_equipped_image()
             self.persist["sidebar"].update(self.player)
         self.draw(surface)
 
@@ -241,6 +242,7 @@ class EquipGeneral(menu_helpers.BasicMenu):
         surface.blit(self.gear_box, self.gear_box_rect)
 
     def pressed_enter(self):
+        """Enter substate to choose specific item."""
         self.done = True
         self.next = "EQUIP_SPECIFIC"
 
@@ -279,9 +281,18 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
             self.index = old_index
 
     def draw(self, surface):
+        self.draw_text(surface)
         surface.blit(GEAR_BOX, self.gear_rect)
         self.draw_highlight(surface)
         surface.blit(self.gear_image, self.gear_rect)
+
+    def draw_text(self, surface):
+        un_divmod = self.index[1]*self.option_lengths[1]+self.index[0]
+        title = self.sorted_gear[un_divmod].title
+        rend_it = (MEDIUM_FONT, title, pg.Color("white"), self.rendered)
+        rended = tools.get_rendered(*rend_it)
+        rend_rect = rended.get_rect(center=(OPT_CENTER_X,OPT_Y))
+        surface.blit(rended, rend_rect)
 
     def draw_highlight(self, surface):
         """Draw the specific gear selection cursor to the screen."""

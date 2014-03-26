@@ -135,6 +135,8 @@ class ChainMail(_Equipment):
 class NoShield(_Equipment):
     def __init__(self):
         self.name = "none"
+        self.title = "No Shield"
+        self.description = "Those arrows aren't going to block themselves."
         self.stats = self.defense, self.strength, self.speed = (0, 0, 0)
         self.images = None
         self.attack_images = None
