@@ -2,6 +2,7 @@
 This module contains the logic for the camp menu screen.
 """
 
+import copy
 import pygame as pg
 
 from operator import attrgetter
@@ -9,13 +10,16 @@ from .. import prepare, tools, state_machine, menu_helpers
 from ..components import player, level, sidebar
 
 
-FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
+FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60) ###
 MEDIUM_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 50) ###
 SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32) ###
 TINY_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 28) ###
 
 HIGHLIGHT_COLOR = (108, 148, 200)
+WINDOW_COLOR = (48, 48, 48)
 DIM_YELLOW = (255, 200, 0)
+DIM_RED = (255, 73, 73)
+DIM_GREEN = (50, 220, 50)
 
 ARROWS = prepare.GFX["misc"]["menu_arrows"]
 ARROW_SIZE = (86, 101)
@@ -38,6 +42,13 @@ GEAR_TITLE = ("Headgear", "Armor", "Gloves/Shoes", "Weapon", "Shield")
 GEAR_SPEC_TITLE_CENTER = (OPT_CENTER_X, 485)
 GEAR_DESCRIP_CENTER = (OPT_CENTER_X, 517)
 GEAR_DESCRIP_SPACE = 27
+
+STAT_ARROWS = prepare.GFX["misc"]["stat_arrows"]
+STAT_ARROW_SIZE = (19, 24)
+STAT_SPACE = 55
+STAT_START = (645, 99)
+STAT_SPEED_POS = (STAT_START[0]-26, STAT_START[1]+STAT_SPACE*2)
+STAT_ERASE_RECT = pg.Rect(600, 90, 130, 180)
 
 NOT_IMPLEMENTED = ["ABILITY", "ITEMS", "MAP"]  ###
 
@@ -72,6 +83,7 @@ class Camp(state_machine._State):
         """The state_machine.done variable must also be reset."""
         self.done = False
         self.state_machine.done = False
+        self.player.redraw = True
         return self.persist
 
     def make_base_image(self):
@@ -83,19 +95,21 @@ class Camp(state_machine._State):
         base.blit(prepare.GFX["misc"]["campscreen"], (0,0))
         player = self.make_player_image()
         base.blit(player, PLAYER_RECT)
+        self.make_stats(base)
         return base
 
     def make_player_image(self):
         """Scale an image of the player up to approriate size."""
+        #Should different worlds have different player backgrounds?
         size = PLAYER_RECT.size
         image = pg.Surface(size).convert()
-        field = prepare.GFX["misc"]["charcreate"].subsurface(70, 55, 100, 100)#
-        field = pg.transform.scale(field, size)##
-##        image.fill(self.persist["bg_color"])
+        field = prepare.GFX["misc"]["charcreate"].subsurface(70, 55, 100, 100)
+        field = pg.transform.scale(field, size)
         image.blit(field, (0,0))
         player_anim = self.player.all_animations[0]["normal"]["front"]
         player_large = pg.transform.scale(player_anim.frames[0], size)
         image.blit(player_large, (0,0))
+        self.player.redraw = False
         return image
 
     def make_equipped_image(self):
@@ -107,6 +121,18 @@ class Camp(state_machine._State):
             pos = (i*(prepare.CELL_SIZE[0]+2), 0)
             image.blit(self.player.equipped[gear].display, pos)
         return image
+
+    def make_stats(self, surface):
+        """Draw the player's current stats."""
+        defense = str(self.player.defense)
+        strength = str(self.player.strength)
+        speed = "{:.1f}".format(self.player.speed/20.0)
+        for i,stat in enumerate((defense,strength)):
+            pos = STAT_START[0], STAT_START[1]+STAT_SPACE*i
+            render = MEDIUM_FONT.render(stat, 0, pg.Color("white"))
+            surface.blit(render, pos)
+        render_speed = render = MEDIUM_FONT.render(speed, 0, pg.Color("white"))
+        surface.blit(render, STAT_SPEED_POS)
 
     def scroll(self, dt):
         """Offset the scrolling images until MAX_SCROLL is reached."""
@@ -126,7 +152,7 @@ class Camp(state_machine._State):
             self.next = self.state_machine.state.next
             self.done = True
         if self.player.redraw:
-            self.base.blit(self.make_player_image(), PLAYER_RECT)
+            self.base = self.make_base_image()
             self.equipped = self.make_equipped_image()
             self.persist["sidebar"].update(self.player)
         self.draw(surface)
@@ -262,6 +288,8 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
     """Substate for player to select the specific gear to equip."""
     def __init__(self):
         menu_helpers.BidirectionalMenu.__init__(self, (5,2))
+        self.arrows = tools.strip_from_sheet(STAT_ARROWS, (0,0),
+                                             STAT_ARROW_SIZE, 3)
         self.rendered = {}
 
     @property
@@ -276,6 +304,7 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         self.gear_image, self.gear_rect = self.persist["gear_display"]
         self.gear_type, self.index = self.persist["equipped"]
         self.sorted_gear = self.persist["sorted_gear"]
+        self.stat_image = self.make_stats()
         self.start_time = now
 
     def get_event(self, event):
@@ -287,14 +316,57 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         menu_helpers.BidirectionalMenu.get_event(self, event)
         try:
             self.sorted_gear[self.true_index]
+            if self.index != old_index:
+                self.stat_image = self.make_stats()
         except IndexError:
             self.index = old_index
 
     def draw(self, surface):
+        """Draw hypothetical stats; gear info; gear and highlight."""
+        surface.blit(self.stat_image, STAT_ERASE_RECT)
         self.draw_text(surface)
         surface.blit(GEAR_BOX, self.gear_rect)
         self.draw_highlight(surface)
         surface.blit(self.gear_image, self.gear_rect)
+
+    def make_stats(self):
+        """Draw hypothetical new stats to a surface."""
+        stat_offset = (STAT_START[0]-STAT_ERASE_RECT.x,
+                       STAT_START[1]-STAT_ERASE_RECT.y)
+        stat_speed_offset = (STAT_SPEED_POS[0]-STAT_ERASE_RECT.x,
+                             STAT_SPEED_POS[1]-STAT_ERASE_RECT.y)
+        final = pg.Surface(STAT_ERASE_RECT.size).convert_alpha()
+        final.fill(WINDOW_COLOR)
+        stats = self.get_new_stats()
+        for i,stat in enumerate(("defense", "strength", "speed")):
+            compare = self.compare_stat(stats[i], getattr(self.player,stat))
+            if stat != "speed":
+                render = MEDIUM_FONT.render(str(stats[i]), 0, compare[0])
+                final.blit(render, (stat_offset[0], stat_offset[1]+STAT_SPACE*i))
+            else:
+                speed_str = "{:.1f}".format(stats[i]/20.0)
+                render = MEDIUM_FONT.render(speed_str, 0, compare[0])
+                final.blit(render, stat_speed_offset)
+            arrow_pos = (stat_offset[0]+61, stat_offset[1]+13+STAT_SPACE*i)
+            final.blit(compare[1], arrow_pos)
+        return final
+
+    def get_new_stats(self):
+        """Return the hypothetical new stat values of the player."""
+        original_equip = self.player.equipped[self.gear_type]
+        new_gear = self.sorted_gear[self.true_index]
+        self.player.equipped[self.gear_type] = new_gear
+        stats = self.player.calc_stats(self.player.equipped)
+        self.player.equipped[self.gear_type] = original_equip
+        return stats
+
+    def compare_stat(self, stat, player_stat):
+        """Compare two stats and return appropriate font color and arrow."""
+        if stat < player_stat:
+            return (DIM_RED, self.arrows[0])
+        elif stat > player_stat:
+            return (DIM_GREEN, self.arrows[1])
+        return (DIM_YELLOW, self.arrows[2])
 
     def draw_text(self, surface):
         """Draw specific gear title and description to the screen."""
