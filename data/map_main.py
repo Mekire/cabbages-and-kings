@@ -8,5 +8,5 @@ def main():
     state_dict = {"WORLD" : None,
                   "EDIT" : edit.Edit()
                   }
-    app.setup_states(state_dict, "EDIT")
+    app.state_machine.setup_states(state_dict, "EDIT")
     app.main()

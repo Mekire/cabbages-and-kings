@@ -4,18 +4,18 @@ The state for editing the individual maps.
 
 import pygame as pg
 
-from .. import map_prepare,tools
-from ..components import toolbar,editmap
+from .. import map_prepare, state_machine
+from ..components import toolbar, editmap
 
 
 LAYERS = ("BG Colors","BG Tiles","Water","Solid",
           "Solid/Fore","Foreground","Environment")
 
 
-class Edit(tools._State):
+class Edit(state_machine._State):
     """This State is updated while our game shows the title screen."""
     def __init__(self):
-        tools._State.__init__(self)
+        state_machine._State.__init__(self)
         self.map_dict = {layer:{} for layer in LAYERS}
         self.map_dict["BG Colors"]["fill"] = (0,0,0)
         self.edit_map = editmap.EditMap(self.map_dict)
