@@ -52,6 +52,7 @@ class Game(state_machine._State):
                         self.done = True
                         self.next = "CAMP"
                         self.player.direction_stack = []
+                        self.player.equipped["weapon"].reset_attack()
             elif event.type == pg.KEYUP:
                 self.player.pop_direction(event.key)
 
