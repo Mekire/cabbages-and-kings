@@ -185,6 +185,12 @@ class EquipGeneral(menu_helpers.BasicMenu):
         self.gear_box, self.gear_box_rect = self.make_gear_box()
         self.start_time = now
 
+    def cleanup(self):
+        """Preserve gear display for next state."""
+        self.done = False
+        self.persist["gear_display"] = (self.gear_box, self.gear_box_rect)
+        return self.persist
+
     def make_gear_box(self):
         """
         Create display image for all gear of a specific type.
@@ -194,10 +200,13 @@ class EquipGeneral(menu_helpers.BasicMenu):
         gear_box.fill(prepare.COLOR_KEY)
         gear_box.set_colorkey(prepare.COLOR_KEY)
         gear_type = GEAR_ORDER[self.index]
-        relevant = list(self.player.inventory[gear_type].values())
-        sorted_relevant = sorted(relevant, key=attrgetter("sort_stat"))
-        for i,item in enumerate(sorted_relevant):
+        gear = list(self.player.inventory[gear_type].values())
+        sorted_gear = sorted(gear, key=attrgetter("sort_stat"))
+        self.persist["sorted_gear"] = sorted_gear
+        for i,item in enumerate(sorted_gear):
             y,x = divmod(i, 5) #2 rows of 5 columns.
+            if item is self.player.equipped[gear_type]: ###
+                self.persist["equipped"] = (gear_type, (x,y))
             pos = (2+x*(prepare.CELL_SIZE[0]+2), 2+y*(prepare.CELL_SIZE[0]+2))
             gear_box.blit(item.display, pos)
         return gear_box, gear_box.get_rect(center=GEAR_BOX_CENTER)
@@ -226,6 +235,10 @@ class EquipGeneral(menu_helpers.BasicMenu):
             surface.blit(arrow, ARROW_POS[i])
         surface.blit(GEAR_BOX, self.gear_box_rect)
         surface.blit(self.gear_box, self.gear_box_rect)
+
+    def pressed_enter(self):
+        self.done = True
+        self.next = "EQUIP_SPECIFIC"
 
     def pressed_exit(self):
         """Return to main camp options if a cancel key is pressed."""

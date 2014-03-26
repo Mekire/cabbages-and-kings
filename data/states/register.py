@@ -7,7 +7,7 @@ import sys
 import copy
 import pygame as pg
 
-from .. import prepare, tools, state_machine
+from .. import prepare, tools, menu_helpers
 
 
 if sys.version_info[0] < 3:
@@ -16,7 +16,7 @@ else:
     import yaml3 as yaml
 
 
-FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60)
+FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 60) ###
 
 MAX_LETTERS = 8
 
@@ -33,16 +33,18 @@ ALPHAGRID = ["ABCDEFGHIJKLM",
              "nopqrstuvwxyz",
              "0123456789-"]
 
+ALPHA_GRID_SIZE = (len(ALPHAGRID[0]), len(ALPHAGRID))
+
 END_CELL = [12, 4]
 BACKSPACE_CELL = [11, 4]
 
 
-class Register(state_machine._State):
+class Register(menu_helpers.BidirectionalMenu):
     """
     This State is updated while our game shows the name registration screen.
     """
     def __init__(self):
-        state_machine._State.__init__(self)
+        menu_helpers.BidirectionalMenu.__init__(self, ALPHA_GRID_SIZE)
         self.next = "SELECT"
         self.timer = tools.Timer(333)
         self.blink = True
@@ -53,7 +55,7 @@ class Register(state_machine._State):
         When this state is switched to, turn key-repeat on; set the alpha
         select cursor to the first position; and clear name.
         """
-        state_machine._State.startup(self, now, persistant)
+        menu_helpers.BidirectionalMenu.startup(self, now, persistant)
         pg.key.set_repeat(200,100)
         self.index = [0,0]
         self.name = []
@@ -75,14 +77,7 @@ class Register(state_machine._State):
         with open(prepare.SAVE_PATH, 'w') as my_file:
             yaml.dump(players, my_file)
 
-    def move_on_grid(self, event):
-        """Called when user moves the selection cursor with the arrow keys."""
-        direction = prepare.DEFAULT_CONTROLS[event.key]
-        vector = prepare.DIRECT_DICT[direction]
-        self.index[0] = (self.index[0]+vector[0])%len(ALPHAGRID[0])
-        self.index[1] = (self.index[1]+vector[1])%len(ALPHAGRID)
-
-    def select_from_grid(self):
+    def pressed_enter(self):
         """Called if the user selects an item with the enter key(s)."""
         if self.index == END_CELL:
             if self.name:
@@ -130,19 +125,6 @@ class Register(state_machine._State):
             rect = CURSOR.move(CURSOR_SPACER*i, 0)
             surface.fill(prepare.BACKGROUND_COLOR, rect)
             surface.blit(self.letter_images[letter], rect)
-
-    def get_event(self, event):
-        """
-        Navigate grid with arrow keys; confirm selections with enter keys;
-        Cancel and return to previous menu with X or Escape.
-        """
-        if event.type == pg.KEYDOWN:
-            if event.key in prepare.DEFAULT_CONTROLS:
-                self.move_on_grid(event)
-            elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
-                self.select_from_grid()
-            elif event.key in (pg.K_x, pg.K_ESCAPE):
-                self.pressed_exit()
 
     def update(self, surface, keys, now, dt):
         """

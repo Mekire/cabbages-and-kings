@@ -1,3 +1,7 @@
+"""
+Contains useful functionality for uni- and bi-directional menus.
+"""
+
 import pygame as pg
 
 from . import prepare, state_machine
@@ -36,6 +40,42 @@ class BasicMenu(state_machine._State):
         args = [font, choices, pg.Color("yellow"), y_start, y_space, center_x]
         options["selected"] = make_text_list(*args)
         return options
+
+    def update(self, surface, keys, now, dt):
+        pass
+
+    def pressed_enter(self):
+        pass
+
+    def pressed_exit(self):
+        pass
+
+
+class BidirectionalMenu(state_machine._State):
+    """Base class for basic bi-directional menus."""
+    def __init__(self, option_lengths):
+        state_machine._State.__init__(self)
+        self.option_lengths = option_lengths
+        self.index = [0,0]
+
+    def get_event(self, event):
+        """
+        Generic event getter for scrolling through menus.
+        """
+        if event.type == pg.KEYDOWN:
+            if event.key in prepare.DEFAULT_CONTROLS:
+                self.move_on_grid(event)
+            elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
+                self.pressed_enter()
+            elif event.key in (pg.K_x, pg.K_ESCAPE):
+                self.pressed_exit()
+
+    def move_on_grid(self, event):
+        """Called when user moves the selection cursor with the arrow keys."""
+        direction = prepare.DEFAULT_CONTROLS[event.key]
+        vector = prepare.DIRECT_DICT[direction]
+        self.index[0] = (self.index[0]+vector[0])%self.option_lengths[0]
+        self.index[1] = (self.index[1]+vector[1])%self.option_lengths[1]
 
     def update(self, surface, keys, now, dt):
         pass
