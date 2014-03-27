@@ -180,7 +180,7 @@ class Options(SelectState):
                 data = yaml.load(my_file)
             for i,play_data in enumerate(data):
                 if play_data != "EMPTY":
-                    players[i] = player.Player((0,0,50,50), "front", play_data)
+                    players[i] = player.Player(play_data)
         except IOError:
             pass
         return players

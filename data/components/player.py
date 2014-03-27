@@ -130,30 +130,46 @@ class _ImageProcessing(object):
 
 class Player(pg.sprite.Sprite, _ImageProcessing):
     """A class to represent our main protagonist."""
-    def __init__(self, rect, direction="front", data=prepare.DEFAULT_PLAYER):
+    def __init__(self, data):
+        """
+        Most member variables are initialized within set_player_data and reset.
+        """
         pg.sprite.Sprite.__init__(self)
-        self.rect = pg.Rect(rect)
-        self.exact_position = list(self.rect.topleft)
-        self.old_position = self.exact_position[:]
-        self.speed = BASE_SPEED  ##Calculate from gear later.
-        self.direction = direction
-        self.direction_stack = [] #Held keys in the order they were pressed.
         self.controls = prepare.DEFAULT_CONTROLS
-        self.set_player_data(data)###
+        self.set_player_data(data)
         self.mask = self.make_mask()
         self.all_animations = self.make_all_animations()
         self.death_anim = self.make_death_animation()
         self.image = None
+        self.reset()
+
+    def reset(self):
+        """
+        Reset all necessary variables for a fresh player.
+        Called on character creation as well as a continued game.
+        """
+        self.health = prepare.MAX_HEALTH
+        self.direction = "front"
+        self.direction_stack = [] #Held keys in the order they were pressed.
+        pos = (self.start_coord[0]*prepare.CELL_SIZE[0],
+               self.start_coord[1]*prepare.CELL_SIZE[1])
+        self.rect = pg.Rect(pos, prepare.CELL_SIZE)
+        self.exact_position = list(self.rect.topleft)
+        self.old_position = self.exact_position[:]
         self.action_state = "normal"
         self.hit_state = False  #When true hit_state is a tools.Timer instance.
         self.knock_state = False #(direction, tools.Timer()) tuple when true.
-        self.redraw = True
+        self.death_anim.reset()
         self.shadow = shadow.Shadow((40,20), self.rect)
-        self.health = prepare.MAX_HEALTH
+        self.redraw = True
 
     def set_player_data(self, player_data):
         """Set required stats based on player data."""
         self.name = player_data["name"]
+        ### Get from player data later. ###
+        self.world = "overworld"
+        self.save_map = "central.map"
+        self.start_coord = (2, 1)
 ##        self.inventory = equips.make_equips(player_data["gear"])
         self.inventory = equips.make_all_equips() ###
         self.inventory["money"] = player_data["money"]

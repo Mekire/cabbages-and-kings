@@ -13,6 +13,7 @@ SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32) ###
 
 PLAY_AGAIN = prepare.GFX["misc"]["retry"]
 PLAY_AGAIN_OPTIONS = ["Play Again", "Save and Quit"]
+PLAY_AGAIN_NEXT = ["GAME", "SELECT"]
 PLAY_AGAIN_CENTERS = [(prepare.PLAY_RECT.centerx, 175),
                       (prepare.PLAY_RECT.centerx, 525)]
 IRIS_MIN_RADIUS = 30
@@ -27,16 +28,17 @@ class Game(state_machine._State):
         state_machine._State.__init__(self)
         self.map_scrolling = False
         self.level = None
+        self.reset_map = True
 
     def startup(self, now, persistant):
         state_machine._State.startup(self, now, persistant)
-        if not self.level:
+        if self.reset_map:
             self.player = self.persist["player"]
-            self.player.exact_position = list(prepare.SCREEN_RECT.center) ###
             self.level = level.Level(self.player, "central.map") ###
             self.sidebar = sidebar.SideBar()
             self.iris = None
             self.play_again = None
+            self.reset_map = False
 
     def cleanup(self):
         self.done = False
@@ -94,6 +96,12 @@ class Game(state_machine._State):
             self.iris.draw(surface)
             if self.iris.done:
                 self.play_again.update(surface, keys, now, dt)
+                if self.play_again.done:
+                    self.done = True
+                    self.next = self.play_again.next
+                    self.player.reset()
+                    self.reset_map = True
+                    ###Add save logic here.
 
 
 class IrisIn(object):
@@ -163,11 +171,15 @@ class PlayAgain(menu_helpers.BasicMenu):
             surface.blit(msg, rect)
         self.skeletons.draw(surface)
 
+    def pressed_enter(self):
+        self.done = True
+        self.next = PLAY_AGAIN_NEXT[self.index]
+
 
 class RetrySkeleton(enemy_sprites.Skeleton):
     """A class for the skeletons that animate on game over."""
     def __init__(self, pos):
-        enemy_sprites.Skeleton.__init__(self, pos, 180)
+        enemy_sprites.Skeleton.__init__(self, pos, 0)
         self.rect = pg.Rect(0, 0, 100, 100)
         self.rect.center = pos
         self.anim_direction = "front"
