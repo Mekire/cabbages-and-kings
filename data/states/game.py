@@ -12,7 +12,7 @@ from ..components import player, level, sidebar, enemy_sprites
 SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32) ###
 
 PLAY_AGAIN = prepare.GFX["misc"]["retry"]
-PLAY_AGAIN_OPTIONS = ["Play Again", "Save and Quit"]
+PLAY_AGAIN_OPTIONS = ["Continue", "Save and Quit"]
 PLAY_AGAIN_NEXT = ["GAME", "SELECT"]
 PLAY_AGAIN_CENTERS = [(prepare.PLAY_RECT.centerx, 175),
                       (prepare.PLAY_RECT.centerx, 525)]
