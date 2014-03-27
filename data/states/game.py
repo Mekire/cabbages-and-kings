@@ -5,10 +5,16 @@ This module contains the primary gameplay state.
 import math
 import pygame as pg
 
-from .. import prepare, state_machine
-from ..components import player, level, sidebar
+from .. import prepare, state_machine, menu_helpers
+from ..components import player, level, sidebar, enemy_sprites
 
 
+SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32) ###
+
+PLAY_AGAIN = prepare.GFX["misc"]["retry"]
+PLAY_AGAIN_OPTIONS = ["Play Again", "Save and Quit"]
+PLAY_AGAIN_CENTERS = [(prepare.PLAY_RECT.centerx, 175),
+                      (prepare.PLAY_RECT.centerx, 525)]
 IRIS_MIN_RADIUS = 30
 IRIS_TRANSPARENCY = (0, 0, 0, 175)
 IRIS_STRIP_RECT = pg.Rect(prepare.PLAY_RECT.w-5, 0, 5, prepare.PLAY_RECT.h)
@@ -30,6 +36,7 @@ class Game(state_machine._State):
             self.level = level.Level(self.player, "central.map") ###
             self.sidebar = sidebar.SideBar()
             self.iris = None
+            self.play_again = None
 
     def cleanup(self):
         self.done = False
@@ -55,6 +62,9 @@ class Game(state_machine._State):
                         self.player.equipped["weapon"].reset_attack()
             elif event.type == pg.KEYUP:
                 self.player.pop_direction(event.key)
+        elif self.iris and self.iris.done:
+            self.play_again.get_event(event)
+
 
     def update(self, surface, keys, now, dt):
         """Update phase for the primary game state."""
@@ -78,8 +88,12 @@ class Game(state_machine._State):
             if not self.iris:
                 x,y = self.player.rect.center
                 self.iris = IrisIn((x,y+10))
+                center = self.player.rect.centery < prepare.PLAY_RECT.centery
+                self.play_again = PlayAgain(PLAY_AGAIN_CENTERS[center])
             self.iris.update(now, dt)
             self.iris.draw(surface)
+            if self.iris.done:
+                self.play_again.update(surface, keys, now, dt)
 
 
 class IrisIn(object):
@@ -124,3 +138,43 @@ class IrisIn(object):
     def draw(self, surface):
         """Standard draw method."""
         surface.blit(self.image, self.rect)
+
+
+class PlayAgain(menu_helpers.BasicMenu):
+    def __init__(self, center):
+        menu_helpers.BasicMenu.__init__(self, 2)
+        self.rect = PLAY_AGAIN.get_rect(center=center)
+        self.options = self.make_options(SMALL_FONT, PLAY_AGAIN_OPTIONS,
+                                         self.rect.y+130, 35,
+                                         prepare.PLAY_RECT.centerx)
+        skel_pos = [(self.rect.x+100, self.rect.y+100),
+                   (self.rect.right-100, self.rect.y+100)]
+        self.skeletons = pg.sprite.Group(RetrySkeleton(p) for p in skel_pos)
+
+    def update(self, surface, keys, now, dt):
+        self.skeletons.update(now, dt)
+        self.draw(surface)
+
+    def draw(self, surface):
+        surface.blit(PLAY_AGAIN, self.rect)
+        for i,val in enumerate(PLAY_AGAIN_OPTIONS):
+            which = "selected" if i==self.index else "unselected"
+            msg, rect = self.options[which][i]
+            surface.blit(msg, rect)
+        self.skeletons.draw(surface)
+
+
+class RetrySkeleton(enemy_sprites.Skeleton):
+    """A class for the skeletons that animate on game over."""
+    def __init__(self, pos):
+        enemy_sprites.Skeleton.__init__(self, pos, 180)
+        self.rect = pg.Rect(0, 0, 100, 100)
+        self.rect.center = pos
+        self.anim_direction = "front"
+        self.anim = self.get_anim()
+        self.image = None
+
+    def update(self, now, dt):
+        """Scale up the current image."""
+        raw = self.anim.get_next_frame(now)
+        self.image = pg.transform.scale(raw, self.rect.size)

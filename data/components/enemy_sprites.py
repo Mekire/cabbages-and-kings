@@ -11,7 +11,11 @@ ENEMY_COORDS = {
     "cabbage" : [(0,0), (1,0), (2,0), (3,0), (4,0), (5,0), (6,0)],
     "snake" : [(0,5), (1,5), (2,5), (3,5), (4,5), (5,5), (6,5), (7,5), (8,5)],
     "zombie" : [(0,3), (1,3), (6,4), (7,4), (8,2), (9,2), (2,3), (3,3), (8,4),
-                (9,4), (8,6), (9,6), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3)]}
+                (9,4), (8,6), (9,6), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3)],
+    "skeleton" : [(0,1), (1,1), (2,1), (3,1), (4,1), (5,1), (7,1), (7,0),
+                  (8,1), (8,0), (9,1), (9,0)]
+    }
+
 
 KNOCK_SPEED = 750  #Pixels per second.
 
@@ -291,10 +295,10 @@ class Zombie(_Enemy):
                                pg.transform.flip(self.frames[5], 1, 0)], 7),
                 "right" : tools.Anim(self.frames[4:6], 7)}
         hit = {"front" : tools.Anim(self.frames[6:8], 20),
-                "back" : tools.Anim(self.frames[8:10], 20),
-                "left" : tools.Anim([pg.transform.flip(self.frames[10], 1, 0),
+               "back" : tools.Anim(self.frames[8:10], 20),
+               "left" : tools.Anim([pg.transform.flip(self.frames[10], 1, 0),
                                pg.transform.flip(self.frames[11], 1, 0)], 20),
-                "right" : tools.Anim(self.frames[10:12], 20)}
+               "right" : tools.Anim(self.frames[10:12], 20)}
         die_frames = self.frames[12:]+self.frames[16:]
         self.anims = {"walk" : walk,
                       "hit" : hit,
@@ -327,3 +331,29 @@ class Snake(_Enemy):
         self.health = 6
         self.attack = 6
         self.drops = ["diamond", "potion"]
+
+
+class Skeleton(_Enemy):
+    """The classic skeleton. (4 directions)"""
+    def __init__(self, *args):
+        _Enemy.__init__(self,  "skeleton", ENEMY_SHEET, *args)
+        self.ai = LinearAI(self)
+        walk = {"front" : tools.Anim([self.frames[3],
+                               pg.transform.flip(self.frames[3], 1, 0)], 7),
+                "back" : tools.Anim([self.frames[2],
+                               pg.transform.flip(self.frames[2], 1, 0)], 7),
+                "left" : tools.Anim(self.frames[:2], 7),
+                "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
+                               pg.transform.flip(self.frames[1], 1, 0)], 7)}
+        hit = {"front" : tools.Anim(self.frames[10:], 7),
+               "back" : tools.Anim(self.frames[8:10], 7),
+               "left" : tools.Anim(self.frames[6:8], 7),
+               "right" : tools.Anim([pg.transform.flip(self.frames[6], 1, 0),
+                               pg.transform.flip(self.frames[7], 1, 0)], 7)}
+        die_frames = self.frames[3:5]+[self.frames[5]]*2
+        self.anims = {"walk" : walk,
+                      "hit" : hit,
+                      "die" : tools.Anim(die_frames, 5, 1)}
+        self.health = 6
+        self.attack = 6
+        self.drops = ["heart", None]
