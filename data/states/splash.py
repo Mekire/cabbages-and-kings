@@ -14,7 +14,7 @@ class Splash(state_machine._State):
         self.next = "TITLE"
         self.timeout = 5
         self.cover = pg.Surface((prepare.SCREEN_SIZE)).convert()
-        self.cover.fill(pg.Color("black"))
+        self.cover.fill(prepare.BACKGROUND_COLOR)
         self.cover_alpha = 256
         self.alpha_step  = 2
         self.image = prepare.GFX["misc"]['splash1']
