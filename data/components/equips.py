@@ -252,7 +252,8 @@ class _Weapon(_Equipment):
         Reset the necessary variables to the pre-attack state.
         """
         self.attacking = False
-        self.anim.reset()
+        if self.anim:
+            self.anim.reset()
 
     def get_attack_info(self, start, size, columns, fps=15.0):
         """Get attack frames from the attack sheet."""
