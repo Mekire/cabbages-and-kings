@@ -9,22 +9,32 @@ import pygame as pg
 from . import tools
 
 
+pg.init()
+
 SCREEN_SIZE = (1200, 700)
 ORIGINAL_CAPTION = "The Cabbages"
-
-
-#Initialization
-pg.init()
-_Y_OFFSET = (pg.display.Info().current_w-SCREEN_SIZE[0])//2
-os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(_Y_OFFSET, 25)
-pg.display.set_caption(ORIGINAL_CAPTION)
-pg.display.set_mode(SCREEN_SIZE)
-
-
-#General constants
 COLOR_KEY = (255, 0, 255)
 BACKGROUND_COLOR = (30, 40, 50)
 SCREEN_RECT = pg.Rect((0,0), SCREEN_SIZE)
+_font_path = os.path.join("resources", "fonts","Fixedsys500c.ttf")
+BIG_FONT = pg.font.Font(_font_path, 100)
+
+
+#Initialization
+_Y_OFFSET = (pg.display.Info().current_w-SCREEN_SIZE[0])//2
+os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(_Y_OFFSET, 25)
+pg.display.set_caption(ORIGINAL_CAPTION)
+_screen = pg.display.set_mode(SCREEN_SIZE)
+
+
+#Display until loading finishes.
+_screen.fill(BACKGROUND_COLOR)
+_render = BIG_FONT.render("LOADING...", 0, pg.Color("white"))
+_screen.blit(_render, _render.get_rect(center=SCREEN_RECT.center))
+pg.display.update()
+
+
+#General constants
 PLAY_RECT = pg.Rect(0, 0, 1000, 700)
 CELL_SIZE = (50, 50)
 MAX_HEALTH = 28
