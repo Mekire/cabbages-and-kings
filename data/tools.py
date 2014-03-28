@@ -191,7 +191,7 @@ def load_all_sfx(directory, accept=(".wav",".mp3",".ogg",".mdi")):
     """
     Load all sfx of extensions found in accept.  Unfortunately it is
     common to need to set sfx volume on a one-by-one basis.  This must be done
-    manually if necessary in the setup module.
+    manually if necessary.
     """
     effects = {}
     for fx in os.listdir(directory):

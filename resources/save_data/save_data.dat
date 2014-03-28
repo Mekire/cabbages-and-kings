@@ -1,1 +1,21 @@
-[EMPTY, EMPTY, EMPTY]
+- equipped: {armleg: normal, body: cloth, head: none, shield: none, weapon: pitch}
+  gear:
+    armleg: [normal]
+    body: [cloth]
+    head: [none]
+    shield: [none]
+    weapon: [pitch]
+  keys: 0
+  money: 0
+  name: Adelade
+- EMPTY
+- equipped: {armleg: normal, body: cloth, head: none, shield: none, weapon: pitch}
+  gear:
+    armleg: [normal]
+    body: [cloth]
+    head: [none]
+    shield: [none]
+    weapon: [pitch]
+  keys: 0
+  money: 0
+  name: Srw

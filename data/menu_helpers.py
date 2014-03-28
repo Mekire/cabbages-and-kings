@@ -20,8 +20,10 @@ class BasicMenu(state_machine._State):
         """
         if event.type == pg.KEYDOWN:
             if event.key in (pg.K_DOWN, pg.K_RIGHT):
+                prepare.SFX["dj-chronos__menu-nav-2"].play()
                 self.index = (self.index+1)%self.option_length
             elif event.key in (pg.K_UP, pg.K_LEFT):
+                prepare.SFX["dj-chronos__menu-nav-2"].play()
                 self.index = (self.index-1)%self.option_length
             elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
                 self.pressed_enter()
@@ -64,6 +66,7 @@ class BidirectionalMenu(state_machine._State):
         """
         if event.type == pg.KEYDOWN:
             if event.key in prepare.DEFAULT_CONTROLS:
+                prepare.SFX["dj-chronos__menu-nav-2"].play()
                 self.move_on_grid(event)
             elif event.key in (pg.K_RETURN, pg.K_KP_ENTER):
                 self.pressed_enter()
