@@ -233,6 +233,7 @@ class _Enemy(pg.sprite.Sprite):
                 self.hit_state = False
         elif self.state == "die" and self.get_anim().done:
             self.kill()
+            self.shadow.kill()
         self.rect.topleft = self.exact_position
         self.image = self.get_anim().get_next_frame(now)
 

@@ -174,8 +174,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.inventory = equips.make_all_equips() ###
         self.inventory["money"] = player_data["money"]
         self.inventory["keys"] = player_data["keys"]
-##        self.equipped = self.set_equips(player_data["equipped"])
-        self.equipped = self.set_equips_random() ###
+        self.equipped = self.set_equips(player_data["equipped"])
+##        self.equipped = self.set_equips_random() ###
         self.defense,self.strength,self.speed = self.calc_stats(self.equipped)
 
     def set_equips(self, equip_data):
@@ -260,8 +260,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         """
         if self.health == 0:
             self.action_state = "dead"
-            if self.equipped["weapon"].anim:
-                self.equipped["weapon"].reset_attack()
+            self.equipped["weapon"].sprite.reset_attack()
 
     def get_collision_direction(self, other_sprite):
         """
@@ -292,16 +291,21 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         return first_term-second_term
 
     def attack(self):
-        """Change attack flag to True if weapon is ready."""
+        """
+        Change attack flag to True if weapon is ready and add weapon.
+        attack sprite to player sprite groups.
+        """
         if self.action_state != "attack":
-            if self.equipped["weapon"].start_attack():
+            weapon = self.equipped["weapon"].sprite
+            if weapon.start_attack(self):
                 self.action_state = "attack"
+                weapon.add(self.groups())
                 self.redraw = True
 
     def check_states(self, now):
         """Change states when required."""
         attacking = self.action_state == "attack"
-        if attacking and not self.equipped["weapon"].attacking:
+        if attacking and not self.equipped["weapon"].sprite.attacking:
             self.action_state = "normal"
             self.redraw = True
         if self.hit_state:
@@ -340,19 +344,11 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             self.image = animation.get_next_frame(now)
         self.redraw = False
 
-    def update(self, now, dt):
+    def update(self, now, dt, *args):
         """Updates our player appropriately every frame."""
         self.check_death()
         if self.action_state != "dead":
             self.check_states(now)
             self.move(dt)
         self.adjust_frames(now)
-        if self.action_state == "attack":
-            self.equipped["weapon"].attack(self, now)
         self.rect.topleft = self.exact_position
-
-    def draw(self, surface):
-        """Draw the appropriate frames to the target surface."""
-        if self.action_state == "attack":
-            self.equipped["weapon"].draw_attack(surface, self.direction)
-        surface.blit(self.image, self.rect)

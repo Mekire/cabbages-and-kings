@@ -190,49 +190,48 @@ class _Weapon(_Equipment):
     def __init__(self, name, stats, sheet_pos):
         _Equipment.__init__(self, name, stats, "weapons", sheet_pos, "other")
         self.attack_images = None
-        self.anims = None
-        self.anim = None
-        self.anim_rects = None
-        self.anim_image = None
-        self.attacking = False
-        self.delay_timer = tools.Timer(300)
         self.sort_stat = self.strength
+        self.sprite = None
 
     def get_images(self, sheet, sheet_pos):
         """Get the weapon images assuming a standard layout."""
-        frames = tools.strip_from_sheet(sheet, sheet_pos,
-                                        prepare.CELL_SIZE, 8)
+        frames = tools.strip_from_sheet(sheet, sheet_pos, prepare.CELL_SIZE, 8)
         self.images = {}
         for i,direction in enumerate(prepare.DIRECTIONS):
             self.images[direction] = frames[2*i:2*i+2]
 
-    def start_attack(self):
+
+class AttackSprite(pg.sprite.Sprite):
+    def __init__(self, sound, *attack_info):
+        pg.sprite.Sprite.__init__(self)
+        self.sound = sound
+        self.anims, self.anim_rects = self.get_attack_info(*attack_info)
+        self.anim = None
+        self.image = None
+        self.rect = None
+        self.player = None
+        self.attacking = False
+        self.delay_timer = tools.Timer(300)
+
+    def start_attack(self, player):
         """
         Checks the time to see if the weapon's after attack delay has
         elapsed.
         """
         if self.delay_timer.check_tick(pg.time.get_ticks()):
             self.attacking = True
+            self.player = player
             return True
 
-    def attack(self, player, now):
-        """
-        Called from the player's update method if the attacking flag
-        is set.
-        """
-        self.anim = self.anims[player.direction]
+    def update(self, now, *args):
+        """Updated in the Level objects update phase."""
+        self.anim = self.anims[self.player.direction]
         if self.anim.timer is None:
             self.sound.play()
-        self.anim_image = self.anim.get_next_frame(now)
+        self.image = self.anim.get_next_frame(now)
+        self.get_attack_position(self.player.rect, self.player.direction)
         if self.anim.done:
             self.reset_attack()
-        if self.attacking:
-            self.get_attack_position(player.rect, player.direction)
-
-    def draw_attack(self, surface, direction):
-        """Called from the player's draw method if the attacing flag is set."""
-        rect = self.anim_rects[direction][self.anim.frame]
-        surface.blit(self.anim_image, rect)
 
     def get_attack_position(self, player_rect, direction):
         """
@@ -243,15 +242,16 @@ class _Weapon(_Equipment):
                          "front" : ("midtop", player_rect.midbottom),
                          "right" : ("midleft", player_rect.midright),
                          "left"  : ("midright", player_rect.midleft)}
-        rect = self.anim_rects[direction][self.anim.frame]
+        self.rect = self.anim_rects[direction][self.anim.frame]
         attribute, value = set_direction[direction]
-        setattr(rect, attribute, value)
+        setattr(self.rect, attribute, value)
 
     def reset_attack(self):
         """
         Reset the necessary variables to the pre-attack state.
         """
         self.attacking = False
+        self.kill()
         if self.anim:
             self.anim.reset()
 
@@ -275,9 +275,8 @@ class PitchFork(_Weapon):
         _Weapon.__init__(self, "pitch", stats, (0,0))
         self.title = "Angry Mob Pitchfork"
         self.descript = ["Should vanquish all foes... Eventually."]
-        self.sound = prepare.SFX["boing"]
-        self.anims, self.anim_rects = self.get_attack_info((0,0), (44,20), 2)
         self.display = DISPLAY_SHEET.subsurface((50,0,50,50))
+        self.sprite = AttackSprite(prepare.SFX["boing"], (0,0), (44,20), 2)
 
 
 class Labrys(_Weapon):
@@ -290,12 +289,12 @@ class Labrys(_Weapon):
         _Weapon.__init__(self, "labrys", stats, (0,50))
         self.title = "Mini-Labrys"
         self.descript = ["Foliage beware !"]
-        self.sound = prepare.SFX["whoosh"]
-        self.anims, self.anim_rects = self.get_attack_info((0,20), (30,50), 3)
-        #Left frames need to be vertically flipped.
-        lefts = [pg.transform.flip(f,0,1) for f in self.anims["left"].frames]
-        self.anims["left"] = tools.Anim(lefts, 15.0, 1)
         self.display = DISPLAY_SHEET.subsurface(((0,0), prepare.CELL_SIZE))
+        self.sprite = AttackSprite(prepare.SFX["whoosh"], (0,20), (30,50), 3)
+        #Left frames need to be vertically flipped.
+        left_frames = self.sprite.anims["left"].frames
+        lefts = [pg.transform.flip(frame,0,1) for frame in left_frames]
+        self.sprite.anims["left"] = tools.Anim(lefts, 15.0, 1)
 
 
 #Organize all equips into a nested dictionary.

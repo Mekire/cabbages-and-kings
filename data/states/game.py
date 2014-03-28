@@ -41,6 +41,7 @@ class Game(state_machine._State):
             self.reset_map = False
 
     def cleanup(self):
+        """Store background color and sidebar for use in camp menu."""
         self.done = False
         self.persist["bg_color"] = self.level.background_color
         self.persist["sidebar"] = self.sidebar
@@ -58,20 +59,22 @@ class Game(state_machine._State):
                     if event.key == pg.K_SPACE:
                         self.player.attack()
                     elif event.key == pg.K_s:
-                        self.done = True
-                        self.next = "CAMP"
-                        self.player.direction_stack = []
-                        self.player.equipped["weapon"].reset_attack()
+                        self.change_to_camp()
             elif event.type == pg.KEYUP:
                 self.player.pop_direction(event.key)
         elif self.iris and self.iris.done:
             self.play_again.get_event(event)
 
+    def change_to_camp(self):
+        self.done = True
+        self.next = "CAMP"
+        self.player.direction_stack = []
+        self.player.equipped["weapon"].sprite.reset_attack()
+        self.player.action_state = "normal"
 
     def update(self, surface, keys, now, dt):
         """Update phase for the primary game state."""
         self.now = now
-        self.player.update(now, dt)
         self.level.update(now, dt)
         self.sidebar.update(self.player)
         self.level.draw(surface)
