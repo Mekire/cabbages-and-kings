@@ -28,13 +28,12 @@ class Edit(state_machine._State):
         self.map_state = MapState()
         self.toolbar = toolbar.ToolBar()
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """Updates the title screen."""
         self.now = now
-        self.toolbar.update(surface, keys, now, dt)
-        self.draw(surface)
+        self.toolbar.update(keys, now)
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         surface.fill(BACKGROUND_COLOR)
         self.toolbar.draw(surface)
 

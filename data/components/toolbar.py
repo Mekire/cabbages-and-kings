@@ -85,9 +85,9 @@ class ToolBar(object):
         for widget in self.widgets:
             widget.get_event(event)
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """Updates each toolbar widget to the screen."""
-        self.draw(surface)
+        pass
 
     def draw(self, surface):
         surface.blit(self.image, (0,0))
