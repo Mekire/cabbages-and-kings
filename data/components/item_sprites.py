@@ -14,6 +14,7 @@ ITEM_COORDS = {"heart" : [(0,0), (1,0)],
 class _Item(pg.sprite.Sprite):
     def __init__(self, name, pos, duration, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
+        self.frame_speed = [0, 0]
         coords, size = ITEM_COORDS[name], prepare.CELL_SIZE
         self.frames = tools.strip_coords_from_sheet(ITEM_SHEET, coords, size)
         self.anim = tools.Anim(self.frames, 7)
@@ -26,13 +27,14 @@ class _Item(pg.sprite.Sprite):
         self.timer = tools.Timer(duration*1000, 1) if duration else None
 
     def update(self, now, *args):
+        self.frame_speed = [0, 0]
         if self.timer:
             self.timer.check_tick(now)
             if self.timer.done:
                 self.kill()
         self.image = self.anim.get_next_frame(now)
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         surface.blit(self.image, self.rect)
 
 

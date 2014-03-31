@@ -72,17 +72,24 @@ class Game(state_machine._State):
         self.player.equipped["weapon"].sprite.reset_attack()
         self.player.action_state = "normal"
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """Update phase for the primary game state."""
         self.now = now
-        self.level.update(now, dt)
+        self.level.update(now)
         self.sidebar.update(self.player)
-        self.level.draw(surface)
-        self.sidebar.draw(surface)
         if self.player.action_state == "dead":
-            self.update_on_death(surface, keys, now, dt)
+            self.update_on_death(keys, now)
 
-    def update_on_death(self, surface, keys, now, dt):
+    def draw(self, surface, interpolate):
+        """Draw level and sidebar; if player is dead draw death sequence."""
+        self.level.draw(surface, interpolate)
+        self.sidebar.draw(surface, interpolate)
+        if self.player.action_state == "dead" and self.iris:
+            self.iris.draw(surface)
+            if self.iris.done:
+                self.play_again.draw(surface, interpolate)
+
+    def update_on_death(self, keys, now):
         """
         If the player has been killed this method will be called during the
         update phase.  Handles the iris in effect and the "play again" prompt.
@@ -95,10 +102,9 @@ class Game(state_machine._State):
                 self.iris = IrisIn((x,y+10))
                 center = self.player.rect.centery < prepare.PLAY_RECT.centery
                 self.play_again = PlayAgain(PLAY_AGAIN_CENTERS[center])
-            self.iris.update(now, dt)
-            self.iris.draw(surface)
+            self.iris.update(now)
             if self.iris.done:
-                self.play_again.update(surface, keys, now, dt)
+                self.play_again.update(keys, now)
                 if self.play_again.done:
                     self.done = True
                     self.next = self.play_again.next
@@ -117,7 +123,7 @@ class IrisIn(object):
         self.rect = pg.Rect(rect)
         self.image = pg.Surface(self.rect.size).convert_alpha()
         self.rad = self.get_start_radius()
-        self.speed = 240 #Rate radius shrinks in pixels per second.
+        self.speed = 4.0 #Rate radius shrinks in pixels per frame.
         self.done = False
 
     def get_start_radius(self):
@@ -134,12 +140,12 @@ class IrisIn(object):
                 max_radius = distance_to_corner
         return max_radius
 
-    def update(self, now, dt):
+    def update(self, now):
         """
         Decrease the radius size appropriately; set done to True if radius has
         reached IRIS_MIN_RADIUS; recreate image.
         """
-        self.rad = max(self.rad-self.speed*dt, IRIS_MIN_RADIUS)
+        self.rad = max(self.rad-self.speed, IRIS_MIN_RADIUS)
         if self.rad == IRIS_MIN_RADIUS:
             self.done = True
         self.image.fill(IRIS_TRANSPARENCY)
@@ -152,6 +158,7 @@ class IrisIn(object):
 
 
 class PlayAgain(menu_helpers.BasicMenu):
+    """A class for the simple menu that runs on game over."""
     def __init__(self, center):
         menu_helpers.BasicMenu.__init__(self, 2)
         self.rect = PLAY_AGAIN.get_rect(center=center)
@@ -162,11 +169,12 @@ class PlayAgain(menu_helpers.BasicMenu):
                    (self.rect.right-100, self.rect.y+100)]
         self.skeletons = pg.sprite.Group(RetrySkeleton(p) for p in skel_pos)
 
-    def update(self, surface, keys, now, dt):
-        self.skeletons.update(now, dt)
-        self.draw(surface)
+    def update(self, keys, now):
+        """Update the animated skeletons."""
+        self.skeletons.update(now)
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
+        """Draw window options and skeletons to the screen."""
         surface.blit(PLAY_AGAIN, self.rect)
         for i,val in enumerate(PLAY_AGAIN_OPTIONS):
             which = "selected" if i==self.index else "unselected"
@@ -175,6 +183,7 @@ class PlayAgain(menu_helpers.BasicMenu):
         self.skeletons.draw(surface)
 
     def pressed_enter(self):
+        """Set next to the selected item."""
         self.done = True
         self.next = PLAY_AGAIN_NEXT[self.index]
 
@@ -189,7 +198,7 @@ class RetrySkeleton(enemy_sprites.Skeleton):
         self.anim = self.get_anim()
         self.image = None
 
-    def update(self, now, dt):
+    def update(self, now):
         """Scale up the current image."""
         raw = self.anim.get_next_frame(now)
         self.image = pg.transform.scale(raw, self.rect.size)

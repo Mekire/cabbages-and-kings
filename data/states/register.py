@@ -108,7 +108,7 @@ class Register(menu_helpers.BidirectionalMenu):
             rendered = FONT.render(letter, 0, pg.Color("yellow"))
             self.letter_images[letter] = rendered
 
-    def render(self, surface):
+    def draw(self, surface, interpolate):
         """
         Draw highlighter (in two parts); base screen; letter cursor; and
         currently entered name.
@@ -126,10 +126,9 @@ class Register(menu_helpers.BidirectionalMenu):
             surface.fill(prepare.BACKGROUND_COLOR, rect)
             surface.blit(self.letter_images[letter], rect)
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """
         Update cursor blink timer and draw the screen.
         """
         if self.timer.check_tick(now):
             self.blink = not self.blink
-        self.render(surface)

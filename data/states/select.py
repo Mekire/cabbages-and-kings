@@ -47,8 +47,8 @@ class Select(state_machine._State):
         state_machine._State.__init__(self)
         self.next = "GAME"
         self.timeout = 15
-        self.cabbages = pg.sprite.Group(MenuCabbage(25, 225, (25,525), 100),
-                                      MenuCabbage(825, 1025, (1025,525), -100))
+        self.cabbages = pg.sprite.Group(MenuCabbage(25, 225, (25,525), 1.7),
+                                      MenuCabbage(825, 1025, (1025,525), -1.7))
         self.state_machine = state_machine.StateMachine()
 
     def startup(self, now, persistant):
@@ -75,13 +75,13 @@ class Select(state_machine._State):
         self.persist["player"] = options.players[regi.index]
         return self.persist
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """
         Updates the Cabbages; then the current substate; and finally
         checks to see if the game state or substate needs to change.
         """
-        self.cabbages.update(now, dt)
-        self.state_machine.update(surface, keys, now, dt)
+        self.cabbages.update(now)
+        self.state_machine.update(keys, now)
         check_timeout = now-self.start_time > 1000.0*self.timeout
         if self.state_machine.state_name == "OPTIONS" and check_timeout:
             self.next = "TITLE"
@@ -89,16 +89,16 @@ class Select(state_machine._State):
         elif self.state_machine.done:
             self.next = self.state_machine.state.next
             self.done = True
-        self.render(surface)
 
-    def render(self, surface):
+    def draw(self, surface, interpolate):
         """
         Fill the screen; let the substates handle their own rendering;
         then draw the Cabbages.
         """
         surface.fill(prepare.BACKGROUND_COLOR)
-        self.state_machine.state.draw(surface)
-        self.cabbages.draw(surface)
+        self.state_machine.state.draw(surface, interpolate)
+        for cabbage in self.cabbages:
+            cabbage.draw(surface, interpolate)
 
     def get_event(self, event):
         """
@@ -141,7 +141,7 @@ class SelectState(menu_helpers.BasicMenu):
             surface.blit(tools.get_rendered(*rend_it), (ITEM_START[0], pos_y))
         defense = str(player_sprite.defense)
         strength = str(player_sprite.strength)
-        speed = "{:.1f}".format(player_sprite.speed/20.0)
+        speed = "{:.1f}".format(player_sprite.speed*2)
         for i,stat in enumerate((strength,defense,speed)):
             pos = STAT_START[0]+STAT_SPACER*i, STAT_START[1]+SLOT_SPACER*index
             surface.blit(icons, pos, (34*i,0,34,34))
@@ -222,7 +222,7 @@ class Options(SelectState):
         else:
             self.done = True
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         """
         Blit the base image and options to a seperate surface for later use.
         Then blit that surface and the players to the screen.
@@ -248,7 +248,7 @@ class CharHighlighter(SelectState):
         SelectState.__init__(self, 3)
         self.highlight_rect = pg.Rect(129, 83, 942, 124)
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         """
         Draw the highlight first; then the base screen image; finally draw
         the players, animating the currently selected player.
@@ -335,7 +335,7 @@ class Confirm(SelectState):
         self.player.hit_state = True
         self.index = 1
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         """
         Draw the background, players, delete window and options.
         """
@@ -370,7 +370,7 @@ class Confirm(SelectState):
         else:
             self.pressed_exit()
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """
         If a player deletion has been confirmed and death animation completed,
         return to menu.
@@ -404,16 +404,21 @@ class MenuCabbage(enemy_sprites.Cabbage):
         self.anim = self.get_anim()
         self.image = None
 
-    def update(self, now, dt):
+    def update(self, now):
         """
         Scale up the current image of the animation and reverse direction
         if a minimum or maximum point is reached.
         """
         raw = self.anim.get_next_frame(now)
         self.image = pg.transform.scale(raw, (150,150))
-        self.exact_position[0] += self.speed*dt
+        self.exact_position[0] += self.speed
         self.rect.topleft = self.exact_position
         if not (self.min <= self.rect.x <= self.max):
             self.speed *= -1
             self.rect.x = min(max(self.rect.x, self.min), self.max)
             self.exact_position = list(self.rect.topleft)
+
+    def draw(self, surface, interpolate):
+        speed = self.speed*interpolate
+        rect = self.rect.move(speed, 0)
+        surface.blit(self.image, rect)

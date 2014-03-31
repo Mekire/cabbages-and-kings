@@ -28,13 +28,15 @@ class Title(state_machine._State):
         selected_font = pg.font.Font(prepare.FONTS[font], size)
         return selected_font.render(msg, 1, color)
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """Updates the title screen."""
         self.now = now
-        surface.blit(self.background, (0,0))
         if self.now-self.timer > 1000/5.0:
             self.blink = not self.blink
             self.timer = self.now
+
+    def draw(self, surface, interpolate):
+        surface.blit(self.background, (0,0))
         if self.blink:
             surface.blit(self.ne_key, self.ne_key_rect)
 

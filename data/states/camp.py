@@ -57,7 +57,7 @@ class Camp(state_machine._State):
     """State for changing gear, selecting items, etc."""
     def __init__(self):
         state_machine._State.__init__(self)
-        self.scroll_speed = 1200
+        self.scroll_speed = 20
         self.next = "GAME"
         self.state_machine = state_machine.StateMachine()
         self.image = pg.Surface(prepare.PLAY_RECT.size).convert()
@@ -126,7 +126,7 @@ class Camp(state_machine._State):
         """Draw the player's current stats."""
         defense = str(self.player.defense)
         strength = str(self.player.strength)
-        speed = "{:.1f}".format(self.player.speed/20.0)
+        speed = "{:.1f}".format(self.player.speed*2)
         for i,stat in enumerate((defense,strength)):
             pos = STAT_START[0], STAT_START[1]+STAT_SPACE*i
             render = MEDIUM_FONT.render(stat, 0, pg.Color("white"))
@@ -134,20 +134,20 @@ class Camp(state_machine._State):
         render_speed = render = MEDIUM_FONT.render(speed, 0, pg.Color("white"))
         surface.blit(render, STAT_SPEED_POS)
 
-    def scroll(self, dt):
+    def scroll(self):
         """Offset the scrolling images until MAX_SCROLL is reached."""
-        self.offset = max(self.offset-self.scroll_speed*dt, MAX_SCROLL)
+        self.offset = max(self.offset-self.scroll_speed, MAX_SCROLL)
         if self.offset == MAX_SCROLL:
             self.is_scrolling = False
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """
         Scroll if needed; update state machine; check if state_machine has
         quit; and draw everything.
         """
         if self.is_scrolling:
-            self.scroll(dt)
-        self.state_machine.update(surface, keys, now, dt)
+            self.scroll()
+        self.state_machine.update(keys, now)
         if self.state_machine.done:
             self.next = self.state_machine.state.next
             self.done = True
@@ -155,7 +155,6 @@ class Camp(state_machine._State):
             self.base = self.make_base_image()
             self.equipped = self.make_equipped_image()
             self.persist["sidebar"].update(self.player)
-        self.draw(surface)
 
     def get_event(self, event):
         """
@@ -168,18 +167,22 @@ class Camp(state_machine._State):
                     self.done = True
             self.state_machine.get_event(event)
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         """
         Blit camp items to seperate surface; blit game_screen if still
         scrolling; finally draw sidebar.
         """
         self.image.blit(self.base, (0,0))
-        self.state_machine.state.draw(self.image)
+        self.state_machine.state.draw(self.image, interpolate)
         self.image.blit(self.equipped, EQUIPPED_RECT)
         if self.is_scrolling:
-            surface.blit(self.game_screen, (self.offset, 0))
-        surface.blit(self.image, (prepare.SCREEN_RECT.w+self.offset,0))
-        self.persist["sidebar"].draw(surface, self.offset)
+            offset = max(self.offset-self.scroll_speed*interpolate, MAX_SCROLL)
+            surface.blit(self.game_screen, (offset, 0))
+            surface.blit(self.image, (prepare.SCREEN_RECT.w+offset,0))
+            self.persist["sidebar"].draw(surface, offset)
+        else:
+            surface.blit(self.image, (prepare.SCREEN_RECT.w+self.offset,0))
+            self.persist["sidebar"].draw(surface, self.offset)
 
 
 class Options(menu_helpers.BasicMenu):
@@ -189,7 +192,7 @@ class Options(menu_helpers.BasicMenu):
         self.options = self.make_options(MEDIUM_FONT, OPTIONS, OPT_Y,
                                          OPT_SPACER, OPT_CENTER_X)
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         """Draw menu options highlighting the currently selected one."""
         for i,val in enumerate(OPTIONS):
             which = "selected" if i==self.index else "unselected"
@@ -257,7 +260,7 @@ class EquipGeneral(menu_helpers.BasicMenu):
         if event.type == pg.KEYDOWN and event.key in prepare.DEFAULT_CONTROLS:
             self.gear_box, self.gear_box_rect = self.make_gear_box()
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         """Draw equipped highlight; title; arrows; and gear box."""
         highlight = pg.Rect(EQUIPPED_RECT.topleft, prepare.CELL_SIZE)
         highlight.move_ip((prepare.CELL_SIZE[0]+2)*self.index, 0)
@@ -321,7 +324,7 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
         except IndexError:
             self.index = old_index
 
-    def draw(self, surface):
+    def draw(self, surface, interpolate):
         """Draw hypothetical stats; gear info; gear and highlight."""
         surface.blit(self.stat_image, STAT_ERASE_RECT)
         self.draw_text(surface)
@@ -344,7 +347,7 @@ class EquipSpecific(menu_helpers.BidirectionalMenu):
                 render = MEDIUM_FONT.render(str(stats[i]), 0, compare[0])
                 final.blit(render, (stat_offset[0], stat_offset[1]+STAT_SPACE*i))
             else:
-                speed_str = "{:.1f}".format(stats[i]/20.0)
+                speed_str = "{:.1f}".format(stats[i]*2)
                 render = MEDIUM_FONT.render(speed_str, 0, compare[0])
                 final.blit(render, stat_speed_offset)
             arrow_pos = (stat_offset[0]+61, stat_offset[1]+13+STAT_SPACE*i)

@@ -3,12 +3,107 @@ Contains simple gui elements for the mode and layer selection menus.
 Not currently particularly flexible, but coded to suit my needs.
 """
 
+import string
 import pygame as pg
 
 
-class Selector(object):
+ACCEPTED = string.ascii_letters+string.digits+string.punctuation+" "
+
+
+class _Widget(object):
+    def bind(self, function):
+        self.command = function
+
+    def update(self, *args):
+        pass
+
+
+class TextBox(_Widget):
+    def __init__(self, rect, **kwargs):
+        self.rect = pg.Rect(rect)
+        self.active = True
+        self.buffer = []
+        self.final = None
+        self.rendered = None
+        self.render_rect = None
+        self.render_area = None
+        self.blink = True
+        self.blink_timer = 0.0
+        self.process_kwargs(kwargs)
+
+    def process_kwargs(self, kwargs):
+        defaults = {"id" : None,
+                    "command" : None,
+                    "color" : pg.Color("white"),
+                    "font_color" : pg.Color("black"),
+                    "outline_color" : pg.Color("black"),
+                    "outline_width" : 2,
+                    "active_color" : pg.Color("blue"),
+                    "font" : pg.font.Font(None, self.rect.height+4),
+                    "clear_on_enter" : False,
+                    "inactive_on_enter" : True}
+        for kwarg in kwargs:
+            if kwarg in defaults:
+                defaults[kwarg] = kwargs[kwarg]
+            else:
+                raise KeyError("InputBox accepts no keyword {}.".format(kwarg))
+        self.__dict__.update(defaults)
+
+    def get_event(self, event):
+        if event.type == pg.KEYDOWN and self.active:
+            if event.key in (pg.K_RETURN, pg.K_KP_ENTER):
+                self.execute()
+            elif event.key == pg.K_BACKSPACE:
+                if self.buffer:
+                    self.buffer.pop()
+            elif event.unicode in ACCEPTED:
+                self.buffer.append(event.unicode)
+        elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            self.active = self.rect.collidepoint(event.pos)
+
+    def execute(self):
+        if self.command:
+            self.command(self.id, self.final)
+        self.active = not self.inactive_on_enter
+        if self.clear_on_enter:
+            self.buffer = []
+
+    def update(self):
+        new = "".join(self.buffer)
+        if new != self.final:
+            self.final = new
+            self.rendered = self.font.render(self.final, True, self.font_color)
+            self.render_rect = self.rendered.get_rect(x=self.rect.x+2,
+                                                     centery=self.rect.centery)
+            if self.render_rect.width > self.rect.width-6:
+                offset = self.render_rect.width-(self.rect.width-6)
+                self.render_area = pg.Rect(offset, 0, self.rect.width-6,
+                                           self.render_rect.height)
+            else:
+                self.render_area = self.rendered.get_rect(topleft=(0,0))
+        if pg.time.get_ticks()-self.blink_timer > 200:
+            self.blink = not self.blink
+            self.blink_timer = pg.time.get_ticks()
+
+    def draw(self, surface):
+        if self.active:
+            outline_color = self.active_color
+        else:
+            outline_color = self.outline_color
+        outline = self.rect.inflate(self.outline_width*2, self.outline_width*2)
+        surface.fill(outline_color, outline)
+        surface.fill(self.color, self.rect)
+        if self.rendered:
+            surface.blit(self.rendered, self.render_rect, self.render_area)
+        if self.blink and self.active:
+            curse = self.render_area.copy()
+            curse.topleft = self.render_rect.topleft
+            surface.fill(self.font_color, (curse.right+1,curse.y,2,curse.h))
+
+
+class Selector(_Widget):
     """A selector menu including highlighting."""
-    def __init__(self, function, content, start, space, size, selected=None):
+    def __init__(self, content, start, space, size, selected=None):
         """
         The content argument is a list of strings that will be used both as
         the text appearing on the buttons, as well as the name referred to in
@@ -20,10 +115,9 @@ class Selector(object):
         have the Selector start with that option selected; or set to None to
         start with no options selected.
         """
-        self.function = function
+        self.command = None
         self.selected = selected
         self.buttons = self.create_buttons(content, start, space, size)
-        self.function(self.selected)
 
     def create_buttons(self, content, start, space, size):
         """
@@ -32,8 +126,9 @@ class Selector(object):
         buttons = []
         for i,name in enumerate(content):
             rect = pg.Rect((start[0]+i*space[0],start[1]+i*space[1]), size)
-            selected = (True if name==self.selected else False)
-            buttons.append(Button(self.get_result,name,rect,clicked=selected))
+            selected = (True if name == self.selected else False)
+            buttons.append(Button(name, rect, clicked=selected,
+                                  command=self.get_result,))
         return buttons
 
     def get_result(self, name):
@@ -43,30 +138,27 @@ class Selector(object):
         """
         self.selected = name
         for button in self.buttons:
-            if button.name != name:
-                button.clicked = False
-            ##Temporary code to make buttons return when option not implemented.
-            else: ##
-                button.clicked = True ##
-        self.function(name)
+            button.clicked = button.name == name
+        if self.command:
+            self.command(name)
 
-    def check_event(self, event):
+    def get_event(self, event):
         """Pass events down to each button."""
         for button in self.buttons:
-            button.check_event(event)
+            button.get_event(event)
 
-    def update(self, surface):
+    def draw(self, surface):
         """Update and draw each button to the target surface."""
         for button in self.buttons:
-            button.update(surface)
+            button.draw(surface)
 
 
-class Button(object):
+class Button(_Widget):
     """
     A simple button class. Features such as colors, font and border
     width are currently hardcoded.
     """
-    def __init__(self, function, name, rect, **kwargs):
+    def __init__(self, name, rect, **kwargs):
         """
         The argument name is a string used to refer to the button; rect is
         a pygame.Rect for the area of the button (inclusive of the border);
@@ -77,7 +169,6 @@ class Button(object):
         """
         self.name = name
         self.rect = pg.Rect(rect)
-        self.function = function
         self.color = (128, 128, 128)
         self.font = pg.font.SysFont("arial", 12)
         self.text = self.font.render(name, False, pg.Color("white"))
@@ -86,13 +177,13 @@ class Button(object):
         self.set_kwargs(kwargs)
 
     def set_kwargs(self, kwargs):
-        accept = dict(clicked=False, unclick=False, active=True)
+        accept = dict(command=None, clicked=False, unclick=False, active=True)
         for kwarg in kwargs:
             if kwarg in accept:
                 accept[kwarg] = kwargs[kwarg]
         self.__dict__.update(accept)
 
-    def check_event(self, event):
+    def get_event(self, event):
         """
         Check if the button has been clicked, and if so, set self.clicked to
         true and call self.function.
@@ -101,12 +192,13 @@ class Button(object):
             if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 if self.rect.collidepoint(event.pos):
                     self.clicked = True
-                    self.function(self.name)
+                    if self.command:
+                        self.command(self.name)
             elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
                 if self.unclick:
                     self.clicked = False
 
-    def update(self, surface):
+    def draw(self, surface):
         """
         Determine appearance based on whether the button is currently
         selected, hovered, or neither. Then draw the button to the target
@@ -126,9 +218,9 @@ class Button(object):
         surface.blit(text, self.text_rect)
 
 
-class CheckBoxArray(object):
+class CheckBoxArray(_Widget):
     """A class to hold an array of CheckBox instances."""
-    def __init__(self, function, content, initial, start, space):
+    def __init__(self, content, initial, start, space):
         """
         The argument content is a list of strings used to refer to each box.
         The initial argument indicates the starting state of each CheckBox;
@@ -138,10 +230,9 @@ class CheckBoxArray(object):
         (x,y) and indicate the starting location of the first box and the space
         between each box, respectively.
         """
-        self.function = function
+        self.command = None
         self.state = self.make_state(content, initial)
         self.checkboxes = self.create_checkboxes(content, start, space)
-        self.function(self.state)
 
     def make_state(self, content, initial):
         """
@@ -163,7 +254,7 @@ class CheckBoxArray(object):
         for i,name in enumerate(content):
             rect = pg.Rect((start[0]+i*space[0],start[1]+i*space[1]), size)
             checked = self.state[name]
-            boxes.append(CheckBox(name, rect, self.get_result, checked))
+            boxes.append(CheckBox(name, rect, checked, self.get_result))
         return boxes
 
     def get_result(self, name):
@@ -172,22 +263,23 @@ class CheckBoxArray(object):
         clicked.
         """
         self.state[name] = not self.state[name]
-        self.function(self.state)
+        if self.command:
+            self.command(self.state)
 
-    def check_event(self, event):
+    def get_event(self, event):
         """Pass events down to each CheckBox."""
         for box in self.checkboxes:
-            box.check_event(event)
+            box.get_event(event)
 
-    def update(self, surface):
+    def draw(self, surface):
         """Update and draw each CheckBox to the target surface."""
         for box in self.checkboxes:
-            box.update(surface)
+            box.draw(surface)
 
 
-class CheckBox(object):
+class CheckBox(_Widget):
     """A simple checkbox class. Size and appearance are currently hardcoded."""
-    def __init__(self, name, rect, function, checked=False):
+    def __init__(self, name, rect, checked=False, command=None):
         """
         The argument name is a string used to refer to the box; rect is
         a pygame.Rect for the area of the box (inclusive of the border);
@@ -197,12 +289,12 @@ class CheckBox(object):
         """
         self.name = name
         self.rect = pg.Rect(rect)
-        self.function = function
+        self.command = None
         self.color = (128, 128, 128)
         self.select_rect = self.rect.inflate(-10, -10)
         self.checked = checked
 
-    def check_event(self, event):
+    def get_event(self, event):
         """
         Check if the box has been clicked, and if so, flip self.clicked and
         call self.function.
@@ -210,9 +302,10 @@ class CheckBox(object):
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
                 self.checked = not self.checked
-                self.function(self.name)
+                if self.command:
+                    self.command(self.name)
 
-    def update(self, surface):
+    def draw(self, surface):
         """
         Determine appearance based on whether the box is currently
         checked; then draw the box to the target surface.

@@ -21,8 +21,8 @@ DRAW_ATTACK_ORDER = {"front" : ["shield", "body", "head", "weapon", "armleg"],
 
 STANDARD_ANIMATION_FPS = 7.0
 HIT_ANIMATION_FPS = 20.0
-BASE_SPEED = 180
-KNOCK_SPEED = 750
+BASE_SPEED = 3
+KNOCK_SPEED = 12.5
 
 
 class _ImageProcessing(object):
@@ -135,6 +135,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         Most member variables are initialized within set_player_data and reset.
         """
         pg.sprite.Sprite.__init__(self)
+        self.frame_speed = [0, 0]
         self.controls = prepare.DEFAULT_CONTROLS
         self.set_player_data(data)
         self.mask = self.make_mask()
@@ -238,11 +239,12 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             if direction in self.direction_stack:
                 self.direction_stack.remove(direction)
 
-    def collide_with_solid(self):
+    def collide_with_solid(self, cancel_knock=False):
         """Called from level when the player walks into a solid tile."""
         self.exact_position = self.old_position
         self.rect.topleft = self.exact_position
-        self.knock_state = False
+        if not cancel_knock:
+            self.knock_state = False
 
     def got_hit(self, enemy):
         """Called on collision with enemy."""
@@ -319,18 +321,20 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             if knock_timer.done:
                 self.knock_state = False
 
-    def move(self, dt):
+    def move(self):
         """Move the player if not attacking (or interupted some other way)."""
         self.old_position = self.exact_position[:]
         if self.action_state != "attack" and self.direction_stack:
             self.direction = self.direction_stack[-1]
             vector = prepare.DIRECT_DICT[self.direction]
-            self.exact_position[0] += self.speed*vector[0]*dt
-            self.exact_position[1] += self.speed*vector[1]*dt
+            self.frame_speed[0] += self.speed*vector[0]
+            self.frame_speed[1] += self.speed*vector[1]
         if self.knock_state:
             vector = prepare.DIRECT_DICT[self.knock_state[0]]
-            self.exact_position[0] += KNOCK_SPEED*vector[0]*dt
-            self.exact_position[1] += KNOCK_SPEED*vector[1]*dt
+            self.frame_speed[0] += KNOCK_SPEED*vector[0]
+            self.frame_speed[1] += KNOCK_SPEED*vector[1]
+        self.exact_position[0] += self.frame_speed[0]
+        self.exact_position[1] += self.frame_speed[1]
 
     def adjust_frames(self, now):
         """Update the sprite's animation as needed."""
@@ -344,11 +348,12 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             self.image = animation.get_next_frame(now)
         self.redraw = False
 
-    def update(self, now, dt, *args):
+    def update(self, now, *args):
         """Updates our player appropriately every frame."""
+        self.frame_speed = [0, 0]
         self.check_death()
         if self.action_state != "dead":
             self.check_states(now)
-            self.move(dt)
+            self.move()
         self.adjust_frames(now)
         self.rect.topleft = self.exact_position

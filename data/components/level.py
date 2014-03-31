@@ -68,6 +68,16 @@ class Animated_Tile(Tile):
         self.image = self.anim.get_next_frame(now)
 
 
+class Hazard_Tile(Tile):
+    def __init__(self, sheet, source, target, damage=1):
+         Tile.__init__(self, sheet, source, target, True)
+         self.attack = damage
+
+    def collide_with_player(self, player):
+        player.got_hit(self)
+        player.collide_with_solid(True)
+
+
 class Level(object):
     """Class representing an individual map."""
     def __init__(self, player, map_name):
@@ -78,18 +88,27 @@ class Level(object):
         self.items = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
         self.all_group, self.solids = self.make_all_layer_groups()
+        self.add_obstacle() ##TEMPORARY TEST
         self.solid_border = pg.sprite.Group(self.solids, self.make_borders())
         self.all_group.add(self.player)
         self.spawn()
         self.make_shadows()
 
+    def add_obstacle(self): ########## TEMPORARY OBSTACLE TEST
+##        sheet = prepare.GFX["mapsheets"]["base"]
+        obstacle = Hazard_Tile("base", (350, 400), (150,300))
+        obstacle.add(self.all_group, self.solids)
+
+
     def spawn(self):
+        """Create enemies, adding them to the required groups."""
         enemies = (self.enemies, self.main_sprites, self.all_group)
-        enemy_sprites.Skeleton((400,500), 40, *enemies)
-        enemy_sprites.Zombie((50,300), 50, *enemies)
-        enemy_sprites.Skeleton((850,300), 60, *enemies)
+        enemy_sprites.Skeleton((400,500), 0.7, *enemies)
+        enemy_sprites.Zombie((50,300), 0.85, *enemies)
+        enemy_sprites.Skeleton((850,300), 1, *enemies)
 
     def make_shadows(self):
+        """Create shadows for the player and all enemies."""
         shadows = [enemy.shadow for enemy in self.enemies]+[self.player.shadow]
         self.all_group.add(shadows, layer=Z_ORDER["Shadows"])
 
@@ -153,15 +172,13 @@ class Level(object):
                 group.add(Tile(sheet, source, target, mask))
         return group
 
-    def update(self, now, dt):
+    def update(self, now):
         """
         Update all sprites; check any collisions that may have occured;
         and finally sort the main_sprite group by y coordinate.
         """
-        self.all_group.update(now, dt, self.solid_border)
+        self.all_group.update(now, self.solid_border)
         self.check_collisions()
-        for sprite in self.main_sprites:
-            self.all_group.change_layer(sprite, sprite.rect.centery)
 
     def check_collisions(self):
         """
@@ -184,7 +201,11 @@ class Level(object):
                 enemy.got_hit(self.player, self.solid_border, self.items,
                               self.main_sprites, self.all_group)
 
-    def draw(self,surface):
+    def draw(self, surface, interpolate):
         """Draw all sprites and layers to the surface."""
         surface.blit(self.background, (0,0))
+        for sprite in self.main_sprites:
+            speed = [interpolate*sprite.frame_speed[i] for i in (0,1)]
+            sprite.rect.move_ip(*speed)
+            self.all_group.change_layer(sprite, sprite.rect.centery)
         self.all_group.draw(surface)

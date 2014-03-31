@@ -123,7 +123,7 @@ class Cloth(_Equipment):
 class ChainMail(_Equipment):
     """Higher defense at the cost of speed."""
     def __init__(self):
-        stats = (3, 0, -40)
+        stats = (3, 0, -0.7)
         _Equipment.__init__(self, "chain", stats, "bodies", (200,0))
         self.title = "Chainmail"
         self.descript = ["What it has in defense,",
@@ -225,6 +225,7 @@ class AttackSprite(pg.sprite.Sprite):
 
     def update(self, now, *args):
         """Updated in the Level objects update phase."""
+        self.frame_speed = self.player.frame_speed
         self.anim = self.anims[self.player.direction]
         if self.anim.timer is None:
             self.sound.play()

@@ -27,10 +27,12 @@ class ViewControls(state_machine._State):
         """Return to menu on any key press."""
         self.done = event.type == pg.KEYDOWN
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """Update blink timer and draw screen."""
         if self.timer.check_tick(now):
             self.blink = not self.blink
+
+    def draw(self, surface, interpolate):
         surface.fill(prepare.BACKGROUND_COLOR)
         surface.blit(prepare.GFX["misc"]["keyboard"], (0,0))
         if self.blink:

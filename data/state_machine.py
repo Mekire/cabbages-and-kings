@@ -23,7 +23,7 @@ class StateMachine(object):
         self.state_name = start_state
         self.state = self.state_dict[self.state_name]
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         """
         Checks if a state is done or has called for a game quit.
         State is flipped if neccessary and State.update is called.
@@ -33,7 +33,10 @@ class StateMachine(object):
             self.done = True
         elif self.state.done:
             self.flip_state()
-        self.state.update(surface, keys, now, dt)
+        self.state.update(keys, now)
+
+    def draw(self, surface, interpolate):
+        self.state.draw(surface, interpolate)
 
     def flip_state(self):
         """

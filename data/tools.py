@@ -9,6 +9,9 @@ import pygame as pg
 from . import state_machine
 
 
+TIME_PER_UPDATE = 16.0  #Milliseconds
+
+
 class Control(object):
     """
     Control class for entire project. Contains the game loop, and contains
@@ -25,12 +28,18 @@ class Control(object):
         self.keys = pg.key.get_pressed()
         self.state_machine = state_machine.StateMachine()
 
-    def update(self, dt):
+    def update(self):
         """
         Updates the currently active state.
         """
         self.now = pg.time.get_ticks()
-        self.state_machine.update(self.screen, self.keys, self.now, dt)
+        self.state_machine.update(self.keys, self.now)
+
+    def draw(self, interpolate):
+        if not self.state_machine.state.done:
+            self.state_machine.draw(self.screen, interpolate)
+            pg.display.update()
+            self.show_fps()
 
     def event_loop(self):
         """
@@ -64,13 +73,15 @@ class Control(object):
             pg.display.set_caption(with_fps)
 
     def main(self):
-        """Main loop for entire program."""
+        """Main loop for entire program. Uses a constant timestep."""
+        lag = 0.0
         while not self.done:
-            dt = self.clock.tick(self.fps)/1000.0
+            lag += self.clock.tick(self.fps)
             self.event_loop()
-            self.update(dt)
-            pg.display.update()
-            self.show_fps()
+            while lag >= TIME_PER_UPDATE:
+                self.update()
+                lag -= TIME_PER_UPDATE
+            self.draw(lag/TIME_PER_UPDATE)
 
 
 class Anim(object):

@@ -43,7 +43,7 @@ class BasicMenu(state_machine._State):
         options["selected"] = make_text_list(*args)
         return options
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         pass
 
     def pressed_enter(self):
@@ -80,7 +80,7 @@ class BidirectionalMenu(state_machine._State):
         self.index[0] = (self.index[0]+vector[0])%self.option_lengths[0]
         self.index[1] = (self.index[1]+vector[1])%self.option_lengths[1]
 
-    def update(self, surface, keys, now, dt):
+    def update(self, keys, now):
         pass
 
     def pressed_enter(self):
