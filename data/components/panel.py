@@ -1,140 +1,103 @@
 import pygame as pg
 
-from .. import map_prepare,tools
-from .map_gui_widgets import Button
+from .. import map_prepare
 
 
-MIN_SCROLL = -298
-MAX_SCROLL =  102
-CLEAR_BLUE = (50, 100, 255, 55)
+MIN_SCROLL = -302
+MAX_SCROLL =  100
+SCROLL_SPEED = 20.0
+
+PULL_TAB = map_prepare.GFX["misc"]["pull"]
+ARROWS = map_prepare.GFX["misc"]["arrows"]
 
 
-class PalletPanel(object):
-    """This is the panel for picking the tile you wish to place."""
-    def __init__(self, map_dict, select_function):
-        """
-        The map_dict is the current state of the map; select_function is a
-        callback function that changes the selected tile in the toolbar
-        class.
-        """
-        self.map_dict = map_dict
-        self.select_function = select_function
-        self.rect = pg.Rect(-298, 50, 400, 600)
-        self.pull_image = map_prepare.GFX["misc"]["pull"]
-        self.pull_rect = self.pull_image.get_rect(left=self.rect.right, y=200)
-        self.right_arrows = map_prepare.GFX["misc"]["arrows"]
-        self.left_arrows = pg.transform.flip(self.right_arrows, True, False)
-        self.arrow_rect = self.right_arrows.get_rect()
-        self.arrow_rect.topleft = self.pull_rect.move(3, 121).topleft
-        self.cursor = self.make_selector_cursor()
-        self.visible = False
+class Panel(object):
+    def __init__(self, map_state, pages):
+        self.map_state = map_state
+        self.pages = pages
+        self.index = 0
+        self.rect = pg.Rect(-302, 48, 420, 604)
+        self.image = self.make_panel()
+        self.arrows = [ARROWS, pg.transform.flip(ARROWS, True, False)]
         self.scrolling = False
-        self.scroll_speed = 1200
-        self.image = None
-        self.selected = None
-        self.bg_button = Button(self.change_background,
-                                name="Background Fill",
-                                rect=pg.Rect(0,0,100,50),
-                                selected=False,
-                                unclick=True,
-                                active=False)
+        self.visible = False
+        self.scroll_direction = 1
 
-    def change_background(self, *args):
-        """Change background color."""
-        if self.selected:
-            color = self.selected[1]
-            self.map_dict["BG Colors"]["fill"] = color
+    @property
+    def pull_rect(self):
+        return PULL_TAB.get_rect(right=self.rect.right-2,
+                                 centery=self.rect.centery)
 
-    def make_selector_cursor(self):
-        """Creates the rectangular selector."""
-        cursor = pg.Surface(map_prepare.CELL_SIZE).convert_alpha()
-        cursor_rect = cursor.get_rect()
-        cursor.fill(pg.Color("white"))
-        cursor.fill(pg.Color("red"), cursor_rect.inflate(-2,-2))
-        cursor.fill(pg.Color("white"), cursor_rect.inflate(-6,-6))
-        cursor.fill(CLEAR_BLUE, cursor_rect.inflate(-8,-8))
-        return cursor
+    @property
+    def arrow_rect(self):
+        pull_rect = self.pull_rect
+        return ARROWS.get_rect(centerx=pull_rect.centerx-1,
+                               centery=pull_rect.centery)
 
-    def draw_cursor(self, surface, pallet):
-        """Draw rectangle cursor when required."""
-        point = pg.mouse.get_pos()
-        if self.rect.collidepoint(point):
-            if pallet == "background":
-                if pg.mouse.get_cursor() != map_prepare.DROPPER:
-                    pg.mouse.set_cursor((16,16), (0,15), *map_prepare.DROPPER)
-            else:
-                on_sheet = tools.get_cell_coordinates(self.rect, point,
-                                                      map_prepare.CELL_SIZE)
-                location = (on_sheet[0]+self.rect.x, on_sheet[1]+self.rect.y)
-                surface.blit(self.cursor, location)
+    def make_panel(self):
+        image = pg.Surface(self.rect.size).convert_alpha()
+        image.fill((0,0,0,0))
+        image.fill(pg.Color("white"), (0,0,404,604))
+        image.fill((40,40,40), (2, 2, 400, 600))
+        image.blit(PULL_TAB, (402, 152))
+        return image
 
-    def reset_cursor(self,pallet):
-        point = pg.mouse.get_pos()
-        if pallet != "background" or not self.rect.collidepoint(point):
-            if pg.mouse.get_cursor() != map_prepare.DEFAULT_CURSOR:
-                 pg.mouse.set_cursor(*map_prepare.DEFAULT_CURSOR)
+    def do_scroll(self):
+        """Scroll panel in and out when handle is clicked."""
+        self.rect.x += SCROLL_SPEED*self.scroll_direction
+        self.rect.x = min(max(self.rect.x, MIN_SCROLL), MAX_SCROLL)
+        if self.rect.x == MIN_SCROLL:
+            self.visible = False
+        if self.rect.x in (MIN_SCROLL, MAX_SCROLL):
+            self.scrolling = False
+            self.scroll_direction *= -1
 
-    def draw_button(self, surface, pallet):
-        """Draw background fill button when required."""
-        if pallet == "background":
-            self.bg_button.rect.center = (self.rect.centerx, 250)
-            self.bg_button.text_rect.center = self.bg_button.rect.center
-            self.bg_button.active = True
-            self.bg_button.update(surface)
+    def get_event(self, event):
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_SPACE:
+                self.toggle_scroll()
+        elif event.type == pg.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if self.pull_rect.collidepoint(event.pos):
+                    self.toggle_scroll()
+
+    def toggle_scroll(self):
+        self.scrolling = True
+        self.visible = True
+
+    def update(self, keys, now):
+        if self.visible and self.scrolling:
+            self.do_scroll()
+
+    def draw(self, surface, interpolate):
+        if self.visible and self.scrolling:
+            pos = self.rect.copy()
+            pos.x += SCROLL_SPEED*self.scroll_direction*interpolate
+            pos.x = min(max(self.rect.x, MIN_SCROLL), MAX_SCROLL)
         else:
-            self.bg_button.active = False
-
-    def draw(self, surface, pallet):
-        """Draw all elements."""
-        if self.visible:
-            self.image = map_prepare.GFX["mapsheets"][pallet]
-            surface.fill((255,255,255), self.rect.inflate(4,4))
-            surface.fill((40,40,40), self.rect)
-            surface.blit(self.image, self.rect)
-            self.draw_cursor(surface, pallet)
-            self.draw_button(surface, pallet)
-        surface.blit(self.pull_image, self.pull_rect)
-        arrow = self.right_arrows if self.scroll_speed>0 else self.left_arrows
+            pos = self.rect
+        arrow = self.arrows[0] if self.scroll_direction>0 else self.arrows[1]
+        self.pages[self.index].draw(self.image, interpolate)
+        surface.blit(self.image, pos)
         surface.blit(arrow, self.arrow_rect)
 
-    def do_scroll(self, dt):
-        """Scroll panel in and out when handle is clicked."""
-        if self.visible and self.scrolling:
-            self.rect.x += self.scroll_speed*dt
-            self.rect.x = min(max(self.rect.x, MIN_SCROLL), MAX_SCROLL)
-            if self.rect.x == MIN_SCROLL:
-                self.visible = False
-            if self.rect.x in (MIN_SCROLL, MAX_SCROLL):
-                self.scrolling = False
-                self.scroll_speed *= -1
-            self.pull_rect.left = self.rect.right
-            self.arrow_rect.topleft = self.pull_rect.move(3, 121).topleft
 
-    def update(self, surface, pallet, selected, dt):
-        """Update panel if visible; scroll if needed."""
-        self.selected = selected
-        self.do_scroll(dt)
-        self.draw(surface,pallet)
-        self.reset_cursor(pallet)
+class PanelPage(object):
+    def __init__(self, sheet_name):
+        self.sheet_name = sheet_name
+        self.image = map_prepare.GFX["mapsheets"][sheet_name]
 
-    def check_event(self, event):
-        """Handle events directed at the panel."""
-        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-            point = event.pos
-            if self.pull_rect.collidepoint(point):
-                self.visible = True
-                self.scrolling = True
-            elif self.visible and self.rect.collidepoint(point):
-                coords = tools.get_cell_coordinates(self.rect, point,
-                                                    map_prepare.CELL_SIZE)
-                get_point = point[0]-self.rect.x,point[1]-self.rect.y
-                try:
-                    color = self.image.get_at(get_point)
-                    self.select_function(coords, color)
-                except IndexError:
-                    print("Not on sheet.")
-        elif event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            self.visible = True
-            self.scrolling = True
-        if self.visible:
-            self.bg_button.check_event(event)
+    def update(self, keys, now):
+        pass
+
+    def draw(self, surface, interpolate):
+        surface.blit(self.image, (2,2))
+
+
+
+
+
+
+
+
+
