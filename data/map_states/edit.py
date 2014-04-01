@@ -15,6 +15,10 @@ LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Enemies", "Items")
 
 
+BASIC_PANELS = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
+                "forest", "misc", "tatami")
+
+
 class MapState(object):
     def __init__(self):
         self.map_dict = {layer:{} for layer in LAYERS}
@@ -28,8 +32,13 @@ class Edit(state_machine._State):
         state_machine._State.__init__(self)
         self.map_state = MapState()
         self.toolbar = toolbar.ToolBar()
-        page = panel.PanelPage("base")
-        self.panel = panel.Panel(self.map_state, [page])
+        self.toolbar.navs[0].bind(lambda x: self.change_panel(-1))
+        self.toolbar.navs[1].bind(lambda x: self.change_panel(1))
+        pages = [panel.PanelPage(sheet) for sheet in BASIC_PANELS]
+        self.panel = panel.Panel(self.map_state, pages)
+
+    def change_panel(self, increment):
+        self.panel.index = (self.panel.index+increment)%len(self.panel.pages)
 
     def update(self, keys, now):
         """Updates the title screen."""

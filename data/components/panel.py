@@ -38,7 +38,6 @@ class Panel(object):
         image = pg.Surface(self.rect.size).convert_alpha()
         image.fill((0,0,0,0))
         image.fill(pg.Color("white"), (0,0,404,604))
-        image.fill((40,40,40), (2, 2, 400, 600))
         image.blit(PULL_TAB, (402, 152))
         return image
 
@@ -91,6 +90,7 @@ class PanelPage(object):
         pass
 
     def draw(self, surface, interpolate):
+        surface.fill((40,40,40), (2, 2, 400, 600))
         surface.blit(self.image, (2,2))
 
 

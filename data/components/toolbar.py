@@ -68,15 +68,15 @@ class ToolBar(object):
         self.mode_select = Selector(**MODE_SELECT_SETTINGS)
         self.layer_select = Selector(**LAYER_SELECT_SETTINGS)
         check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTTINGS)
-        nav_left = Button(**NAV_LEFT)
-        nav_right = Button(**NAV_RIGHT)
+        self.navs = [Button(**NAV_LEFT),
+                     Button(**NAV_RIGHT)]
         save_button = Button(**SAVE_BUTTON)
         load_button = Button(**LOAD_BUTTON)
         self.widgets = [self.mode_select,
                         self.layer_select,
                         check_boxes,
-                        nav_left,
-                        nav_right,
+                        self.navs[0],
+                        self.navs[1],
                         save_button,
                         load_button]
 
