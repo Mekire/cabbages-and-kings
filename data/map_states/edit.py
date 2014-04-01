@@ -19,6 +19,7 @@ class MapState(object):
     def __init__(self):
         self.map_dict = {layer:{} for layer in LAYERS}
         self.map_dict["BG Colors"]["fill"] = (0,0,0)
+        self.selected = None
 
 
 class Edit(state_machine._State):

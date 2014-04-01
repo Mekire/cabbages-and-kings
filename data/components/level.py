@@ -95,10 +95,8 @@ class Level(object):
         self.make_shadows()
 
     def add_obstacle(self): ########## TEMPORARY OBSTACLE TEST
-##        sheet = prepare.GFX["mapsheets"]["base"]
         obstacle = Hazard_Tile("base", (350, 400), (150,300))
         obstacle.add(self.all_group, self.solids)
-
 
     def spawn(self):
         """Create enemies, adding them to the required groups."""
