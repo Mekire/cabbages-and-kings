@@ -1,6 +1,6 @@
 import pygame as pg
 
-from .. import map_prepare
+from .. import tools, map_prepare
 
 
 MIN_SCROLL = -302
@@ -9,6 +9,8 @@ SCROLL_SPEED = 20.0
 
 PULL_TAB = map_prepare.GFX["misc"]["pull"]
 ARROWS = map_prepare.GFX["misc"]["arrows"]
+
+CLEAR_BLUE = (50, 100, 255, 55)
 
 
 class Panel(object):
@@ -67,6 +69,7 @@ class Panel(object):
     def update(self, keys, now):
         if self.visible and self.scrolling:
             self.do_scroll()
+        self.pages[self.index].update(keys, now, self.rect)
 
     def draw(self, surface, interpolate):
         if self.visible and self.scrolling:
@@ -85,15 +88,35 @@ class PanelPage(object):
     def __init__(self, sheet_name):
         self.sheet_name = sheet_name
         self.image = map_prepare.GFX["mapsheets"][sheet_name]
+        self.rect = self.image.get_rect()
+        self.cursor = self.make_selector_cursor()
 
-    def update(self, keys, now):
-        pass
+    def update(self, keys, now, panel_rect):
+        self.rect.topleft = panel_rect.move(2,2).topleft
 
     def draw(self, surface, interpolate):
         surface.fill((40,40,40), (2, 2, 400, 600))
         surface.blit(self.image, (2,2))
+        self.draw_cursor(surface, self.image)
 
+    def make_selector_cursor(self):
+        """Creates the rectangular selector."""
+        cursor = pg.Surface(map_prepare.CELL_SIZE).convert_alpha()
+        cursor_rect = cursor.get_rect()
+        cursor.fill(pg.Color("white"))
+        cursor.fill(pg.Color("red"), cursor_rect.inflate(-2,-2))
+        cursor.fill(pg.Color("white"), cursor_rect.inflate(-6,-6))
+        cursor.fill(CLEAR_BLUE, cursor_rect.inflate(-8,-8))
+        return cursor
 
+    def draw_cursor(self, surface, pallet):
+        """Draw rectangle cursor when required."""
+        point = pg.mouse.get_pos()
+        if self.rect.collidepoint(point):
+            cell_size = map_prepare.CELL_SIZE
+            on_sheet = tools.get_cell_coordinates(self.rect, point, cell_size)
+            location = (on_sheet[0]+2, on_sheet[1]+2)
+            surface.blit(self.cursor, location)
 
 
 
