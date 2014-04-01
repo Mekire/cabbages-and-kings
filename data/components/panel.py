@@ -1,6 +1,7 @@
 import pygame as pg
 
 from .. import tools, map_prepare
+from .map_gui_widgets import Button
 
 
 MIN_SCROLL = -302
@@ -18,12 +19,9 @@ class Panel(object):
         self.map_state = map_state
         self.pages = pages
         self.index = 0
-        self.rect = pg.Rect(-302, 48, 420, 604)
+        self.rect = self.map_state.panel_rect
         self.image = self.make_panel()
         self.arrows = [ARROWS, pg.transform.flip(ARROWS, True, False)]
-        self.scrolling = False
-        self.visible = False
-        self.scroll_direction = 1
 
     @property
     def pull_rect(self):
@@ -45,13 +43,13 @@ class Panel(object):
 
     def do_scroll(self):
         """Scroll panel in and out when handle is clicked."""
-        self.rect.x += SCROLL_SPEED*self.scroll_direction
+        self.rect.x += SCROLL_SPEED*self.map_state.scroll_direction
         self.rect.x = min(max(self.rect.x, MIN_SCROLL), MAX_SCROLL)
         if self.rect.x == MIN_SCROLL:
             self.visible = False
         if self.rect.x in (MIN_SCROLL, MAX_SCROLL):
-            self.scrolling = False
-            self.scroll_direction *= -1
+            self.map_state.scrolling = False
+            self.map_state.scroll_direction *= -1
 
     def get_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -63,29 +61,31 @@ class Panel(object):
                     self.toggle_scroll()
 
     def toggle_scroll(self):
-        self.scrolling = True
-        self.visible = True
+        self.map_state.scrolling = True
+        self.map_state.visible = True
 
     def update(self, keys, now):
-        if self.visible and self.scrolling:
+        if self.map_state.visible and self.map_state.scrolling:
             self.do_scroll()
         self.pages[self.index].update(keys, now, self.rect)
 
     def draw(self, surface, interpolate):
-        if self.visible and self.scrolling:
+        scroll_direction = self.map_state.scroll_direction
+        if self.map_state.visible and self.map_state.scrolling:
             pos = self.rect.copy()
-            pos.x += SCROLL_SPEED*self.scroll_direction*interpolate
+            pos.x += SCROLL_SPEED*scroll_direction*interpolate
             pos.x = min(max(self.rect.x, MIN_SCROLL), MAX_SCROLL)
         else:
             pos = self.rect
-        arrow = self.arrows[0] if self.scroll_direction>0 else self.arrows[1]
+        arrow = self.arrows[0] if scroll_direction>0 else self.arrows[1]
         self.pages[self.index].draw(self.image, interpolate)
         surface.blit(self.image, pos)
         surface.blit(arrow, self.arrow_rect)
 
 
 class PanelPage(object):
-    def __init__(self, sheet_name):
+    def __init__(self, sheet_name, map_state):
+        self.map_state = map_state
         self.sheet_name = sheet_name
         self.image = map_prepare.GFX["mapsheets"][sheet_name]
         self.rect = self.image.get_rect()
@@ -119,8 +119,30 @@ class PanelPage(object):
             surface.blit(self.cursor, location)
 
 
+class BackGroundPage(PanelPage):
+    def __init__(self, map_state):
+        PanelPage.__init__(self, "background", map_state)
+        self.fill_all = Button(name="Fill", rect=pg.Rect(0,0,100,50),
+                               selected=False, unclick=True, active=False)
 
+    def update(self, keys, now, panel_rect):
+        point = pg.mouse.get_pos()
+        if panel_rect.collidepoint(point):
+            if pg.mouse.get_cursor() != map_prepare.DROPPER:
+                pg.mouse.set_cursor((16,16), (0,15), *map_prepare.DROPPER)
+        self.rect.topleft = panel_rect.move(2,2).topleft
+        self.reset_cursor(panel_rect)
 
+    def make_selector_cursor(self):
+        if pg.mouse.get_cursor() != map_prepare.DROPPER:
+            pg.mouse.set_cursor((16,16), (0,15), *map_prepare.DROPPER)
 
+    def draw_cursor(self, *args):
+        pass
 
+    def reset_cursor(self, panel_rect):
+        point = pg.mouse.get_pos()
+        if not panel_rect.collidepoint(point):
+            if pg.mouse.get_cursor() != map_prepare.DEFAULT_CURSOR:
+                 pg.mouse.set_cursor(*map_prepare.DEFAULT_CURSOR)
 

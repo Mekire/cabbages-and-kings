@@ -67,18 +67,13 @@ class ToolBar(object):
         """Create required GUI elements."""
         self.mode_select = Selector(**MODE_SELECT_SETTINGS)
         self.layer_select = Selector(**LAYER_SELECT_SETTINGS)
-        check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTTINGS)
-        self.navs = [Button(**NAV_LEFT),
-                     Button(**NAV_RIGHT)]
-        save_button = Button(**SAVE_BUTTON)
-        load_button = Button(**LOAD_BUTTON)
-        self.widgets = [self.mode_select,
-                        self.layer_select,
-                        check_boxes,
-                        self.navs[0],
-                        self.navs[1],
-                        save_button,
-                        load_button]
+        self.check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTTINGS)
+        self.navs = [Button(**NAV_LEFT), Button(**NAV_RIGHT)]
+        self.save_button = Button(**SAVE_BUTTON)
+        self.load_button = Button(**LOAD_BUTTON)
+        self.widgets = [self.mode_select, self.layer_select, self.check_boxes,
+                        self.navs[0], self.navs[1],
+                        self.save_button, self.load_button]
 
     def get_event(self,event):
         """Receive events from the Edit state and pass them to each widget."""
@@ -93,4 +88,3 @@ class ToolBar(object):
         surface.blit(self.image, (0,0))
         for widget in self.widgets:
             widget.draw(surface)
-
