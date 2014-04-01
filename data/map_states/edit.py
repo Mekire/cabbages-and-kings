@@ -31,6 +31,10 @@ class MapState(object):
         self.visible = False
         self.scroll_direction = 1
 
+    @property
+    def mode_layer(self):
+        return (self.mode, self.layer)
+
 
 class Edit(state_machine._State):
     """This State is updated while our game shows the title screen."""
@@ -63,6 +67,7 @@ class Edit(state_machine._State):
         self.now = now
         self.mode.update(keys, now)
         self.toolbar.update(keys, now)
+        self.reset_cursor()
 
     def draw(self, surface, interpolate):
         surface.fill(BACKGROUND_COLOR)
@@ -73,3 +78,11 @@ class Edit(state_machine._State):
         """Get events from Control and pass them on to components."""
         self.mode.get_event(event)
         self.toolbar.get_event(event)
+
+    def reset_cursor(self):
+        bg_edit = self.map_state.mode_layer == ("Standard", "BG Colors")
+        visible_done = self.map_state.visible and not self.map_state.scrolling
+        on_panel = self.map_state.panel_rect.collidepoint(pg.mouse.get_pos())
+        if not bg_edit or not (visible_done and on_panel):
+            if pg.mouse.get_cursor() != map_prepare.DEFAULT_CURSOR:
+                 pg.mouse.set_cursor(*map_prepare.DEFAULT_CURSOR)

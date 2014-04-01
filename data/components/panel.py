@@ -46,7 +46,7 @@ class Panel(object):
         self.rect.x += SCROLL_SPEED*self.map_state.scroll_direction
         self.rect.x = min(max(self.rect.x, MIN_SCROLL), MAX_SCROLL)
         if self.rect.x == MIN_SCROLL:
-            self.visible = False
+            self.map_state.visible = False
         if self.rect.x in (MIN_SCROLL, MAX_SCROLL):
             self.map_state.scrolling = False
             self.map_state.scroll_direction *= -1
@@ -131,7 +131,7 @@ class BackGroundPage(PanelPage):
             if pg.mouse.get_cursor() != map_prepare.DROPPER:
                 pg.mouse.set_cursor((16,16), (0,15), *map_prepare.DROPPER)
         self.rect.topleft = panel_rect.move(2,2).topleft
-        self.reset_cursor(panel_rect)
+##        self.reset_cursor(panel_rect)
 
     def make_selector_cursor(self):
         if pg.mouse.get_cursor() != map_prepare.DROPPER:
@@ -139,10 +139,4 @@ class BackGroundPage(PanelPage):
 
     def draw_cursor(self, *args):
         pass
-
-    def reset_cursor(self, panel_rect):
-        point = pg.mouse.get_pos()
-        if not panel_rect.collidepoint(point):
-            if pg.mouse.get_cursor() != map_prepare.DEFAULT_CURSOR:
-                 pg.mouse.set_cursor(*map_prepare.DEFAULT_CURSOR)
 
