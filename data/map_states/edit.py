@@ -24,6 +24,11 @@ BASIC_PANELS = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
 
 
 class MapState(object):
+    """
+    An instance of this class maintains the primary state for the map
+    dictionary and also keeps track of the current selected tile, layer,
+    and mode. Most classes have complete access to this object.
+    """
     def __init__(self):
         self.map_dict = {layer:{} for layer in LAYERS}
         self.map_dict["BG Colors"]["fill"] = (0,0,0)
@@ -34,7 +39,18 @@ class MapState(object):
 
     @property
     def mode_layer(self):
+        """A convenience for getting the mode and layer at the same time."""
         return (self.mode, self.layer)
+
+    def change_layer(self, name):
+        """Change the layer.  Callback for the toolbar layer_select widget."""
+        self.selected = None
+        self.layer = name
+
+    def change_mode(self, name):
+        """Change the mode.  Callback for the toolbar mode_select widget."""
+        self.selected = None
+        self.mode = name
 
 
 class Edit(state_machine._State):
@@ -47,32 +63,27 @@ class Edit(state_machine._State):
         self.mode = modes.Standard(self.map_state)
 
     def set_toolbar_bindings(self):
+        """Bind necessary callbacks to appropriate toolbar widgets."""
         self.toolbar.navs[0].bind(self.change_panel)
         self.toolbar.navs[1].bind(self.change_panel)
-        self.toolbar.layer_select.bind(self.change_layer)
-        self.toolbar.mode_select.bind(self.change_mode)
+        self.toolbar.layer_select.bind(self.map_state.change_layer)
+        self.toolbar.mode_select.bind(self.map_state.change_mode)
 
     def change_panel(self, name):
+        """Callback function passed to the toolbar nav buttons."""
         increment = toolbar.NAVIGATION_DIRECTION[name]
         panel = self.mode.active_panel
         panel.index = (panel.index+increment)%len(panel.pages)
 
-    def change_layer(self, name):
-        self.map_state.selected = None
-        self.map_state.layer = name
-
-    def change_mode(self, name):
-        self.map_state.selected = None
-        self.map_state.mode = name
-
     def update(self, keys, now):
-        """Updates the title screen."""
+        """Update current mode and toolbar."""
         self.now = now
         self.mode.update(keys, now)
         self.toolbar.update(keys, now)
         self.reset_cursor()
 
     def draw(self, surface, interpolate):
+        """Draw the entire map, panel, and toolbar to the surface."""
         surface.fill(BACKGROUND_COLOR)
         self.draw_color_layer(surface)
         for layer in STANDARD_LAYERS:

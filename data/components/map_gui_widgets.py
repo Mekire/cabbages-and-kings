@@ -179,7 +179,7 @@ class Button(_Widget):
     def set_kwargs(self, kwargs):
         accept = {"command" : None,
                   "clicked" : False,
-                  "unclick" :False,
+                  "unclick" : False,
                   "active" : True,
                   "key_bindings" : []}
         for kwarg in kwargs:

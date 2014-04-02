@@ -13,6 +13,12 @@ ARROWS = map_prepare.GFX["misc"]["arrows"]
 
 CLEAR_BLUE = (50, 100, 255, 55)
 
+FILL_BUTTON = {"name" : "Fill",
+               "rect" : pg.Rect(150,200,100,50),
+               "selected" : False,
+               "unclick" : True,
+               "key_bindings" : [pg.K_f]}
+
 
 class Panel(object):
     rect = pg.Rect(-302, 48, 420, 604)
@@ -150,8 +156,7 @@ class PanelPage(object):
 class BackGroundPage(PanelPage):
     def __init__(self, map_state):
         PanelPage.__init__(self, "background", map_state)
-        self.fill_button = Button(name="Fill", rect=pg.Rect(150,200,100,50),
-                               selected=False, unclick=True)
+        self.fill_button = Button(**FILL_BUTTON)
         self.fill_button.bind(self.fill_all)
 
     def fill_all(self, name):
