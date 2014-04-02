@@ -177,7 +177,11 @@ class Button(_Widget):
         self.set_kwargs(kwargs)
 
     def set_kwargs(self, kwargs):
-        accept = dict(command=None, clicked=False, unclick=False, active=True)
+        accept = {"command" : None,
+                  "clicked" : False,
+                  "unclick" :False,
+                  "active" : True,
+                  "key_bindings" : []}
         for kwarg in kwargs:
             if kwarg in accept:
                 accept[kwarg] = kwargs[kwarg]
@@ -191,12 +195,22 @@ class Button(_Widget):
         if self.active:
             if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 if self.rect.collidepoint(event.pos):
-                    self.clicked = True
-                    if self.command:
-                        self.command(self.name)
+                    self.press()
             elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
-                if self.unclick:
-                    self.clicked = False
+                self.unpress()
+            elif event.type == pg.KEYDOWN and event.key in self.key_bindings:
+                self.press()
+            elif event.type == pg.KEYUP and event.key in self.key_bindings:
+                self.unpress()
+
+    def press(self):
+        self.clicked = True
+        if self.command:
+            self.command(self.name)
+
+    def unpress(self):
+        if self.unclick:
+            self.clicked = False
 
     def draw(self, surface):
         """

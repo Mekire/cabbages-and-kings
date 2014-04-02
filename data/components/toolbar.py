@@ -35,12 +35,14 @@ CHECK_ARRAY_SETTTINGS = {"content" : LAYERS,
 NAV_LEFT = {"name" : "<<",
             "rect" : (10, LAYER_SELECT_SETTINGS["start"][1]-55, 40, 20),
             "selected" : False,
-            "unclick" : True}
+            "unclick" : True,
+            "key_bindings" : [pg.K_a, pg.K_LEFT]}
 
 NAV_RIGHT = {"name" : ">>",
              "rect" : (50, LAYER_SELECT_SETTINGS["start"][1]-55, 40, 20),
              "selected" : False,
-             "unclick" : True}
+             "unclick" : True,
+             "key_bindings" : [pg.K_d, pg.K_RIGHT]}
 
 SAVE_BUTTON = {"name": "Save",
                "rect" : (15,265,70,20),

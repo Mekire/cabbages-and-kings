@@ -21,6 +21,7 @@ SCREEN_RECT = SCREEN.get_rect()
 
 #General constants
 CELL_SIZE = (50,50)
+MAP_RECT = pg.Rect(120, 0, 1000, 700)
 
 #Resource loading (Fonts and music just contain path names).
 FONTS = tools.load_all_fonts(os.path.join("resources","fonts"))

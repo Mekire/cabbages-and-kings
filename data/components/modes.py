@@ -12,6 +12,7 @@ class Standard(object):
     def __init__(self, map_state):
         self.map_state = map_state
         self.make_panels()
+        self.reset_add_del()
 
     def make_panels(self):
         normal_pages = [panel.PanelPage(s, self.map_state) for s in BASIC]
@@ -29,9 +30,42 @@ class Standard(object):
 
     def update(self, keys, now):
         self.active_panel.update(keys, now)
+        if self.adding:
+            self.add_tile(pg.mouse.get_pos())
 
     def get_event(self, event):
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if map_prepare.MAP_RECT.collidepoint(event.pos):
+                    self.set_adding(event.pos)
+            elif event.button == 3:
+                if map_prepare.MAP_RECT.collidepoint(event.pos):
+                    self.deleting = True
+        elif event.type == pg.MOUSEBUTTONUP:
+            self.reset_add_del()
         self.active_panel.get_event(event)
+
+    def set_adding(self, point):
+        panel = self.active_panel
+        if not panel.rect.collidepoint(point):
+            self.adding = True
+            panel.retract()
+
+    def add_tile(self, point):
+        """Called if self.adding flag is set."""
+        selected = self.map_state.selected
+        map_rect = map_prepare.MAP_RECT
+        if selected:
+            if map_rect.collidepoint(point):
+                size = map_prepare.CELL_SIZE
+                point = tools.get_cell_coordinates(map_rect, point, size)
+                layer = self.map_state.layer
+                self.map_state.map_dict[layer][point] = selected
+
+    def reset_add_del(self):
+        """Flip both adding and deleting back to False."""
+        self.adding = False
+        self.deleting = False
 
     def draw(self, surface, interpolate):
         self.active_panel.draw(surface, interpolate)
