@@ -60,8 +60,9 @@ NAVIGATION_DIRECTION = {">>" : 1, "<<" : -1}
 
 class ToolBar(object):
     """A class for our left hand control panel."""
-    def __init__(self):
+    def __init__(self, map_state):
         """Initialize needed settings and create widgets."""
+        self.map_state = map_state
         self.image = map_prepare.GFX["misc"]["interface"]
         self.make_widgets()
 
@@ -70,12 +71,21 @@ class ToolBar(object):
         self.mode_select = Selector(**MODE_SELECT_SETTINGS)
         self.layer_select = Selector(**LAYER_SELECT_SETTINGS)
         self.check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTTINGS)
+        self.check_boxes.key_bindings[pg.K_v] = self.toggle_layer_visibility
         self.navs = [Button(**NAV_LEFT), Button(**NAV_RIGHT)]
         self.save_button = Button(**SAVE_BUTTON)
         self.load_button = Button(**LOAD_BUTTON)
         self.widgets = [self.mode_select, self.layer_select, self.check_boxes,
                         self.navs[0], self.navs[1],
                         self.save_button, self.load_button]
+
+    def toggle_layer_visibility(self, check_box_array):
+        """
+        Toggle the visibility of the currently selected layer via 'v-key'.
+        """
+        for check_box in check_box_array.checkboxes:
+            if self.map_state.layer == check_box.name:
+                check_box.toggle()
 
     def get_event(self,event):
         """Recieve events from the Edit state and pass them to each widget."""

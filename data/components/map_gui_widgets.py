@@ -250,6 +250,7 @@ class CheckBoxArray(_Widget):
         self.command = None
         self.state = self.make_state(content, initial)
         self.checkboxes = self.create_checkboxes(content, start, space)
+        self.key_bindings = {} #Key to callback function bindings.
 
     def make_state(self, content, initial):
         """
@@ -287,6 +288,8 @@ class CheckBoxArray(_Widget):
         """Pass events down to each CheckBox."""
         for box in self.checkboxes:
             box.get_event(event)
+        if event.type == pg.KEYDOWN and event.key in self.key_bindings:
+            self.key_bindings[event.key](self)
 
     def draw(self, surface):
         """Update and draw each CheckBox to the target surface."""
@@ -306,7 +309,7 @@ class CheckBox(_Widget):
         """
         self.name = name
         self.rect = pg.Rect(rect)
-        self.command = None
+        self.command = command
         self.color = (128, 128, 128)
         self.select_rect = self.rect.inflate(-10, -10)
         self.checked = checked
@@ -318,9 +321,12 @@ class CheckBox(_Widget):
         """
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
-                self.checked = not self.checked
-                if self.command:
-                    self.command(self.name)
+                self.toggle()
+
+    def toggle(self):
+        self.checked = not self.checked
+        if self.command:
+            self.command(self.name)
 
     def draw(self, surface):
         """

@@ -54,11 +54,11 @@ class MapState(object):
 
 
 class Edit(state_machine._State):
-    """This State is updated while our game shows the title screen."""
+    """This is the state for individual map editing."""
     def __init__(self):
         state_machine._State.__init__(self)
         self.map_state = MapState()
-        self.toolbar = toolbar.ToolBar()
+        self.toolbar = toolbar.ToolBar(self.map_state)
         self.set_toolbar_bindings()
         self.mode = modes.Standard(self.map_state)
 
@@ -84,10 +84,12 @@ class Edit(state_machine._State):
 
     def draw(self, surface, interpolate):
         """Draw the entire map, panel, and toolbar to the surface."""
+        visibility = self.toolbar.check_boxes.state
         surface.fill(BACKGROUND_COLOR)
-        self.draw_color_layer(surface)
+        self.draw_color_layer(surface, visibility["BG Colors"])
         for layer in STANDARD_LAYERS:
-            self.draw_normal_layer(surface, layer)
+            if visibility[layer]:
+                self.draw_normal_layer(surface, layer)
         self.mode.draw(surface, interpolate)
         self.toolbar.draw(surface)
         if self.map_state.selected:
@@ -98,15 +100,16 @@ class Edit(state_machine._State):
         self.mode.get_event(event)
         self.toolbar.get_event(event)
 
-    def draw_color_layer(self, surface):
+    def draw_color_layer(self, surface, visible):
         """The BG_Colors layer requires a unique draw function."""
         map_background_color = self.map_state.map_dict["BG Colors"]["fill"]
         surface.fill(map_background_color, map_prepare.MAP_RECT)
-        for coords in self.map_state.map_dict["BG Colors"]:
-            if coords != "fill":
-                color = self.map_state.map_dict["BG Colors"][coords][1]
-                target = map_prepare.MAP_RECT.x+coords[0], coords[1]
-                surface.fill(color, pg.Rect(target, map_prepare.CELL_SIZE))
+        if visible:
+            for coords in self.map_state.map_dict["BG Colors"]:
+                if coords != "fill":
+                    color = self.map_state.map_dict["BG Colors"][coords][1]
+                    target = map_prepare.MAP_RECT.x+coords[0], coords[1]
+                    surface.fill(color, pg.Rect(target, map_prepare.CELL_SIZE))
 
     def draw_normal_layer(self, surface, layer):
         """Draw function for standard layers."""
