@@ -84,5 +84,5 @@ class Standard(object):
             self.map_state.map_dict[self.map_state.layer].pop(point, None)
 
     def draw(self, surface, interpolate):
-        """Draw the currently active panell to the surface."""
+        """Draw the currently active panel to the surface."""
         self.active_panel.draw(surface, interpolate)

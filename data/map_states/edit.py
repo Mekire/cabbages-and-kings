@@ -74,6 +74,7 @@ class Edit(state_machine._State):
 
     def draw(self, surface, interpolate):
         surface.fill(BACKGROUND_COLOR)
+        self.draw_color_layer(surface)
         for layer in STANDARD_LAYERS:
             self.draw_normal_layer(surface, layer)
         self.mode.draw(surface, interpolate)
@@ -86,17 +87,27 @@ class Edit(state_machine._State):
         self.mode.get_event(event)
         self.toolbar.get_event(event)
 
+    def draw_color_layer(self, surface):
+        """The BG_Colors layer requires a unique draw function."""
+        map_background_color = self.map_state.map_dict["BG Colors"]["fill"]
+        surface.fill(map_background_color, map_prepare.MAP_RECT)
+        for coords in self.map_state.map_dict["BG Colors"]:
+            if coords != "fill":
+                color = self.map_state.map_dict["BG Colors"][coords][1]
+                target = map_prepare.MAP_RECT.x+coords[0], coords[1]
+                surface.fill(color, pg.Rect(target, map_prepare.CELL_SIZE))
+
     def draw_normal_layer(self, surface, layer):
         """Draw function for standard layers."""
         layer_dict = self.map_state.map_dict[layer]
         for coords in layer_dict:
-            map_string, source_coords = layer_dict[coords][0:2]###
+            map_string, source = layer_dict[coords][0:2] ###
             sheet = map_prepare.GFX["mapsheets"][map_string]
-            target = map_prepare.MAP_RECT.x+coords[0], 0+coords[1]
-            surface.blit(sheet, target, pg.Rect(source_coords,
-                                                map_prepare.CELL_SIZE))
+            target = map_prepare.MAP_RECT.x+coords[0], coords[1]
+            surface.blit(sheet, target, pg.Rect(source, map_prepare.CELL_SIZE))
 
     def reset_cursor(self):
+        """When requirements satisfied, cursor reverts to default arrow."""
         panel = self.mode.active_panel
         bg_edit = self.map_state.mode_layer == ("Standard", "BG Colors")
         on_panel = panel.rect.collidepoint(pg.mouse.get_pos())

@@ -150,8 +150,19 @@ class PanelPage(object):
 class BackGroundPage(PanelPage):
     def __init__(self, map_state):
         PanelPage.__init__(self, "background", map_state)
-        self.fill_all = Button(name="Fill", rect=pg.Rect(0,0,100,50),
-                               selected=False, unclick=True, active=False)
+        self.fill_button = Button(name="Fill", rect=pg.Rect(150,200,100,50),
+                               selected=False, unclick=True)
+        self.fill_button.bind(self.fill_all)
+
+    def fill_all(self, name):
+        selected = self.map_state.selected
+        if selected:
+            self.map_state.map_dict["BG Colors"]["fill"] = selected[1]
+
+    def make_image(self):
+        image = pg.Surface((400, 600)).convert_alpha()
+        image.blit(self.image, (0,0))
+        return image
 
     def update(self, keys, now, panel_rect):
         point = pg.mouse.get_pos()
@@ -159,6 +170,29 @@ class BackGroundPage(PanelPage):
             if pg.mouse.get_cursor() != map_prepare.DROPPER:
                 pg.mouse.set_cursor((16,16), (0,15), *map_prepare.DROPPER)
         self.rect.topleft = panel_rect.move(2,2).topleft
+
+    def get_event(self, event):
+        PanelPage.get_event(self, event)
+        self.fill_button.get_event(event, self.rect.topleft)
+
+    def draw(self, surface, interpolate):
+        PanelPage.draw(self, surface, interpolate)
+        self.fill_button.draw(surface, self.rect.topleft)
+
+    def set_select(self, point):
+        cell_size = map_prepare.CELL_SIZE
+        coords = tools.get_cell_coordinates(self.rect, point, cell_size)
+        get_point = point[0]-self.rect.x, point[1]-self.rect.y
+        try:
+            color = self.image.get_at(get_point)
+            if color.a != 255:
+                raise IndexError
+        except IndexError:
+            print("Not on sheet.")
+        self.map_state.selected = (self.sheet_name, tuple(color))
+        image = pg.Surface(cell_size).convert()
+        image.fill(color)
+        self.map_state.select_image = image
 
     def make_selector_cursor(self):
         pass

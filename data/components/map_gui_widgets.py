@@ -187,14 +187,15 @@ class Button(_Widget):
                 accept[kwarg] = kwargs[kwarg]
         self.__dict__.update(accept)
 
-    def get_event(self, event):
+    def get_event(self, event, offset=(0,0)):
         """
         Check if the button has been clicked, and if so, set self.clicked to
         true and call self.function.
         """
         if self.active:
             if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-                if self.rect.collidepoint(event.pos):
+                pos = event.pos[0]-offset[0], event.pos[1]-offset[1]
+                if self.rect.collidepoint(pos):
                     self.press()
             elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
                 self.unpress()
@@ -212,16 +213,18 @@ class Button(_Widget):
         if self.unclick:
             self.clicked = False
 
-    def draw(self, surface):
+    def draw(self, surface, offset=(0,0)):
         """
         Determine appearance based on whether the button is currently
         selected, hovered, or neither. Then draw the button to the target
         surface.
         """
+        mouse = pg.mouse.get_pos()
+        pos = mouse[0]-offset[0], mouse[1]-offset[1]
         if self.clicked:
             fill_color = pg.Color("white")
             text = self.selected_text
-        elif self.rect.collidepoint(pg.mouse.get_pos()):
+        elif self.rect.collidepoint(pos):
             fill_color = (198, 226, 255)
             text = self.selected_text
         else:
