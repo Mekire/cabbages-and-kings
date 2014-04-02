@@ -2,10 +2,18 @@
 The state for editing the individual maps.
 """
 
+import os
+import sys
+import wx
 import pygame as pg
 
 from .. import map_prepare, state_machine
 from ..components import toolbar, panel, modes
+
+if sys.version_info[0] < 3:
+    import yaml
+else:
+    import yaml3 as yaml
 
 
 BACKGROUND_COLOR = (30, 40, 50)
@@ -15,9 +23,6 @@ LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Enemies", "Items")
 
 STANDARD_LAYERS = LAYERS[1:6]
-
-BASIC_PANELS = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
-                "forest", "misc", "tatami")
 
 
 class MapState(object):
@@ -69,10 +74,44 @@ class Edit(state_machine._State):
         self.toolbar.load_button.bind(self.load_map)
 
     def save_map(self, name):
-        print("saving") ###
+        directory = os.path.join(".", "resources", "map_data")
+        wx_app = wx.App(False)
+        ask = wx.FileDialog(None, "Save As",directory, "",
+                            "Map files (*.map)|*.map",
+                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        ask.ShowModal()
+        path = ask.GetPath()
+        if path:
+            try:
+                with open(path,"w") as myfile:
+                    yaml.dump(self.map_state.map_dict, myfile)
+                    print("Map saved.")
+            except IOError:
+                print("Invalid filename.")
+        else:
+            print("File name not entered. Data not saved.")
+        self.toolbar.save_button.unpress()
 
     def load_map(self, name):
-        print("loading") ###
+        directory = os.path.join(".", "resources", "map_data")
+        wx_app = wx.App(False)
+        ask = wx.FileDialog(None, "Open", directory, "",
+                           "Map files (*.map)|*.map",
+                           wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        ask.ShowModal()
+        path = ask.GetPath()
+        if path:
+            try:
+                with open(path) as myfile:
+                    data = yaml.load(myfile)
+                    for k,v in data.items():
+                        self.map_state.map_dict[k] = v
+                    print("Map loaded.\n")
+            except IOError:
+                print("File not found.")
+        else:
+            print("Filename not entered.  Cannot load data.")
+        self.toolbar.load_button.unpress()
 
     def change_panel(self, name):
         """Callback function passed to the toolbar nav buttons."""

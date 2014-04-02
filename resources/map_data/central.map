@@ -273,6 +273,7 @@ BG Tiles:
   : !!python/tuple
   - base
   - !!python/tuple [250, 250]
+Enemies: {}
 Environment: {}
 Foreground:
   ? !!python/tuple [150, 500]
@@ -283,6 +284,7 @@ Foreground:
   : !!python/tuple
   - base
   - !!python/tuple [300, 500]
+Items: {}
 Solid:
   ? !!python/tuple [0, 0]
   : !!python/tuple

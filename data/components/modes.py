@@ -5,7 +5,7 @@ from . import panel
 
 
 BASIC = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
-         "forest", "misc", "tatami")
+         "forest", "misc", "tatami", "animsheet")
 
 
 class Standard(object):
