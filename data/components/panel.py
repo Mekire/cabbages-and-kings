@@ -143,7 +143,7 @@ class PanelPage(object):
         cell_size = map_prepare.CELL_SIZE
         coords = tools.get_cell_coordinates(self.rect, point, cell_size)
         self.map_state.selected = (self.sheet_name, coords)
-        image = self.image.subsurface((coords, map_prepare.CELL_SIZE))
+        image = self.image.subsurface((coords, cell_size))
         self.map_state.select_image = image
 
 

@@ -32,6 +32,8 @@ class Standard(object):
         self.active_panel.update(keys, now)
         if self.adding:
             self.add_tile(pg.mouse.get_pos())
+        elif self.deleting:
+            self.del_tile(pg.mouse.get_pos())
 
     def get_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -51,6 +53,12 @@ class Standard(object):
             self.adding = True
             panel.retract()
 
+    def set_deleting(self, point):
+        panel = self.active_panel
+        if not panel.rect.collidepoint(point):
+            self.adding = True
+            panel.retract()
+
     def add_tile(self, point):
         """Called if self.adding flag is set."""
         selected = self.map_state.selected
@@ -59,8 +67,15 @@ class Standard(object):
             if map_rect.collidepoint(point):
                 size = map_prepare.CELL_SIZE
                 point = tools.get_cell_coordinates(map_rect, point, size)
-                layer = self.map_state.layer
-                self.map_state.map_dict[layer][point] = selected
+                self.map_state.map_dict[self.map_state.layer][point] = selected
+
+    def del_tile(self, point):
+        selected = self.map_state.selected
+        map_rect = map_prepare.MAP_RECT
+        if map_rect.collidepoint(point):
+            size = map_prepare.CELL_SIZE
+            point = tools.get_cell_coordinates(map_rect, point, size)
+            self.map_state.map_dict[self.map_state.layer].pop(point, None)
 
     def reset_add_del(self):
         """Flip both adding and deleting back to False."""
