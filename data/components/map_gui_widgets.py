@@ -161,11 +161,8 @@ class Button(_Widget):
     def __init__(self, name, rect, **kwargs):
         """
         The argument name is a string used to refer to the button; rect is
-        a pygame.Rect for the area of the button (inclusive of the border);
-        function is the function that should be called when the button is
-        clicked; selected is a boolean indicating whether or not the button
-        is currently selected; unclick is a boolean indicating whether or not
-        the self.clicked attribute will be set back to False on mouse up.
+        a pygame.Rect for the area of the button (inclusive of the border).
+        See set_kwargs for details on optional keyword arguments.
         """
         self.name = name
         self.rect = pg.Rect(rect)
@@ -177,6 +174,14 @@ class Button(_Widget):
         self.set_kwargs(kwargs)
 
     def set_kwargs(self, kwargs):
+        """
+        The following can be passed  as kwargs in the __init__ and give the
+        button a measure of customizability.  The command argument is the
+        function that is called when the button is clicked; unclick is a
+        boolean indicating whether or not the self.clicked attribute will be
+        set back to False on mouse up.  The button can also be bound to
+        keys with the key_bindings argument.
+        """
         accept = {"command" : None,
                   "clicked" : False,
                   "unclick" : False,
@@ -189,8 +194,7 @@ class Button(_Widget):
 
     def get_event(self, event, offset=(0,0)):
         """
-        Check if the button has been clicked, and if so, set self.clicked to
-        true and call self.function.
+        Check if the button has been clicked, or bound keys pressed/released.
         """
         if self.active:
             if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
@@ -199,17 +203,38 @@ class Button(_Widget):
                     self.press()
             elif event.type == pg.MOUSEBUTTONUP and event.button == 1:
                 self.unpress()
-            elif event.type == pg.KEYDOWN and event.key in self.key_bindings:
-                self.press()
-            elif event.type == pg.KEYUP and event.key in self.key_bindings:
+            elif event.type == pg.KEYDOWN:
+                self.press_bound_key(event)
+            elif event.type == pg.KEYUP:
+                self.release_bound_key(event)
+
+    def press_bound_key(self, event):
+        """Press button if bound key (or key+mod) combination is pressed."""
+        if event.key in self.key_bindings:
+            self.press()
+        elif (event.key, pg.key.get_mods()) in self.key_bindings:
+            self.press()
+
+    def release_bound_key(self, event):
+        """
+        If key is released call unpress.  In the case of bindings that have
+        mod keys, ignore the state of the mod key.
+        """
+        try:
+            if event.key in [key[0] for key in self.key_bindings]:
+                self.unpress()
+        except TypeError:
+            if event.key in self.key_bindings:
                 self.unpress()
 
     def press(self):
+        """Press the button and call its command callback if it exists."""
         self.clicked = True
         if self.command:
             self.command(self.name)
 
     def unpress(self):
+        """Set button to unclicked state."""
         if self.unclick:
             self.clicked = False
 
@@ -237,7 +262,7 @@ class Button(_Widget):
 
 class CheckBoxArray(_Widget):
     """A class to hold an array of CheckBox instances."""
-    def __init__(self, content, initial, start, space):
+    def __init__(self, content, initial, start, space, key_bindings=None):
         """
         The argument content is a list of strings used to refer to each box.
         The initial argument indicates the starting state of each CheckBox;
@@ -245,12 +270,16 @@ class CheckBoxArray(_Widget):
         checked; or a list of bools corresponding to the state of each member
         of content. The arguments start and space are 2-tuples of the form
         (x,y) and indicate the starting location of the first box and the space
-        between each box, respectively.
+        between each box, respectively.  An optional dictionary of key to
+        callback bindings can be passed with the key_bindings argument.
         """
         self.command = None
         self.state = self.make_state(content, initial)
         self.checkboxes = self.create_checkboxes(content, start, space)
-        self.key_bindings = {} #Key to callback function bindings.
+        self.key_bindings = {}
+        if key_bindings:
+            for binding in key_bindings.items():
+                self.bind_key(*binding)
 
     def make_state(self, content, initial):
         """
@@ -261,6 +290,10 @@ class CheckBoxArray(_Widget):
             return {name:initial for name in content}
         else:
             return {name:state for (name,state) in zip(content, initial)}
+
+    def bind_key(self, key, command):
+        """Bind a key to a function and place it in the key_binding dict."""
+        self.key_bindings[key] = command
 
     def create_checkboxes(self, content, start, space):
         """
@@ -277,7 +310,7 @@ class CheckBoxArray(_Widget):
 
     def get_result(self, name):
         """
-        This function is passed to each CheckBox and called when they are
+        This function is passed to each checkbox and called when they are
         clicked.
         """
         self.state[name] = not self.state[name]
@@ -285,14 +318,14 @@ class CheckBoxArray(_Widget):
             self.command(self.state)
 
     def get_event(self, event):
-        """Pass events down to each CheckBox."""
+        """Pass events down to each checkbox."""
         for box in self.checkboxes:
             box.get_event(event)
         if event.type == pg.KEYDOWN and event.key in self.key_bindings:
             self.key_bindings[event.key](self)
 
     def draw(self, surface):
-        """Update and draw each CheckBox to the target surface."""
+        """Update and draw each checjbox to the target surface."""
         for box in self.checkboxes:
             box.draw(surface)
 
@@ -303,9 +336,9 @@ class CheckBox(_Widget):
         """
         The argument name is a string used to refer to the box; rect is
         a pygame.Rect for the area of the box (inclusive of the border);
-        function is the function that should be called when the box is
-        checked or unchecked; selected is a boolean indicating whether or not
-        the button is currently checked.
+        checked is a boolean indicating whether or not the button is currently
+        checked; command is the function that is called when the box is
+        checked or unchecked.
         """
         self.name = name
         self.rect = pg.Rect(rect)
@@ -315,15 +348,13 @@ class CheckBox(_Widget):
         self.checked = checked
 
     def get_event(self, event):
-        """
-        Check if the box has been clicked, and if so, flip self.clicked and
-        call self.function.
-        """
+        """Check if the box has been clicked, and if so, toggle it."""
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
                 self.toggle()
 
     def toggle(self):
+        """Flip self.checked and call self.command."""
         self.checked = not self.checked
         if self.command:
             self.command(self.name)

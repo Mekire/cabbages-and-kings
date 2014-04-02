@@ -27,10 +27,10 @@ LAYER_SELECT_SETTINGS = {"content" : LAYERS,
                          "size" : (80,20),
                          "selected" : "BG Colors"}
 
-CHECK_ARRAY_SETTTINGS = {"content" : LAYERS,
-                         "initial" : True,
-                         "start" : (0, LAYER_SELECT_SETTINGS["start"][1]),
-                         "space" : (0,20)}
+CHECK_ARRAY_SETTINGS = {"content" : LAYERS,
+                        "initial" : True,
+                        "start" : (0, LAYER_SELECT_SETTINGS["start"][1]),
+                        "space" : (0,20)}
 
 NAV_LEFT = {"name" : "<<",
             "rect" : (10, LAYER_SELECT_SETTINGS["start"][1]-55, 40, 20),
@@ -47,12 +47,14 @@ NAV_RIGHT = {"name" : ">>",
 SAVE_BUTTON = {"name": "Save",
                "rect" : (15,265,70,20),
                "selected" : False,
-               "unclick" : True}
+               "unclick" : True,
+               "key_bindings" : [(pg.K_s, pg.KMOD_LCTRL)]}
 
 LOAD_BUTTON = {"name": "Load",
                "rect" : (15,305,70,20),
                "selected" : False,
-               "unclick" : True}
+               "unclick" : True,
+               "key_bindings" : [(pg.K_o, pg.KMOD_LCTRL)]}
 
 #Used for pallet navigation buttons.
 NAVIGATION_DIRECTION = {">>" : 1, "<<" : -1}
@@ -70,8 +72,8 @@ class ToolBar(object):
         """Create required GUI widgets."""
         self.mode_select = Selector(**MODE_SELECT_SETTINGS)
         self.layer_select = Selector(**LAYER_SELECT_SETTINGS)
-        self.check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTTINGS)
-        self.check_boxes.key_bindings[pg.K_v] = self.toggle_layer_visibility
+        self.check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTINGS)
+        self.check_boxes.bind_key(pg.K_v, self.toggle_layer_visibility)
         self.navs = [Button(**NAV_LEFT), Button(**NAV_RIGHT)]
         self.save_button = Button(**SAVE_BUTTON)
         self.load_button = Button(**LOAD_BUTTON)

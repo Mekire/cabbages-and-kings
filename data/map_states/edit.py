@@ -10,14 +10,11 @@ from ..components import toolbar, panel, modes
 
 BACKGROUND_COLOR = (30, 40, 50)
 
-
-
 LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Solid/Fore", "Foreground", "Environment",
           "Enemies", "Items")
 
 STANDARD_LAYERS = LAYERS[1:6]
-
 
 BASIC_PANELS = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
                 "forest", "misc", "tatami")
@@ -68,6 +65,14 @@ class Edit(state_machine._State):
         self.toolbar.navs[1].bind(self.change_panel)
         self.toolbar.layer_select.bind(self.map_state.change_layer)
         self.toolbar.mode_select.bind(self.map_state.change_mode)
+        self.toolbar.save_button.bind(self.save_map)
+        self.toolbar.load_button.bind(self.load_map)
+
+    def save_map(self, name):
+        print("saving") ###
+
+    def load_map(self, name):
+        print("loading") ###
 
     def change_panel(self, name):
         """Callback function passed to the toolbar nav buttons."""
@@ -82,6 +87,11 @@ class Edit(state_machine._State):
         self.toolbar.update(keys, now)
         self.reset_cursor()
 
+    def get_event(self,event):
+        """Get events from Control and pass them on to components."""
+        self.mode.get_event(event)
+        self.toolbar.get_event(event)
+
     def draw(self, surface, interpolate):
         """Draw the entire map, panel, and toolbar to the surface."""
         visibility = self.toolbar.check_boxes.state
@@ -94,11 +104,6 @@ class Edit(state_machine._State):
         self.toolbar.draw(surface)
         if self.map_state.selected:
             surface.blit(self.map_state.select_image, (25,185))
-
-    def get_event(self,event):
-        """Get events from Control and pass them on to components."""
-        self.mode.get_event(event)
-        self.toolbar.get_event(event)
 
     def draw_color_layer(self, surface, visible):
         """The BG_Colors layer requires a unique draw function."""
