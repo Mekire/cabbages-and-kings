@@ -78,7 +78,7 @@ class Edit(state_machine._State):
         wx_app = wx.App(False)
         ask = wx.FileDialog(None, "Save As",directory, "",
                             "Map files (*.map)|*.map",
-                            wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+                            wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT|wx.STAY_ON_TOP)
         ask.ShowModal()
         path = ask.GetPath()
         if path:
@@ -97,15 +97,13 @@ class Edit(state_machine._State):
         wx_app = wx.App(False)
         ask = wx.FileDialog(None, "Open", directory, "",
                            "Map files (*.map)|*.map",
-                           wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+                           wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.STAY_ON_TOP)
         ask.ShowModal()
         path = ask.GetPath()
         if path:
             try:
                 with open(path) as myfile:
-                    data = yaml.load(myfile)
-                    for k,v in data.items():
-                        self.map_state.map_dict[k] = v
+                    self.map_state.map_dict.update(yaml.load(myfile))
                     print("Map loaded.\n")
             except IOError:
                 print("File not found.")
