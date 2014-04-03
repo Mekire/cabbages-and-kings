@@ -103,7 +103,7 @@ class Level(object):
         enemies = (self.enemies, self.main_sprites, self.all_group)
         enemy_sprites.Skeleton((400,500), 0.7, *enemies)
         enemy_sprites.Zombie((50,300), 0.85, *enemies)
-        enemy_sprites.Skeleton((850,300), 1, *enemies)
+        enemy_sprites.Skeleton((850,300), 3, *enemies)
 
     def make_shadows(self):
         """Create shadows for the player and all enemies."""
@@ -140,7 +140,6 @@ class Level(object):
             if target != "fill":
                 color = self.map_dict["BG Colors"][target][1]
                 background.fill(color, pg.Rect(target, prepare.CELL_SIZE))
-        self.map_dict.pop("BG Colors")
         return background
 
     def make_all_layer_groups(self):

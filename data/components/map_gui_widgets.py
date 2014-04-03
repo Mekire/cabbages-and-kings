@@ -38,7 +38,7 @@ class TextBox(_Widget):
                     "font_color" : pg.Color("black"),
                     "outline_color" : pg.Color("black"),
                     "outline_width" : 2,
-                    "active_color" : pg.Color("blue"),
+                    "active_color" : (255,33,33),
                     "font" : pg.font.Font(None, self.rect.height+4),
                     "clear_on_enter" : False,
                     "inactive_on_enter" : True}
@@ -58,8 +58,6 @@ class TextBox(_Widget):
                     self.buffer.pop()
             elif event.unicode in ACCEPTED:
                 self.buffer.append(event.unicode)
-        elif event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
-            self.active = self.rect.collidepoint(event.pos)
 
     def execute(self):
         if self.command:

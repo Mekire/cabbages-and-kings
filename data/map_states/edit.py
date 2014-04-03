@@ -22,7 +22,8 @@ LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Solid/Fore", "Foreground", "Environment",
           "Enemies", "Items")
 
-STANDARD_LAYERS = LAYERS[1:6]
+STANDARDS = LAYERS[1:6]
+OTHERS = ("Enemies",)
 
 
 class MapState(object):
@@ -62,12 +63,14 @@ class Edit(state_machine._State):
         self.map_state = MapState()
         self.toolbar = toolbar.ToolBar(self.map_state)
         self.set_toolbar_bindings()
-        self.mode = modes.Standard(self.map_state)
+        self.mode_dict = {"Standard" : modes.Standard(self.map_state),
+                          "Enemies" : modes.Enemies(self.map_state)}
+        self.mode = self.mode_dict[self.map_state.mode]
 
     def set_toolbar_bindings(self):
         """Bind necessary callbacks to appropriate toolbar widgets."""
-        self.toolbar.navs[0].bind(self.change_panel)
-        self.toolbar.navs[1].bind(self.change_panel)
+        for nav in self.toolbar.navs:
+            nav.bind(self.change_panel)
         self.toolbar.layer_select.bind(self.map_state.change_layer)
         self.toolbar.mode_select.bind(self.map_state.change_mode)
         self.toolbar.save_button.bind(self.save_map)
@@ -96,8 +99,8 @@ class Edit(state_machine._State):
         directory = os.path.join(".", "resources", "map_data")
         wx_app = wx.App(False)
         ask = wx.FileDialog(None, "Open", directory, "",
-                           "Map files (*.map)|*.map",
-                           wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.STAY_ON_TOP)
+                            "Map files (*.map)|*.map",
+                            wx.FD_OPEN|wx.FD_FILE_MUST_EXIST|wx.STAY_ON_TOP)
         ask.ShowModal()
         path = ask.GetPath()
         if path:
@@ -120,22 +123,29 @@ class Edit(state_machine._State):
     def update(self, keys, now):
         """Update current mode and toolbar."""
         self.now = now
+        try:
+            self.mode = self.mode_dict[self.map_state.mode]
+        except KeyError:
+            self.map_state.change_mode("Standard")
+            self.mode = self.mode_dict[self.map_state.mode]
         self.mode.update(keys, now)
-        self.toolbar.update(keys, now)
-        self.reset_cursor()
+        if not self.mode.waiting:
+            self.toolbar.update(keys, now)
+            self.reset_cursor()
 
     def get_event(self,event):
         """Get events from Control and pass them on to components."""
         self.mode.get_event(event)
-        self.toolbar.get_event(event)
+        if not self.mode.waiting:
+            self.toolbar.get_event(event)
 
     def draw(self, surface, interpolate):
         """Draw the entire map, panel, and toolbar to the surface."""
         visibility = self.toolbar.check_boxes.state
         surface.fill(BACKGROUND_COLOR)
         self.draw_color_layer(surface, visibility["BG Colors"])
-        for layer in STANDARD_LAYERS:
-            if visibility[layer]:
+        for layer in LAYERS:
+            if (layer in STANDARDS and visibility[layer]) or layer in OTHERS:
                 self.draw_normal_layer(surface, layer)
         self.mode.draw(surface, interpolate)
         self.toolbar.draw(surface)
