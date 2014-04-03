@@ -114,7 +114,7 @@ class Enemies(_Mode):
         sheet, source = self.map_state.selected
         if self.waiting.done != None:
             try:
-                speed = int(self.waiting.done)
+                speed = float(self.waiting.done)
                 if speed < 0:
                     raise ValueError
                 selected = sheet, source, speed
