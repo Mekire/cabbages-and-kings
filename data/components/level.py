@@ -105,10 +105,6 @@ class Level(object):
             sheet, source, speed = self.map_dict["Enemies"][target]
             enemy_sprites.ENEMY_DICT[source](target, speed, *groups)
 
-##        enemy_sprites.Skeleton((400,500), 0.7, *enemies)
-##        enemy_sprites.Zombie((50,300), 0.85, *enemies)
-##        enemy_sprites.Skeleton((850,300), 3, *enemies)
-
     def make_shadows(self):
         """Create shadows for the player and all enemies."""
         shadows = [enemy.shadow for enemy in self.enemies]+[self.player.shadow]
