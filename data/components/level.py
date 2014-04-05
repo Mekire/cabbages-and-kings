@@ -100,10 +100,14 @@ class Level(object):
 
     def spawn(self):
         """Create enemies, adding them to the required groups."""
-        enemies = (self.enemies, self.main_sprites, self.all_group)
-        enemy_sprites.Skeleton((400,500), 0.7, *enemies)
-        enemy_sprites.Zombie((50,300), 0.85, *enemies)
-        enemy_sprites.Skeleton((850,300), 3, *enemies)
+        groups = (self.enemies, self.main_sprites, self.all_group)
+        for target in self.map_dict["Enemies"]:
+            sheet, source, speed = self.map_dict["Enemies"][target]
+            enemy_sprites.ENEMY_DICT[source](target, speed, *groups)
+
+##        enemy_sprites.Skeleton((400,500), 0.7, *enemies)
+##        enemy_sprites.Zombie((50,300), 0.85, *enemies)
+##        enemy_sprites.Skeleton((850,300), 3, *enemies)
 
     def make_shadows(self):
         """Create shadows for the player and all enemies."""

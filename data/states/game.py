@@ -34,7 +34,7 @@ class Game(state_machine._State):
         state_machine._State.startup(self, now, persistant)
         if self.reset_map:
             self.player = self.persist["player"]
-            self.level = level.Level(self.player, "central.map") ###
+            self.level = level.Level(self.player, "desert.map") ###
             self.sidebar = sidebar.SideBar()
             self.iris = None
             self.play_again = None

@@ -5,6 +5,8 @@ from . import shadow, item_sprites
 from .. import prepare, tools
 
 
+KNOCK_SPEED = 12.5  #Pixels per frame.
+
 ENEMY_SHEET = prepare.GFX["enemies"]["enemysheet"]
 
 ENEMY_COORDS = {
@@ -15,9 +17,6 @@ ENEMY_COORDS = {
     "skeleton" : [(0,1), (1,1), (2,1), (3,1), (4,1), (5,1), (7,1), (7,0),
                   (8,1), (8,0), (9,1), (9,0)]
     }
-
-
-KNOCK_SPEED = 12.5  #Pixels per frame.
 
 
 class BasicAI(object):
@@ -362,3 +361,26 @@ class Skeleton(_Enemy):
         self.health = 6
         self.attack = 6
         self.drops = ["heart", None]
+
+
+ENEMY_DICT = {(0, 0) : Cabbage,
+              (50, 0) : None, #Spider,
+              (100, 0) : None, #Frog,
+              (150, 0) : None, #Mushroom,
+              (200, 0) : None, #Snail,
+              (250, 0) : None, #Crab,
+              (300, 0) : Skeleton,
+              (350, 0) : Zombie,
+              (0, 50) : Snake,
+              (50, 50) : None, #Scorpion,
+              (100, 50) : None, #WhirlTurtle,
+              (150, 50) : None, #AoOni,
+              (200, 50) : None, #AkaOni,
+              (250, 50) : None, #Lantern,
+              (300, 50) : None, #Daruma,
+              (350, 50) : None, #FireBall,
+              (0, 100) : None, #Knight,
+              (50, 100) : None, #EvilElf,
+              (100, 100) : None, #Tank,
+              (150, 100) : None} #Turret}
+
