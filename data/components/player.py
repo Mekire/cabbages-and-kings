@@ -170,7 +170,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         ### Get from player data later. ###
         self.world = "overworld"
         self.save_map = "central.map"
-        self.start_coord = (6, 3)
+        self.start_coord = (6, 1)
 ##        self.inventory = equips.make_equips(player_data["gear"])
         self.inventory = equips.make_all_equips() ###
         self.inventory["money"] = player_data["money"]
@@ -239,11 +239,11 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
             if direction in self.direction_stack:
                 self.direction_stack.remove(direction)
 
-    def collide_with_solid(self, cancel_knock=False):
+    def collide_with_solid(self, cancel_knock=True):
         """Called from level when the player walks into a solid tile."""
         self.exact_position = self.old_position
         self.rect.topleft = self.exact_position
-        if not cancel_knock:
+        if cancel_knock:
             self.knock_state = False
 
     def got_hit(self, enemy):

@@ -13,11 +13,6 @@ else:
     import yaml3 as yaml
 
 
-#Location on animsheet : number of frames in animation.
-ANIMATED_TILES = {(0, 0) : 2,
-                  (0, 50) : 2}
-
-
 Z_ORDER = {"BG Tiles" : -4,
            "Water" : -3,
            "Shadows" : -2,
@@ -35,7 +30,7 @@ class CollisionRect(pg.sprite.Sprite):
 
 class Tile(pg.sprite.Sprite):
     """A basic tile."""
-    def __init__(self, sheet, source, target, mask=False):
+    def __init__(self, sheet, source, target, mask):
         """If the player can collide with it pass mask=True."""
         pg.sprite.Sprite.__init__(self)
         self.rect = pg.Rect(target, prepare.CELL_SIZE)
@@ -48,19 +43,19 @@ class Tile(pg.sprite.Sprite):
         player.collide_with_solid()
 
 
-class Animated_Tile(Tile):
+class AnimatedTile(Tile):
     """
     An animated tile. Animated tiles must be on the "animsheet" map sheet.
     """
-    def __init__(self, source, target, frames, mask=False, fps=4.0):
+    def __init__(self, sheet, source, target, mask, fps=4, frames=2):
         """
         The frames argument is the number of frames in the animation, and
         fps is the desired framerate of the animation.
         Currently only used for water.
         """
         Tile.__init__(self, "animsheet", source, target, mask)
-        frames = tools.strip_from_sheet(self.sheet, source,
-                                        prepare.CELL_SIZE, frames)
+        size = prepare.CELL_SIZE
+        frames = tools.strip_from_sheet(self.sheet, source, size, frames)
         self.anim = tools.Anim(frames, fps)
 
     def update(self, now, *args):
@@ -68,14 +63,41 @@ class Animated_Tile(Tile):
         self.image = self.anim.get_next_frame(now)
 
 
-class Hazard_Tile(Tile):
-    def __init__(self, sheet, source, target, damage=1):
+class HazardTile(Tile):
+    """Basic hazard tiles (cacti, spikes, etc.)"""
+    def __init__(self, sheet, source, target, mask, damage=1):
          Tile.__init__(self, sheet, source, target, True)
          self.attack = damage
 
     def collide_with_player(self, player):
+        """
+        Hit the player and reset the player's position to ensure that it
+        is not possible to glitch through a hazard.
+        """
         player.got_hit(self)
-        player.collide_with_solid(True)
+        player.collide_with_solid(False)
+
+
+class AnimatedHazard(AnimatedTile):
+    """Animated hazards including lava."""
+    def __init__(self, sheet, source, target, mask, fps=4, frames=2, damage=1):
+        AnimatedTile.__init__(self, sheet, source, target, mask, fps, frames)
+        self.attack = damage
+
+    def collide_with_player(self, player):
+        player.got_hit(self)
+        player.collide_with_solid(False)
+
+
+#All map tiles that need to have specific behavior should be added here.
+#Keys are (sheet, source_coordinates); Values are the type of tile and
+#keyword arguments for initializing it.
+SPECIAL_TILES = {("animsheet", (0, 0)) : (AnimatedTile, {"frames" : 2}),
+                 ("animsheet", (0, 50)) : (AnimatedHazard, {"frames" : 2,
+                                                            "damage" : 5}),
+                 ("base", (350, 400)) : (HazardTile, {"damage" : 1}),
+                 ("base", (250, 450)) : (HazardTile, {"damage" : 1}),
+                 ("base", (300, 450)) : (HazardTile, {"damage" : 1})}
 
 
 class Level(object):
@@ -88,15 +110,10 @@ class Level(object):
         self.items = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
         self.all_group, self.solids = self.make_all_layer_groups()
-        self.add_obstacle() ##TEMPORARY TEST
         self.solid_border = pg.sprite.Group(self.solids, self.make_borders())
         self.all_group.add(self.player)
         self.spawn()
         self.make_shadows()
-
-    def add_obstacle(self): ########## TEMPORARY OBSTACLE TEST
-        obstacle = Hazard_Tile("base", (350, 400), (150,300))
-        obstacle.add(self.all_group, self.solids)
 
     def spawn(self):
         """Create enemies, adding them to the required groups."""
@@ -156,15 +173,17 @@ class Level(object):
 
     def make_tile_group(self, layer, mask=False):
         """
-        Create a single sprite group for the selected layer.  Pass
-        mask=True to create collision masks for the tiles.
+        Create a single sprite group for the selected layer.
+        Pass mask=True to create collision masks for the tiles.
+        If the sheet and source coordinates are found in the SPECIAL_TILES
+        dict, a tile of that type will be made instead of the default.
         """
         group = pg.sprite.Group()
         for target in self.map_dict[layer]:
             sheet, source = self.map_dict[layer][target]
-            if sheet == "animsheet":
-                frames = ANIMATED_TILES[source]
-                group.add(Animated_Tile(source, target, frames, mask))
+            if (sheet, source) in SPECIAL_TILES:
+                TileType, kwargs = SPECIAL_TILES[(sheet,source)]
+                group.add(TileType(sheet, source, target, mask, **kwargs))
             else:
                 group.add(Tile(sheet, source, target, mask))
         return group
