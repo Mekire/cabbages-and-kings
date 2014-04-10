@@ -135,6 +135,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         Most member variables are initialized within set_player_data and reset.
         """
         pg.sprite.Sprite.__init__(self)
+        self.rect = pg.Rect((0,0), prepare.CELL_SIZE)
         self.frame_speed = [0, 0]
         self.controls = prepare.DEFAULT_CONTROLS
         self.set_player_data(data)
@@ -154,15 +155,23 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.direction_stack = [] #Held keys in the order they were pressed.
         pos = (self.start_coord[0]*prepare.CELL_SIZE[0],
                self.start_coord[1]*prepare.CELL_SIZE[1])
-        self.rect = pg.Rect(pos, prepare.CELL_SIZE)
-        self.exact_position = list(self.rect.topleft)
-        self.old_position = self.exact_position[:]
+        self.reset_position(pos)
         self.action_state = "normal"
         self.hit_state = False  #When true hit_state is a tools.Timer instance.
         self.knock_state = False #(direction, tools.Timer()) tuple when true.
         self.death_anim.reset()
         self.shadow = shadow.Shadow((40,20), self.rect)
         self.redraw = True
+
+    def reset_position(self, value, attribute="topleft"):
+        """
+        Set the player's location variables to a new point.  The attribute
+        argument can be specified to assign to a chosen attribute of the
+        player's rect.
+        """
+        setattr(self.rect, attribute, value)
+        self.exact_position = list(self.rect.topleft)
+        self.old_position = self.exact_position[:]
 
     def set_player_data(self, player_data):
         """Set required stats based on player data."""

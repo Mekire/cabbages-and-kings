@@ -31,6 +31,11 @@ class Game(state_machine._State):
         self.reset_map = True
 
     def startup(self, now, persistant):
+        """
+        Call the parent class' startup method.
+        If reset_map has been set (after player death etc.) recreate the world
+        map and reset relevant variables.
+        """
         state_machine._State.startup(self, now, persistant)
         if self.reset_map:
             self.player = self.persist["player"]
@@ -66,6 +71,11 @@ class Game(state_machine._State):
             self.play_again.get_event(event)
 
     def change_to_camp(self):
+        """
+        Change the state to the camp screen.  The player's direction stack,
+        attack, and action_state are reset to avoid unnecessary results when
+        returning to the game state.
+        """
         self.done = True
         self.next = "CAMP"
         self.player.direction_stack = []

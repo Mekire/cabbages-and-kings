@@ -40,6 +40,10 @@ class Tile(pg.sprite.Sprite):
             self.mask = pg.mask.from_surface(self.image)
 
     def collide_with_player(self, player):
+        """
+        Any sprite that will need to find collision with the player must
+        have this method.
+        """
         player.collide_with_solid()
 
 

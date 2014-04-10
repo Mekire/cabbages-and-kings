@@ -283,6 +283,7 @@ class Cabbage(_Enemy):
         self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
                       "hit" : tools.Anim(self.frames[2:4], 20),
                       "die" : tools.Anim(self.frames[4:], 5, 1)}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
         self.health = 3
         self.attack = 4
         self.drops = ["heart"]
@@ -307,6 +308,7 @@ class Zombie(_Enemy):
         self.anims = {"walk" : walk,
                       "hit" : hit,
                       "die" : tools.Anim(die_frames, 5, 1)}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
         self.health = 10
         self.attack = 8
         self.drops = ["key"]
@@ -332,6 +334,7 @@ class Snake(_Enemy):
         self.anims = {"walk" : walk,
                       "hit" : hit,
                       "die" : die}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
         self.health = 6
         self.attack = 6
         self.drops = ["diamond", "potion"]
@@ -358,6 +361,7 @@ class Skeleton(_Enemy):
         self.anims = {"walk" : walk,
                       "hit" : hit,
                       "die" : tools.Anim(die_frames, 5, 1)}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
         self.health = 6
         self.attack = 6
         self.drops = ["heart", None]
