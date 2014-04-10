@@ -35,6 +35,7 @@ class WorldMap(object):
         self.level = self.update_history(self.world_dict[start_coords])
         self.current_coords = list(start_coords)
         self.offset = [0, 0]
+        self.drawn_this_frame = False #Disallow multiple updates.
 
     def load(self, world_name):
         """Load world given a world_name."""
@@ -42,7 +43,7 @@ class WorldMap(object):
                 (5,4) : "desert_north.map",
                 (4,4) : "desert_northwest.map",
                 (5,6) : "desert.map",
-                (4,5) : "desert.map",
+                (4,5) : "desert_west.map",
                 (6,5) : "desert.map"}
 ##        path = os.path.join(".", "resources", "map_data", world_name)
 ##        with open(path) as myfile:
@@ -118,12 +119,14 @@ class WorldMap(object):
         """
         if not self.screen_copy:
             self.prepare_scroll()
-        for i in (0,1):
-            self.offset[i] -= SCROLL_SPEED*self.scroll_vector[i]
-            if abs(self.offset[i]) >= prepare.PLAY_RECT.size[i]:
-                self.scrolling = False
-                self.screen_copy = None
-                self.offset = [0, 0]
+        elif self.drawn_this_frame:
+            for i in (0,1):
+                self.offset[i] -= SCROLL_SPEED*self.scroll_vector[i]
+                if abs(self.offset[i]) >= prepare.PLAY_RECT.size[i]:
+                    self.scrolling = False
+                    self.screen_copy = None
+                    self.offset = [0, 0]
+            self.drawn_this_frame = False
 
     def draw_scroll(self, surface, interpolate):
         """
@@ -131,11 +134,6 @@ class WorldMap(object):
         new map in their scrolled positions.
         """
         offset = self.offset[:]
-        for i in (0,1):
-            offset[i] -= SCROLL_SPEED*self.scroll_vector[i]*interpolate
-            if abs(offset[i]) >= prepare.PLAY_RECT.size[i]:
-                offset = self.offset
-                break
         surface.blit(self.screen_copy, offset)
         pos = [0,0]
         pos[0] = offset[0]+prepare.PLAY_RECT.size[0]*self.scroll_vector[0]
@@ -151,3 +149,4 @@ class WorldMap(object):
             self.draw_scroll(surface, interpolate)
         elif not self.scrolling:
             self.level.draw(surface, interpolate)
+        self.drawn_this_frame = True

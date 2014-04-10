@@ -26,8 +26,7 @@ class Game(state_machine._State):
     """Core state for the actual gameplay."""
     def __init__(self):
         state_machine._State.__init__(self)
-        self.map_scrolling = False
-        self.level = None
+        self.world = None
         self.reset_map = True
 
     def startup(self, now, persistant):
@@ -60,7 +59,7 @@ class Game(state_machine._State):
         if self.player.action_state != "dead":
             if event.type == pg.KEYDOWN:
                 self.player.add_direction(event.key)
-                if not self.map_scrolling:
+                if not self.world.scrolling:
                     if event.key == pg.K_SPACE:
                         self.player.attack()
                     elif event.key == pg.K_s:

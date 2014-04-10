@@ -212,6 +212,7 @@ class AttackSprite(pg.sprite.Sprite):
         self.player = None
         self.attacking = False
         self.delay_timer = tools.Timer(300)
+        self.frame_speed = [0, 0]
 
     def start_attack(self, player):
         """

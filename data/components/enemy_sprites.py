@@ -10,13 +10,35 @@ KNOCK_SPEED = 12.5  #Pixels per frame.
 ENEMY_SHEET = prepare.GFX["enemies"]["enemysheet"]
 
 ENEMY_COORDS = {
-    "cabbage" : [(0,0), (1,0), (2,0), (3,0), (4,0), (5,0), (6,0)],
-    "snake" : [(0,5), (1,5), (2,5), (3,5), (4,5), (5,5), (6,5), (7,5), (8,5)],
-    "zombie" : [(0,3), (1,3), (6,4), (7,4), (8,2), (9,2), (2,3), (3,3), (8,4),
-                (9,4), (8,6), (9,6), (4,3), (5,3), (6,3), (7,3), (8,3), (9,3)],
-    "skeleton" : [(0,1), (1,1), (2,1), (3,1), (4,1), (5,1), (7,1), (7,0),
-                  (8,1), (8,0), (9,1), (9,0)]
-    }
+    "cabbage" : [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0)],
+    "spider" : [(0,2),(1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2)],
+    "turtle" : [(0,4),(1,4),(2,4),(3,4),(4,4),(5,4)],
+    "snake" : [(0,5),(1,5),(2,5),(3,5),(4,5),(5,5),(6,5),(7,5),(8,5)],
+    "scorpion" : [(0,6),(1,6),(2,6),(3,6),(4,6),(5,6),(6,6),(7,6)],
+    "skeleton" : [(0,1),(1,1),(2,1),(3,1),(4,1),(5,1),
+                  (7,1),(7,0),(8,1),(8,0),(9,1),(9,0)],
+    "tank" : [(0,7),(1,7),(2,7),(3,7),(4,7),(5,7),(6,7),(7,7),
+              (4,8),(5,8),(6,8),(7,8),(8,7),(9,7),(8,8)],
+    "frog" : [(0,11),(1,11),(0,12),(1,12),(2,12),(3,12),
+              (2,11),(3,11),(4,11),(5,11),(6,11),(7,11),
+              (8,11),(9,11),(9,12),(4,12),(5,12),(6,12),(7,12)],
+    "crab" : [(0,10),(1,10),(2,10),(3,10),(4,10),(5,10),(6,10),(7,10),(8,10)],
+    "zombie" : [(0,3),(1,3),(6,4),(7,4),(8,2),(9,2),(2,3),(3,3),(8,4),(9,4),
+                (8,6),(9,6),(4,3),(5,3),(6,3),(7,3),(8,3),(9,3)],
+    "snail" : [(0,9),(1,9),(2,9),(3,9),(4,9),(5,9),(6,9),(7,9),(8,9)],
+    "mushroom" : [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),
+                  (6,0),(7,0),(8,0),(9,0),(9,1)],
+    "blue_oni" : [(0,1),(1,1),(4,1),(7,1),(8,1),(2,1),(3,1),(5,1),(0,2),
+                  (1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),(8,2)],
+    "red_oni" : [(0,3),(1,3),(4,3),(7,3),(8,3),(2,3),(3,3),(5,3),(0,4),
+                 (1,4),(2,4),(3,4),(4,4),(5,4),(6,2),(7,2),(8,2)],
+    "daruma" : [(0,5),(1,5),(2,5),(3,5),(4,5),(5,5),(6,5),(7,5),(8,5),(9,5),
+                (0,6),(1,6),(2,6),(3,6),(4,6),(5,6),(6,4),(7,4),(8,4),(9,4)],
+    "lantern" : [(0,7),(1,7),(6,6),(7,6),(2,7),(3,7),(4,7),
+                 (5,7),(6,7),(7,7),(8,7),(9,7),(9,6)],
+    "evil_elf" : [(0,8),(1,8),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8)],
+    "knight" : [(0,11),(1,11),(2,11),(3,11),(4,11),(5,11),
+                (6,11),(7,11),(0,12),(1,12),(2,12),(3,12)]}
 
 
 class BasicAI(object):
@@ -289,6 +311,34 @@ class Cabbage(_Enemy):
         self.drops = ["heart"]
 
 
+class Spider(_Enemy):
+    """Spider like monster; shoots webs (not implemented) (1 direction)."""
+    def __init__(self, *args):
+        _Enemy.__init__(self, "spider", ENEMY_SHEET, *args)
+        death_frames = self.frames[4:6]+self.frames[6:]*2
+        self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
+                      "hit" : tools.Anim(self.frames[2:4], 20),
+                      "die" : tools.Anim(death_frames, 5, 1)}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        self.health = 6
+        self.attack = 6
+        self.drops = ["diamond", None]
+
+
+class Turtle(_Enemy):
+    """Spider like monster; shoots webs (not implemented) (1 direction)."""
+    def __init__(self, *args):
+        _Enemy.__init__(self, "turtle", ENEMY_SHEET, *args)
+        death_frames = self.frames[2:5]+[self.frames[5]]*2
+        self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
+                      "hit" : tools.Anim(self.frames[2:4], 20),
+                      "die" : tools.Anim(death_frames, 5, 1)}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        self.health = 12
+        self.attack = 6
+        self.drops = [None]
+
+
 class Zombie(_Enemy):
     """The typical stock zombie. (4 directions)"""
     def __init__(self, *args):
@@ -320,7 +370,6 @@ class Snake(_Enemy):
         _Enemy.__init__(self, "snake", ENEMY_SHEET, *args)
         self.anim_directions = ["left", "right"]
         self.anim_direction = random.choice(self.anim_directions)
-        self.direction = self.anim_direction
         self.ai = LinearAI(self)
         walk = {"left" : tools.Anim(self.frames[:2], 7),
                 "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
@@ -368,7 +417,7 @@ class Skeleton(_Enemy):
 
 
 ENEMY_DICT = {(0, 0) : Cabbage,
-              (50, 0) : None, #Spider,
+              (50, 0) : Spider,
               (100, 0) : None, #Frog,
               (150, 0) : None, #Mushroom,
               (200, 0) : None, #Snail,
@@ -377,7 +426,7 @@ ENEMY_DICT = {(0, 0) : Cabbage,
               (350, 0) : Zombie,
               (0, 50) : Snake,
               (50, 50) : None, #Scorpion,
-              (100, 50) : None, #WhirlTurtle,
+              (100, 50) : Turtle,
               (150, 50) : None, #AoOni,
               (200, 50) : None, #AkaOni,
               (250, 50) : None, #Lantern,

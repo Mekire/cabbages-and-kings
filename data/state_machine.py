@@ -95,6 +95,6 @@ class _State(object):
         self.done = False
         return self.persist
 
-    def update(self, surface, keys, now):
+    def update(self, keys, now):
         """Update function for state.  Must be overloaded in children."""
         pass
