@@ -6,7 +6,7 @@ import math
 import pygame as pg
 
 from .. import prepare, state_machine, menu_helpers
-from ..components import player, level, sidebar, enemy_sprites
+from ..components import player, world, sidebar, enemy_sprites
 
 
 SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32) ###
@@ -34,7 +34,7 @@ class Game(state_machine._State):
         state_machine._State.startup(self, now, persistant)
         if self.reset_map:
             self.player = self.persist["player"]
-            self.level = level.Level(self.player, "desert.map") ###
+            self.world = world.WorldMap(self.player)
             self.sidebar = sidebar.SideBar()
             self.iris = None
             self.play_again = None
@@ -43,7 +43,7 @@ class Game(state_machine._State):
     def cleanup(self):
         """Store background color and sidebar for use in camp menu."""
         self.done = False
-        self.persist["bg_color"] = self.level.background_color
+        self.persist["bg_color"] = self.world.level.background_color
         self.persist["sidebar"] = self.sidebar
         return self.persist
 
@@ -75,14 +75,14 @@ class Game(state_machine._State):
     def update(self, keys, now):
         """Update phase for the primary game state."""
         self.now = now
-        self.level.update(now)
+        self.world.update(now)
         self.sidebar.update(self.player)
         if self.player.action_state == "dead":
             self.update_on_death(keys, now)
 
     def draw(self, surface, interpolate):
         """Draw level and sidebar; if player is dead draw death sequence."""
-        self.level.draw(surface, interpolate)
+        self.world.draw(surface, interpolate)
         self.sidebar.draw(surface, interpolate)
         if self.player.action_state == "dead" and self.iris:
             self.iris.draw(surface)

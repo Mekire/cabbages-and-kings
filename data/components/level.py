@@ -104,6 +104,7 @@ class Level(object):
     """Class representing an individual map."""
     def __init__(self, player, map_name):
         self.player = player
+        self.name = map_name
         self.map_dict = self.load_map(map_name)
         self.background = self.make_background()
         self.enemies = pg.sprite.Group()

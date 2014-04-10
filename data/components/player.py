@@ -169,8 +169,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.name = player_data["name"]
         ### Get from player data later. ###
         self.world = "overworld"
-        self.save_map = "central.map"
-        self.start_coord = (6, 1)
+        self.save_world_coords = (5,5)
+        self.start_coord = (19, 1)
 ##        self.inventory = equips.make_equips(player_data["gear"])
         self.inventory = equips.make_all_equips() ###
         self.inventory["money"] = player_data["money"]
