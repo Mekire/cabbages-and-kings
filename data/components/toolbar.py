@@ -56,6 +56,12 @@ LOAD_BUTTON = {"name": "Load",
                "unclick" : True,
                "key_bindings" : [(pg.K_o, pg.KMOD_LCTRL)]}
 
+NEW_BUTTON = {"name": "New",
+              "rect" : (15,345,70,20),
+              "selected" : False,
+              "unclick" : True,
+              "key_bindings" : [(pg.K_n, pg.KMOD_LCTRL)]}
+
 #Used for pallet navigation buttons.
 NAVIGATION_DIRECTION = {">>" : 1, "<<" : -1}
 
@@ -77,9 +83,10 @@ class ToolBar(object):
         self.navs = [Button(**NAV_LEFT), Button(**NAV_RIGHT)]
         self.save_button = Button(**SAVE_BUTTON)
         self.load_button = Button(**LOAD_BUTTON)
+        self.new_button = Button(**NEW_BUTTON)
         self.widgets = [self.mode_select, self.layer_select, self.check_boxes,
                         self.navs[0], self.navs[1],
-                        self.save_button, self.load_button]
+                        self.save_button, self.load_button, self.new_button]
 
     def toggle_layer_visibility(self, check_box_array):
         """

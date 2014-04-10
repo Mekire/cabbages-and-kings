@@ -33,8 +33,7 @@ class MapState(object):
     and mode. Most classes have complete access to this object.
     """
     def __init__(self):
-        self.map_dict = {layer:{} for layer in LAYERS}
-        self.map_dict["BG Colors"]["fill"] = (0,0,0)
+        self.new_map()
         self.selected = None
         self.select_image = None
         self.layer = "BG Colors"
@@ -44,6 +43,11 @@ class MapState(object):
     def mode_layer(self):
         """A convenience for getting the mode and layer at the same time."""
         return (self.mode, self.layer)
+
+    def new_map(self, name=None):
+        """Clears the map_dict so the user can edit a blank map."""
+        self.map_dict = {layer:{} for layer in LAYERS}
+        self.map_dict["BG Colors"]["fill"] = (0,0,0)
 
     def change_layer(self, name):
         """Change the layer.  Callback for the toolbar layer_select widget."""
@@ -75,6 +79,7 @@ class Edit(state_machine._State):
         self.toolbar.mode_select.bind(self.map_state.change_mode)
         self.toolbar.save_button.bind(self.save_map)
         self.toolbar.load_button.bind(self.load_map)
+        self.toolbar.new_button.bind(self.map_state.new_map)
 
     def save_map(self, name):
         directory = os.path.join(".", "resources", "map_data")
