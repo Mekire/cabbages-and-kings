@@ -82,6 +82,7 @@ class Edit(state_machine._State):
         self.toolbar.new_button.bind(self.map_state.new_map)
 
     def save_map(self, name):
+        """Save current map dict using a wx FileDialog."""
         directory = os.path.join(".", "resources", "map_data")
         wx_app = wx.App(False)
         ask = wx.FileDialog(None, "Save As",directory, "",
@@ -101,6 +102,7 @@ class Edit(state_machine._State):
         self.toolbar.save_button.unpress()
 
     def load_map(self, name):
+        """Load map from file using a wx FileDialog."""
         directory = os.path.join(".", "resources", "map_data")
         wx_app = wx.App(False)
         ask = wx.FileDialog(None, "Open", directory, "",
@@ -172,7 +174,7 @@ class Edit(state_machine._State):
         """Draw function for standard layers."""
         layer_dict = self.map_state.map_dict[layer]
         for coords in layer_dict:
-            map_string, source = layer_dict[coords][0:2] ###
+            map_string, source = layer_dict[coords][0:2]
             sheet = map_prepare.GFX["mapsheets"][map_string]
             target = map_prepare.MAP_RECT.x+coords[0], coords[1]
             surface.blit(sheet, target, pg.Rect(source, map_prepare.CELL_SIZE))

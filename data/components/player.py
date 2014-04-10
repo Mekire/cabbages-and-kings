@@ -178,14 +178,13 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.name = player_data["name"]
         ### Get from player data later. ###
         self.world = "overworld"
-        self.save_world_coords = (5,5)
-        self.start_coord = (19, 1)
+        self.save_world_coords = (5, 4)
+        self.start_coord = (10, 10)
 ##        self.inventory = equips.make_equips(player_data["gear"])
-        self.inventory = equips.make_all_equips() ###
+        self.inventory = equips.make_all_equips() ### Until chests are added.
         self.inventory["money"] = player_data["money"]
         self.inventory["keys"] = player_data["keys"]
         self.equipped = self.set_equips(player_data["equipped"])
-##        self.equipped = self.set_equips_random() ###
         self.defense,self.strength,self.speed = self.calc_stats(self.equipped)
 
     def set_equips(self, equip_data):

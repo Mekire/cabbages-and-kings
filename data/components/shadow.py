@@ -40,7 +40,8 @@ class Shadow(pg.sprite.Sprite):
         """
         Shadow will be centered on the self.lock_attr attribute of the
         self.lock_rect (usually midbottom). The self.offset attribute allows a
-        shadow to blit offset from the chosen center point; most useful for flying monsters.
+        shadow to blit offset from the chosen center point; most useful for
+        flying monsters.
         """
         self.rect.center = getattr(self.lock_rect, self.lock_attr)
         self.rect.move_ip(self.offset)

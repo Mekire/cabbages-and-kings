@@ -118,7 +118,7 @@ class Level(object):
         self.solid_border = pg.sprite.Group(self.solids, self.make_borders())
         self.all_group.add(self.player)
         self.spawn()
-        self.make_shadows()
+        self.shadows = self.make_shadows()
 
     def spawn(self):
         """Create enemies, adding them to the required groups."""
@@ -131,6 +131,7 @@ class Level(object):
         """Create shadows for the player and all enemies."""
         shadows = [enemy.shadow for enemy in self.enemies]+[self.player.shadow]
         self.all_group.add(shadows, layer=Z_ORDER["Shadows"])
+        return pg.sprite.Group(shadows)
 
     def make_borders(self):
         """

@@ -281,7 +281,11 @@ Enemies:
   - *id003
   - 1.0
 Environment: {}
-Foreground: {}
+Foreground:
+  ? !!python/tuple [750, 250]
+  : !!python/tuple
+  - base
+  - !!python/tuple [350, 450]
 Items: {}
 Solid:
   ? !!python/tuple [0, 0]
@@ -430,10 +434,6 @@ Solid:
   : *id005
   ? !!python/tuple [750, 50]
   : *id014
-  ? !!python/tuple [750, 250]
-  : !!python/tuple
-  - base
-  - !!python/tuple [350, 450]
   ? !!python/tuple [750, 300]
   : !!python/tuple
   - base

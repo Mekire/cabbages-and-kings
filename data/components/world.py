@@ -40,6 +40,7 @@ class WorldMap(object):
         """Load world given a world_name."""
         return {(5,5) : "desert.map",
                 (5,4) : "desert_north.map",
+                (4,4) : "desert_northwest.map",
                 (5,6) : "desert.map",
                 (4,5) : "desert.map",
                 (6,5) : "desert.map"}
@@ -106,6 +107,7 @@ class WorldMap(object):
         new_center = centerx%prepare.PLAY_RECT.w, centery%prepare.PLAY_RECT.h
         self.player.reset_position(new_center, "center")
         self.screen_copy = pg.display.get_surface().copy()
+        self.level.shadows.update()
         self.level.draw(self.next_screen, 0)
 
     def scroll(self):
