@@ -16,14 +16,16 @@ ORIGINAL_CAPTION = "The Cabbages"
 COLOR_KEY = (255, 0, 255)
 BACKGROUND_COLOR = (30, 40, 50)
 SCREEN_RECT = pg.Rect((0,0), SCREEN_SIZE)
-_font_path = os.path.join("resources", "fonts","Fixedsys500c.ttf")
-BIG_FONT = pg.font.Font(_font_path, 100)
+_FONT_PATH = os.path.join("resources", "fonts","Fixedsys500c.ttf")
+BIG_FONT = pg.font.Font(_FONT_PATH, 100)
 
 
 #Initialization
+_ICON_PATH = os.path.join("resources", "graphics", "misc", "icon.png")
 _Y_OFFSET = (pg.display.Info().current_w-SCREEN_SIZE[0])//2
 os.environ['SDL_VIDEO_WINDOW_POS'] = '{},{}'.format(_Y_OFFSET, 25)
 pg.display.set_caption(ORIGINAL_CAPTION)
+pg.display.set_icon(pg.image.load(_ICON_PATH))
 _screen = pg.display.set_mode(SCREEN_SIZE)
 
 

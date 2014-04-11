@@ -35,7 +35,7 @@ class WorldMap(object):
         self.level = self.update_history(self.world_dict[start_coords])
         self.current_coords = list(start_coords)
         self.offset = [0, 0]
-        self.drawn_this_frame = False #Disallow multiple updates.
+        self.drawn_this_frame = False #Disallow multiple updates per frame.
 
     def load(self, world_name):
         """Load world given a world_name."""
