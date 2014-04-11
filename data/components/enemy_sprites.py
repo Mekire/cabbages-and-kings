@@ -389,6 +389,30 @@ class Snake(_Enemy):
         self.drops = ["diamond", "potion"]
 
 
+class Scorpion(_Enemy):
+    """A high damage scorpion. (2 directions)"""
+    def __init__(self, *args):
+        _Enemy.__init__(self, "scorpion", ENEMY_SHEET, *args)
+        self.anim_directions = ["left", "right"]
+        self.anim_direction = random.choice(self.anim_directions)
+        walk = {"left" : tools.Anim(self.frames[:2], 7),
+                "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
+                                pg.transform.flip(self.frames[1], 1, 0)], 7)}
+        hit = {"left" : tools.Anim(self.frames[2:4], 20),
+               "right" : tools.Anim([pg.transform.flip(self.frames[2], 1, 0),
+                                pg.transform.flip(self.frames[3], 1, 0)], 20)}
+        flipped_die = [pg.transform.flip(f, 1, 0) for f in self.frames[4:]]
+        die = {"left" : tools.Anim(self.frames[4:], 5, 1),
+               "right" : tools.Anim(flipped_die, 5, 1)}
+        self.anims = {"walk" : walk,
+                      "hit" : hit,
+                      "die" : die}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        self.health = 6
+        self.attack = 10
+        self.drops = ["heart", None]
+
+
 class Skeleton(_Enemy):
     """The classic skeleton. (4 directions)"""
     def __init__(self, *args):
@@ -425,7 +449,7 @@ ENEMY_DICT = {(0, 0) : Cabbage,
               (300, 0) : Skeleton,
               (350, 0) : Zombie,
               (0, 50) : Snake,
-              (50, 50) : None, #Scorpion,
+              (50, 50) : Scorpion,
               (100, 50) : Turtle,
               (150, 50) : None, #AoOni,
               (200, 50) : None, #AkaOni,

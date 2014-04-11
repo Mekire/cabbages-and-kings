@@ -157,7 +157,9 @@ BG Colors:
   ? !!python/tuple [700, 50]
   : *id001
   ? !!python/tuple [700, 100]
-  : *id001
+  : !!python/tuple
+  - background
+  - !!python/tuple [181, 112, 66, 255]
   ? !!python/tuple [700, 150]
   : *id001
   ? !!python/tuple [700, 250]
@@ -273,7 +275,7 @@ Enemies:
   ? !!python/tuple [700, 100]
   : !!python/tuple
   - enemy_place
-  - *id003
+  - !!python/tuple [0, 50]
   - 1.0
   ? !!python/tuple [750, 400]
   : !!python/tuple
