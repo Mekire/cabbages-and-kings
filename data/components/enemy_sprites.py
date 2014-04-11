@@ -325,6 +325,20 @@ class Spider(_Enemy):
         self.drops = ["diamond", None]
 
 
+class Crab(_Enemy):
+    """Irritated crab. Shoots bubbles (not implemented) (1 direction)."""
+    def __init__(self, *args):
+        _Enemy.__init__(self, "crab", ENEMY_SHEET, *args)
+        death_frames = self.frames[4:7]+self.frames[7:]*2
+        self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
+                      "hit" : tools.Anim(self.frames[2:4], 20),
+                      "die" : tools.Anim(death_frames, 5, 1)}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        self.health = 6
+        self.attack = 6
+        self.drops = [None, None, "diamond"]
+
+
 class Turtle(_Enemy):
     """Spider like monster; shoots webs (not implemented) (1 direction)."""
     def __init__(self, *args):
@@ -445,7 +459,7 @@ ENEMY_DICT = {(0, 0) : Cabbage,
               (100, 0) : None, #Frog,
               (150, 0) : None, #Mushroom,
               (200, 0) : None, #Snail,
-              (250, 0) : None, #Crab,
+              (250, 0) : Crab,
               (300, 0) : Skeleton,
               (350, 0) : Zombie,
               (0, 50) : Snake,
@@ -460,4 +474,3 @@ ENEMY_DICT = {(0, 0) : Cabbage,
               (50, 100) : None, #EvilElf,
               (100, 100) : None, #Tank,
               (150, 100) : None} #Turret}
-

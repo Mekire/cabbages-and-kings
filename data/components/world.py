@@ -43,9 +43,11 @@ class WorldMap(object):
                 (5,4) : "desert_north.map",
                 (4,4) : "desert_northwest.map",
                 (6,4) : "desert_northeast.map",
-                (5,6) : "desert.map",
+                (4,6) : "desert_southwest.map",
                 (4,5) : "desert_west.map",
-                (6,5) : "desert_east.map"}
+                (6,5) : "desert_east.map",
+                (6,6) : "desert_southeast.map",
+                (5,6) : "desert_south.map"}
 ##        path = os.path.join(".", "resources", "map_data", world_name)
 ##        with open(path) as myfile:
 ##            return yaml.load(myfile)
