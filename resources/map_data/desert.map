@@ -272,25 +272,10 @@ BG Tiles:
   ? !!python/tuple [950, 650]
   : *id004
 Enemies:
-  ? !!python/tuple [200, 500]
-  : !!python/tuple
-  - enemy_place
-  - !!python/tuple [300, 0]
-  - 2.0
-  ? !!python/tuple [450, 500]
-  : !!python/tuple
-  - enemy_place
-  - !!python/tuple [0, 0]
-  - 0.7
-  ? !!python/tuple [550, 50]
+  ? !!python/tuple [550, 450]
   : !!python/tuple
   - enemy_place
   - !!python/tuple [0, 50]
-  - 1.0
-  ? !!python/tuple [800, 600]
-  : !!python/tuple
-  - enemy_place
-  - !!python/tuple [350, 0]
   - 1.0
 Environment: {}
 Foreground:
