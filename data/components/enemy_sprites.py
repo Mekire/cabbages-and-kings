@@ -116,12 +116,12 @@ class _Enemy(pg.sprite.Sprite):
     def __init__(self, name, sheet, pos, speed, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
         coords, size = ENEMY_COORDS[name], prepare.CELL_SIZE
-        self.frame_speed = [0, 0]
         self.frames = tools.strip_coords_from_sheet(sheet, coords, size)
         self.rect = pg.Rect(pos, prepare.CELL_SIZE)
         self.mask = pg.Mask(prepare.CELL_SIZE)
         self.mask.fill()
         self.exact_position = list(self.rect.topleft)
+        self.old_position = self.exact_position[:]
         self.steps = [0, 0]
         self.ai = BasicAI(self)
         self.speed = speed
@@ -137,6 +137,11 @@ class _Enemy(pg.sprite.Sprite):
         self.knock_collide = None
         self.knock_clear = None
         self.drops = [None]
+
+    @property
+    def frame_speed(self):
+        return (self.exact_position[0]-self.old_position[0],
+                self.exact_position[1]-self.old_position[1])
 
     def get_occupied_cell(self):
         """
@@ -208,7 +213,6 @@ class _Enemy(pg.sprite.Sprite):
         for i in (0,1):
             vec_component = prepare.DIRECT_DICT[self.knock_dir][i]
             self.exact_position[i] += vec_component*KNOCK_SPEED
-            self.frame_speed[i] += vec_component*KNOCK_SPEED
         test_rect = pg.Rect(self.exact_position, prepare.CELL_SIZE)
         if self.knock_clear:
             test_against = self.knock_clear
@@ -241,7 +245,7 @@ class _Enemy(pg.sprite.Sprite):
         will be snapped to the cell and their AI will be queried for a new
         direction.  Finally, update the sprite's rect and animation.
         """
-        self.frame_speed = [0, 0]
+        self.old_position = self.exact_position[:]
         if self.state not in ("hit", "die"):
             if self.direction:
                 self.move()
@@ -266,7 +270,6 @@ class _Enemy(pg.sprite.Sprite):
         for i in (0,1):
             vec_component = prepare.DIRECT_DICT[self.direction][i]
             self.exact_position[i] += vec_component*self.speed
-            self.frame_speed[i] += vec_component*self.speed
             self.steps[i] += abs(vec_component*self.speed)
 
     def change_direction(self, obstacles):

@@ -227,7 +227,6 @@ class Level(object):
         """Draw all sprites and layers to the surface."""
         surface.blit(self.background, (0,0))
         for sprite in self.main_sprites:
-            speed = [interpolate*sprite.frame_speed[i] for i in (0,1)]
-            sprite.rect.move_ip(*speed)
+            sprite.rect.move_ip(*sprite.frame_speed)
             self.all_group.change_layer(sprite, sprite.rect.centery)
         self.all_group.draw(surface)

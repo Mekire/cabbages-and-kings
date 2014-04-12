@@ -14,20 +14,26 @@ ITEM_COORDS = {"heart" : [(0,0), (1,0)],
 class _Item(pg.sprite.Sprite):
     def __init__(self, name, pos, duration, *groups):
         pg.sprite.Sprite.__init__(self, *groups)
-        self.frame_speed = [0, 0]
         coords, size = ITEM_COORDS[name], prepare.CELL_SIZE
         self.frames = tools.strip_coords_from_sheet(ITEM_SHEET, coords, size)
         self.anim = tools.Anim(self.frames, 7)
         self.image = self.anim.get_next_frame(pg.time.get_ticks())
         #Subtract 1 from y axis to make item drop appear behind death anim.
         self.rect = pg.Rect((pos[0],pos[1]-1), prepare.CELL_SIZE)
+        self.exact_position = list(self.rect.topleft)
+        self.old_position = self.exact_position[:]
         self.mask = pg.Mask(prepare.CELL_SIZE)
         self.mask.fill()
         self.exact_position = list(self.rect.topleft)
         self.timer = tools.Timer(duration*1000, 1) if duration else None
 
+    @property
+    def frame_speed(self):
+        return (self.exact_position[0]-self.old_position[0],
+                self.exact_position[1]-self.old_position[1])
+
     def update(self, now, *args):
-        self.frame_speed = [0, 0]
+        self.old_position = self.exact_position[:]
         if self.timer:
             self.timer.check_tick(now)
             if self.timer.done:
