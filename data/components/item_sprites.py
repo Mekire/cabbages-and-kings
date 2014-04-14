@@ -49,10 +49,12 @@ class _Item(pg.sprite.Sprite):
             self.sound_effect.play()
         self.process_result(player)
         if self.identifier:
-            flags = player.flags
+            print("identify")
+            pickups = player.pickups
             map_name, key = self.identifier
-            flags.setdefault(map_name,set())
-            flags[map_name].add(key)
+            pickups.setdefault(map_name,set())
+            pickups[map_name].add(key)
+            print(pickups)
 
     def update(self, now, *args):
         self.old_position = self.exact_position[:]

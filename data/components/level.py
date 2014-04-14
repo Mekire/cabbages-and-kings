@@ -105,8 +105,8 @@ class TreasureChest(Tile):
 
     def update(self, now, player, group_dict, *args):
         if not self.open:
-            flags = player.flags
-            if self.map_name in flags and self.key in flags[self.map_name]:
+            pickups = player.pickups
+            if self.map_name in pickups and self.key in pickups[self.map_name]:
                 self.open = True
                 self.image = self.open_image
                 self.mask = self.open_mask
@@ -140,6 +140,12 @@ class Level(object):
         self.player = player
         self.name = map_name
         self.map_dict = self.load_map(map_name)
+        if "changes" not in self.map_dict: ###
+            self.map_dict["changes"] = {} ###
+            self.map_dict["changes"]["kill"] = ("key", (200,100), None, False,
+                                    ("desert.map", "kill"))
+
+
         self.background = self.make_background()
         self.enemies = pg.sprite.Group()
         self.items = pg.sprite.Group()
@@ -155,14 +161,19 @@ class Level(object):
         self.all_group.add(self.player)
         self.spawn()
         self.shadows = self.make_shadows()
+        self.posted = set() # Set of map events that have been posted.
         self.make_chest() ###Temporary
 
     def make_chest(self):  ### Temporary chest testing code.
-        groups = (self.solid_border, self.solids,
-                  self.interactables)
-        chest = TreasureChest(0, 0, (450,150), 1, "key", "desert.png", "1")
+        groups = (self.solid_border, self.solids, self.interactables)
+        chest = TreasureChest(0, 0, (450,150), 1, "key", self.name, "1")
         chest.add(groups)
         self.all_group.add(chest, layer=Z_ORDER["Solid"])
+
+    def add_map_item(self, item, *args):
+        groups = (self.items, self.main_sprites, self.all_group)
+        args += groups
+        item_sprites.ITEMS[item](*args)
 
     def spawn(self):
         """Create enemies, adding them to the required groups."""
@@ -238,12 +249,26 @@ class Level(object):
                 group.add(Tile(sheet, source, target, mask))
         return group
 
+    def post_map_event(self, event):
+        if event in self.map_dict["changes"]:
+            pickups = self.player.pickups.setdefault(self.name, set())
+            changes = self.player.changes.setdefault(self.name, set())
+            if event not in self.posted:
+                self.posted.add(event)
+                if event not in pickups and event not in changes:
+                    try:
+                        self.add_map_item(*self.map_dict["changes"][event])
+                    except Exception as e:
+                        print(e)
+
     def update(self, now):
         """
         Update all sprites; check any collisions that may have occured;
         and finally sort the main_sprite group by y coordinate.
         """
         self.all_group.update(now, self.player, self.group_dict)
+        if not self.enemies:
+            self.post_map_event("kill")
         self.check_collisions()
 
     def check_collisions(self):

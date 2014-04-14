@@ -184,7 +184,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.world = "overworld"
         self.save_world_coords = (5, 5)
         self.start_coord = (9, 4)
-        self.flags = {}
+        self.pickups = {} #Unique item identifiers the player has gotten.
+        self.changes = {} #Map change identifiers.
 ##        self.inventory = equips.make_equips(player_data["gear"])
         self.inventory = equips.make_all_equips() ### Until chests are added.
         self.inventory["money"] = player_data["money"]
