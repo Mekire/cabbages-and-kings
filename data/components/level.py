@@ -4,7 +4,7 @@ import pygame as pg
 
 from operator import attrgetter
 from .. import prepare, tools
-from . import enemy_sprites
+from . import enemy_sprites, item_sprites
 
 
 if sys.version_info[0] < 3:
@@ -93,6 +93,36 @@ class AnimatedHazard(AnimatedTile):
         player.collide_with_solid(False)
 
 
+class TreasureChest(Tile):
+    def __init__(self, sheet, source, target, mask, item, map_name, key):
+        Tile.__init__(self, "chests", (0,0), target, True)
+        self.item = item
+        self.map_name, self.key = map_name, key
+        self.open = False
+        self.open_image = self.sheet.subsurface(((50,0), prepare.CELL_SIZE))
+        self.open_mask = pg.mask.from_surface(self.open_image)
+        self.add_to_map = False
+
+    def update(self, now, player, group_dict, *args):
+        if not self.open:
+            flags = player.flags
+            if self.map_name in flags and self.key in flags[self.map_name]:
+                self.open = True
+                self.image = self.open_image
+                self.mask = self.open_mask
+        if self.add_to_map:
+            item_groups = (group_dict["items"], group_dict["main"],
+                           group_dict["all"])
+            item = item_sprites.ITEMS[self.item](self.rect, None, True,
+                                    (self.map_name, self.key), *item_groups)
+            item.get_item(player)
+            self.add_to_map = False
+
+    def interact_with(self, player):
+        if not self.open and player.rect.centery > self.rect.top+10:
+            self.add_to_map = True
+
+
 #All map tiles that need to have specific behavior should be added here.
 #Keys are (sheet, source_coordinates); Values are the type of tile and
 #keyword arguments for initializing it.
@@ -116,9 +146,23 @@ class Level(object):
         self.main_sprites = pg.sprite.Group(self.player)
         self.all_group, self.solids = self.make_all_layer_groups()
         self.solid_border = pg.sprite.Group(self.solids, self.make_borders())
+        self.interactables = pg.sprite.Group() ###
+        self.group_dict = {"solid_border" : self.solid_border,
+                           "projectiles" : None,
+                           "items" : self.items,
+                           "main" : self.main_sprites,
+                           "all" : self.all_group}
         self.all_group.add(self.player)
         self.spawn()
         self.shadows = self.make_shadows()
+        self.make_chest() ###Temporary
+
+    def make_chest(self):  ### Temporary chest testing code.
+        groups = (self.solid_border, self.solids,
+                  self.interactables)
+        chest = TreasureChest(0, 0, (450,150), 1, "key", "desert.png", "1")
+        chest.add(groups)
+        self.all_group.add(chest, layer=Z_ORDER["Solid"])
 
     def spawn(self):
         """Create enemies, adding them to the required groups."""
@@ -199,7 +243,7 @@ class Level(object):
         Update all sprites; check any collisions that may have occured;
         and finally sort the main_sprite group by y coordinate.
         """
-        self.all_group.update(now, self.solid_border)
+        self.all_group.update(now, self.player, self.group_dict)
         self.check_collisions()
 
     def check_collisions(self):
@@ -227,6 +271,8 @@ class Level(object):
         """Draw all sprites and layers to the surface."""
         surface.blit(self.background, (0,0))
         for sprite in self.main_sprites:
-            sprite.rect.move_ip(*sprite.frame_speed)
+            interpolated = (sprite.frame_speed[0]*interpolate,
+                            sprite.frame_speed[1]*interpolate)
+            sprite.rect.move_ip(*interpolated)
             self.all_group.change_layer(sprite, sprite.rect.centery)
         self.all_group.draw(surface)

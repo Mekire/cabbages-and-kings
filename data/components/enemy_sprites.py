@@ -180,7 +180,7 @@ class _Enemy(pg.sprite.Sprite):
         """
         drop = random.choice(self.drops)
         if drop:
-            item_sprites.ITEMS[drop](self.rect, 15, *item_groups)
+            item_sprites.ITEMS[drop](self.rect, 15, False, None, *item_groups)
 
     def got_knocked_collision(self, obstacles):
         """
@@ -238,13 +238,14 @@ class _Enemy(pg.sprite.Sprite):
         else:
             rect_to_adjust[i] = collide_rect[i]+collide_rect.size[i]
 
-    def update(self, now, obstacles):
+    def update(self, now, player, group_dict):
         """
         Update the sprite's exact position.  If this results in either of the
         values in _Enemy.steps exceeding the prepare.CELL_SIZE the sprite
         will be snapped to the cell and their AI will be queried for a new
         direction.  Finally, update the sprite's rect and animation.
         """
+        obstacles = group_dict["solid_border"]
         self.old_position = self.exact_position[:]
         if self.state not in ("hit", "die"):
             if self.direction:

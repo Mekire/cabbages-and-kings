@@ -64,6 +64,8 @@ class Game(state_machine._State):
                         self.player.attack()
                     elif event.key == pg.K_s:
                         self.change_to_camp()
+                    elif event.key == pg.K_LSHIFT:
+                        self.player.interact(self.world.level.interactables)
             elif event.type == pg.KEYUP:
                 self.player.pop_direction(event.key)
         elif self.iris and self.iris.done:
