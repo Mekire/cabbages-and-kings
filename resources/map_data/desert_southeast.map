@@ -576,6 +576,10 @@ Solid:
   - !!python/tuple [250, 50]
 Solid/Fore: {}
 Water:
+  ? !!python/tuple [150, 600]
+  : !!python/tuple
+  - water
+  - !!python/tuple [150, 0]
   ? !!python/tuple [150, 650]
   : &id024 !!python/tuple
   - water
@@ -591,7 +595,9 @@ Water:
   ? !!python/tuple [250, 650]
   : *id025
   ? !!python/tuple [300, 600]
-  : *id025
+  : &id026 !!python/tuple
+  - water
+  - !!python/tuple [100, 0]
   ? !!python/tuple [300, 650]
   : *id025
   ? !!python/tuple [350, 650]
@@ -601,7 +607,7 @@ Water:
   ? !!python/tuple [450, 650]
   : *id025
   ? !!python/tuple [500, 600]
-  : *id025
+  : *id026
   ? !!python/tuple [500, 650]
   : *id025
   ? !!python/tuple [550, 600]
@@ -637,7 +643,9 @@ Water:
   ? !!python/tuple [800, 100]
   : *id025
   ? !!python/tuple [800, 150]
-  : *id025
+  : !!python/tuple
+  - water
+  - !!python/tuple [100, 0]
   ? !!python/tuple [800, 550]
   : *id025
   ? !!python/tuple [800, 600]

@@ -386,6 +386,10 @@ Solid:
   - !!python/tuple [350, 50]
   ? !!python/tuple [400, 0]
   : *id011
+  ? !!python/tuple [400, 200]
+  : !!python/tuple
+  - water
+  - !!python/tuple [150, 50]
   ? !!python/tuple [450, 0]
   : *id005
   ? !!python/tuple [450, 50]
@@ -422,6 +426,10 @@ Solid:
   : !!python/tuple
   - base
   - !!python/tuple [300, 50]
+  ? !!python/tuple [600, 200]
+  : !!python/tuple
+  - water
+  - !!python/tuple [200, 50]
   ? !!python/tuple [600, 500]
   : *id009
   ? !!python/tuple [650, 0]

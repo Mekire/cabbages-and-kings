@@ -142,39 +142,30 @@ class TreasureChest(Tile):
 #Keys are (sheet, source_coordinates); Values are the type of tile and
 #keyword arguments for initializing it.
 SPECIAL_TILES = {
-                 # Water
-                 ("water", (0, 0)) : (AnimatedTile, {"src" : (0,0)}),
-                 ("water", (0, 50)) : (AnimatedTile, {"src" : (0,50)}),
-                 ("water", (50, 0)) : (AnimatedTile, {"src" : (200,0)}),
-                 ("water", (50, 50)) : (AnimatedTile, {"src" : (200,50)}),
-                 ("water", (100, 0)) : (AnimatedTile, {"src" : (100,0)}),
-                 ("water", (150, 0)) : (AnimatedTile, {"src" : (300,0)}),
-                 ("water", (150, 50)) : (AnimatedTile, {"src" : (300,50)}),
-                 ("water", (200, 0)) : (AnimatedTile, {"src" : (300,100)}),
-                 ("water", (200, 50)) : (AnimatedTile, {"src" : (300,150)}),
-                 # Lava
-                 ("water", (0,100)) : (AnimatedHazard, {"src" : (0,100),
-                                                        "dmg" : 5}),
-                 ("water", (0,150)) : (AnimatedHazard, {"src" : (0,150),
-                                                        "dmg" : 5}),
-                 ("water", (50,100)) : (AnimatedHazard, {"src" : (200,100),
-                                                         "dmg" : 5}),
-                 ("water", (50,150)) : (AnimatedHazard, {"src" : (200,150),
-                                                         "dmg" : 5}),
-                 ("water", (100,100)) : (AnimatedHazard, {"src" : (100,100),
-                                                          "dmg" : 5}),
-                 ("water", (150, 100)) : (AnimatedHazard, {"src" : (100,50),
-                                                           "dmg" : 5}),
-                 ("water", (150, 150)) : (AnimatedHazard, {"src" : (100,150),
-                                                           "dmg" : 5}),
-                 ("water", (200, 100)) : (AnimatedHazard, {"src" : (0,200),
-                                                           "dmg" : 5}),
-                 ("water", (200, 150)) : (AnimatedHazard, {"src" : (100,200),
-                                                           "dmg" : 5}),
-                 # Static hazards (cacti etc.)
-                 ("base", (350, 400)) : (HazardTile, {"dmg" : 1}),
-                 ("base", (250, 450)) : (HazardTile, {"dmg" : 1}),
-                 ("base", (300, 450)) : (HazardTile, {"dmg" : 1})}
+    # Water
+    ("water", (0, 0)) : (AnimatedTile, {"src" : (0,0)}),
+    ("water", (0, 50)) : (AnimatedTile, {"src" : (0,50)}),
+    ("water", (50, 0)) : (AnimatedTile, {"src" : (200,0)}),
+    ("water", (50, 50)) : (AnimatedTile, {"src" : (200,50)}),
+    ("water", (100, 0)) : (AnimatedTile, {"src" : (100,0)}),
+    ("water", (150, 0)) : (AnimatedTile, {"src" : (300,0)}),
+    ("water", (150, 50)) : (AnimatedTile, {"src" : (300,50)}),
+    ("water", (200, 0)) : (AnimatedTile, {"src" : (300,100)}),
+    ("water", (200, 50)) : (AnimatedTile, {"src" : (300,150)}),
+    # Lava
+    ("water", (0,100)) : (AnimatedHazard, {"src" : (0,100), "dmg" : 5}),
+    ("water", (0,150)) : (AnimatedHazard, {"src" : (0,150), "dmg" : 5}),
+    ("water", (50,100)) : (AnimatedHazard, {"src" : (200,100), "dmg" : 5}),
+    ("water", (50,150)) : (AnimatedHazard, {"src" : (200,150), "dmg" : 5}),
+    ("water", (100,100)) : (AnimatedHazard, {"src" : (100,100), "dmg" : 5}),
+    ("water", (150, 100)) : (AnimatedHazard, {"src" : (100,50), "dmg" : 5}),
+    ("water", (150, 150)) : (AnimatedHazard, {"src" : (100,150), "dmg" : 5}),
+    ("water", (200, 100)) : (AnimatedHazard, {"src" : (0,200), "dmg" : 5}),
+    ("water", (200, 150)) : (AnimatedHazard, {"src" : (100,200), "dmg" : 5}),
+    # Cacti
+    ("base", (350, 400)) : (HazardTile, {"dmg" : 1}),
+    ("base", (250, 450)) : (HazardTile, {"dmg" : 1}),
+    ("base", (300, 450)) : (HazardTile, {"dmg" : 1})}
 
 
 class Level(object):
