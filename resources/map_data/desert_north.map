@@ -492,15 +492,47 @@ Solid:
   : *id014
 Solid/Fore: {}
 Water:
+  ? !!python/tuple [400, 100]
+  : !!python/tuple
+  - water
+  - !!python/tuple [0, 0]
+  ? !!python/tuple [400, 150]
+  : !!python/tuple
+  - water
+  - !!python/tuple [0, 50]
+  ? !!python/tuple [450, 100]
+  : !!python/tuple
+  - water
+  - !!python/tuple [100, 0]
   ? !!python/tuple [450, 150]
   : &id015 !!python/tuple
-  - animsheet
-  - !!python/tuple [0, 0]
+  - water
+  - !!python/tuple [100, 0]
+  ? !!python/tuple [450, 200]
+  : !!python/tuple
+  - water
+  - !!python/tuple [0, 50]
   ? !!python/tuple [500, 100]
   : *id015
   ? !!python/tuple [500, 150]
   : *id015
   ? !!python/tuple [500, 200]
   : *id015
+  ? !!python/tuple [550, 100]
+  : !!python/tuple
+  - water
+  - !!python/tuple [100, 0]
   ? !!python/tuple [550, 150]
   : *id015
+  ? !!python/tuple [550, 200]
+  : !!python/tuple
+  - water
+  - !!python/tuple [50, 50]
+  ? !!python/tuple [600, 100]
+  : !!python/tuple
+  - water
+  - !!python/tuple [50, 0]
+  ? !!python/tuple [600, 150]
+  : !!python/tuple
+  - water
+  - !!python/tuple [50, 50]

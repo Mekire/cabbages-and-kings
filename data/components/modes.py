@@ -6,7 +6,7 @@ from . import panel
 
 
 BASIC = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
-         "forest", "misc", "tatami", "animsheet")
+         "forest", "misc", "tatami", "water")
 
 
 class _Mode(object):

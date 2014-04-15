@@ -184,8 +184,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.world = "overworld"
         self.save_world_coords = (5, 5)
         self.start_coord = (9, 4)
-        self.pickups = {} #Unique item identifiers the player has gotten.
-        self.changes = {} #Map change identifiers.
+        self.identifiers = {} #Unique identifiers the player has gotten.
 ##        self.inventory = equips.make_equips(player_data["gear"])
         self.inventory = equips.make_all_equips() ### Until chests are added.
         self.inventory["money"] = player_data["money"]
@@ -324,13 +323,14 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         can be interacted with via the left-shift key.
         If so call that object's interact_with method.
         """
+        vec = prepare.DIRECT_DICT[self.direction]
+        move = vec[0]*5, vec[1]*5  #Currently hardcoded 5 pixel range.
+        self.rect.move_ip(*move)
         for item in interactables:
-            vec = prepare.DIRECT_DICT[self.direction]
-            move = vec[0]*5, vec[1]*5  #Currently hardcoded 5 pixel range.
-            self.rect.move_ip(*move)
             if pg.sprite.collide_mask(self, item):
                 item.interact_with(self)
-            self.rect.move_ip(-move[0], -move[1])
+                break
+        self.rect.move_ip(-move[0], -move[1])
 
     def check_states(self, now):
         """Change states when required."""

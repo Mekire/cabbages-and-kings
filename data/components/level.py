@@ -51,15 +51,18 @@ class AnimatedTile(Tile):
     """
     An animated tile. Animated tiles must be on the "animsheet" map sheet.
     """
-    def __init__(self, sheet, source, target, mask, fps=4, frames=2):
+    def __init__(self, _a, _b, target, mask, fps=4, frames=2, src=None):
         """
         The frames argument is the number of frames in the animation, and
-        fps is the desired framerate of the animation.
-        Currently only used for water.
+        fps is the desired framerate of the animation; src is the source
+        location on the animation sheet (not the water sheet).
+        _a and _b are dummy variables that are not actually needed.  They
+        are in the list of args so that the interface to Tile and AnimatedTile
+        are the same.
         """
-        Tile.__init__(self, "animsheet", source, target, mask)
+        Tile.__init__(self, "animsheet", src, target, mask)
         size = prepare.CELL_SIZE
-        frames = tools.strip_from_sheet(self.sheet, source, size, frames)
+        frames = tools.strip_from_sheet(self.sheet, src, size, frames)
         self.anim = tools.Anim(frames, fps)
 
     def update(self, now, *args):
@@ -69,9 +72,9 @@ class AnimatedTile(Tile):
 
 class HazardTile(Tile):
     """Basic hazard tiles (cacti, spikes, etc.)"""
-    def __init__(self, sheet, source, target, mask, damage=1):
+    def __init__(self, sheet, source, target, mask, dmg=1):
          Tile.__init__(self, sheet, source, target, True)
-         self.attack = damage
+         self.attack = dmg
 
     def collide_with_player(self, player):
         """
@@ -84,16 +87,21 @@ class HazardTile(Tile):
 
 class AnimatedHazard(AnimatedTile):
     """Animated hazards including lava."""
-    def __init__(self, sheet, source, target, mask, fps=4, frames=2, damage=1):
-        AnimatedTile.__init__(self, sheet, source, target, mask, fps, frames)
-        self.attack = damage
+    def __init__(self, _a, _b, target, mask, fps=4, frames=2, src=None, dmg=1):
+        AnimatedTile.__init__(self, _a, _b, target, mask, fps, frames, src)
+        self.attack = dmg
 
     def collide_with_player(self, player):
+        """
+        Deal damage to the player; then reset the player's position to avoid
+        the possibility of glitching through the obstacle.
+        """
         player.got_hit(self)
         player.collide_with_solid(False)
 
 
 class TreasureChest(Tile):
+    """A class for adding treasure chests to the map."""
     def __init__(self, sheet, source, target, mask, item, map_name, key):
         Tile.__init__(self, "chests", (0,0), target, True)
         self.item = item
@@ -103,13 +111,20 @@ class TreasureChest(Tile):
         self.open_mask = pg.mask.from_surface(self.open_image)
         self.add_to_map = False
 
-    def update(self, now, player, group_dict, *args):
+    def check_opened(self, player):
+        """
+        If the chest is not yet set to open, check if the player has the
+        identifier for the item inside.  If so, open it and switch image/mask.
+        """
         if not self.open:
-            pickups = player.pickups
-            if self.map_name in pickups and self.key in pickups[self.map_name]:
+            ident = player.identifiers
+            if self.map_name in ident and self.key in ident[self.map_name]:
                 self.open = True
                 self.image = self.open_image
                 self.mask = self.open_mask
+
+    def update(self, now, player, group_dict, *args):
+        self.check_opened(player)
         if self.add_to_map:
             item_groups = (group_dict["items"], group_dict["main"],
                            group_dict["all"])
@@ -126,12 +141,36 @@ class TreasureChest(Tile):
 #All map tiles that need to have specific behavior should be added here.
 #Keys are (sheet, source_coordinates); Values are the type of tile and
 #keyword arguments for initializing it.
-SPECIAL_TILES = {("animsheet", (0, 0)) : (AnimatedTile, {"frames" : 2}),
-                 ("animsheet", (0, 50)) : (AnimatedHazard, {"frames" : 2,
-                                                            "damage" : 5}),
-                 ("base", (350, 400)) : (HazardTile, {"damage" : 1}),
-                 ("base", (250, 450)) : (HazardTile, {"damage" : 1}),
-                 ("base", (300, 450)) : (HazardTile, {"damage" : 1})}
+SPECIAL_TILES = {
+                 ("water", (0,0)) : (AnimatedTile, {"src" : (0,0),
+                                                    "frames" : 2}),
+                 ("water", (0,50)) : (AnimatedTile, {"src" : (0,50),
+                                                    "frames" : 2}),
+                 ("water", (50,0)) : (AnimatedTile, {"src" : (200,0),
+                                                     "frames" : 2}),
+                 ("water", (50,50)) : (AnimatedTile, {"src" : (200,50),
+                                                      "frames" : 2}),
+                 ("water", (100,0)) : (AnimatedTile, {"src" : (100,0),
+                                                      "frames" : 2}),
+
+                 ("water", (0,100)) : (AnimatedHazard, {"src" : (0,100),
+                                                        "frames" : 2,
+                                                        "dmg" : 5}),
+                 ("water", (0,150)) : (AnimatedHazard, {"src" : (0,150),
+                                                        "frames" : 2,
+                                                        "dmg" : 5}),
+                 ("water", (50,100)) : (AnimatedHazard, {"src" : (200,100),
+                                                         "frames" : 2,
+                                                         "dmg" : 5}),
+                 ("water", (50,150)) : (AnimatedHazard, {"src" : (200,150),
+                                                         "frames" : 2,
+                                                         "dmg" : 5}),
+                 ("water", (100,100)) : (AnimatedHazard, {"src" : (100,100),
+                                                          "frames" : 2,
+                                                          "dmg" : 5}),
+                 ("base", (350, 400)) : (HazardTile, {"dmg" : 1}),
+                 ("base", (250, 450)) : (HazardTile, {"dmg" : 1}),
+                 ("base", (300, 450)) : (HazardTile, {"dmg" : 1})}
 
 
 class Level(object):
@@ -140,11 +179,14 @@ class Level(object):
         self.player = player
         self.name = map_name
         self.map_dict = self.load_map(map_name)
-        if "changes" not in self.map_dict: ###
-            self.map_dict["changes"] = {} ###
-            self.map_dict["changes"]["kill"] = ("key", (200,100), None, False,
-                                    ("desert.map", "kill"))
 
+        self.map_dict["changes"] = {} ### Temp code
+        self.map_dict["chests"] = {}
+        self.map_dict["items"] = {}
+        self.map_dict["items"]["kill"] = ("key", (200,100), None, False, "kill")
+        self.map_dict["chests"] = {}
+        self.map_dict["chests"][(450,150)] = (0, 0, True, "heart", "chest one")
+##        self.map_dict["chests"][(500,150)] = (0, 0, True, "diamond", "chest two")
 
         self.background = self.make_background()
         self.enemies = pg.sprite.Group()
@@ -162,16 +204,22 @@ class Level(object):
         self.spawn()
         self.shadows = self.make_shadows()
         self.posted = set() # Set of map events that have been posted.
-        self.make_chest() ###Temporary
+        self.make_chests() ###Temporary
 
-    def make_chest(self):  ### Temporary chest testing code.
+    def make_chests(self):  ### Temporary chest testing code.
         groups = (self.solid_border, self.solids, self.interactables)
-        chest = TreasureChest(0, 0, (450,150), 1, "key", self.name, "1")
-        chest.add(groups)
-        self.all_group.add(chest, layer=Z_ORDER["Solid"])
+        for target in self.map_dict["chests"]:
+            sheet, source, mask, item, ident = self.map_dict["chests"][target]
+            args = (sheet, source, target, mask, item, self.name, ident)
+            chest = TreasureChest(*args)
+            chest.add(groups)
+            self.all_group.add(chest, layer=Z_ORDER["Solid"])
+            chest.check_opened(self.player)
 
     def add_map_item(self, item, *args):
         groups = (self.items, self.main_sprites, self.all_group)
+        target, duration, chest, keyword = args
+        args = target, duration, chest, (self.name, keyword)
         args += groups
         item_sprites.ITEMS[item](*args)
 
@@ -250,16 +298,14 @@ class Level(object):
         return group
 
     def post_map_event(self, event):
-        if event in self.map_dict["changes"]:
-            pickups = self.player.pickups.setdefault(self.name, set())
-            changes = self.player.changes.setdefault(self.name, set())
-            if event not in self.posted:
-                self.posted.add(event)
-                if event not in pickups and event not in changes:
-                    try:
-                        self.add_map_item(*self.map_dict["changes"][event])
-                    except Exception as e:
-                        print(e)
+        identifiers = self.player.identifiers.setdefault(self.name, set())
+        if event not in self.posted:
+            self.posted.add(event)
+            if event not in identifiers:
+                if event in self.map_dict["items"]:
+                    self.add_map_item(*self.map_dict["items"][event])
+                elif event in self.map_dict["changes"]:
+                    pass
 
     def update(self, now):
         """

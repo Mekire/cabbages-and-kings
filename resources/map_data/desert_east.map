@@ -603,8 +603,8 @@ Solid/Fore: {}
 Water:
   ? !!python/tuple [750, 650]
   : &id021 !!python/tuple
-  - animsheet
-  - !!python/tuple [0, 0]
+  - water
+  - !!python/tuple [100, 0]
   ? !!python/tuple [800, 600]
   : *id021
   ? !!python/tuple [800, 650]
