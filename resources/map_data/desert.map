@@ -271,13 +271,7 @@ BG Tiles:
   : *id004
   ? !!python/tuple [950, 650]
   : *id004
-Chests:
-  ? !!python/tuple [450, 150]
-  : !!python/tuple
-  - item_place
-  - !!python/tuple [100, 0]
-  - key
-  - !!python/unicode '1'
+Chests: {}
 Enemies:
   ? !!python/tuple [550, 450]
   : !!python/tuple
@@ -294,98 +288,80 @@ Foreground:
   : !!python/tuple
   - base
   - !!python/tuple [350, 450]
-Items:
-  ? !!python/tuple [150, 50]
-  : !!python/tuple
-  - item_place
-  - &id005 !!python/tuple [50, 0]
-  - diamond
-  - !!python/unicode 'kill'
-  ? !!python/tuple [150, 100]
-  : !!python/tuple
-  - item_place
-  - *id005
-  - diamond
-  - !!python/unicode 'kill'
-  ? !!python/tuple [200, 100]
-  : !!python/tuple
-  - item_place
-  - *id005
-  - diamond
-  - !!python/unicode 'kill'
+Items: {}
 Solid:
   ? !!python/tuple [0, 200]
-  : &id006 !!python/tuple
+  : &id005 !!python/tuple
   - base
   - !!python/tuple [200, 450]
   ? !!python/tuple [0, 250]
-  : *id006
+  : *id005
   ? !!python/tuple [0, 300]
-  : *id006
+  : *id005
   ? !!python/tuple [0, 350]
-  : &id018 !!python/tuple
+  : &id017 !!python/tuple
   - base
   - !!python/tuple [50, 450]
   ? !!python/tuple [0, 400]
-  : *id006
+  : *id005
   ? !!python/tuple [50, 100]
-  : &id007 !!python/tuple
+  : &id006 !!python/tuple
   - base
   - !!python/tuple [150, 550]
   ? !!python/tuple [100, 50]
-  : *id007
+  : *id006
   ? !!python/tuple [100, 100]
-  : &id009 !!python/tuple
+  : &id008 !!python/tuple
   - base
   - !!python/tuple [300, 550]
   ? !!python/tuple [100, 150]
-  : *id007
+  : *id006
   ? !!python/tuple [100, 250]
-  : *id006
+  : *id005
   ? !!python/tuple [100, 300]
-  : *id006
+  : *id005
   ? !!python/tuple [100, 400]
-  : *id006
+  : *id005
   ? !!python/tuple [100, 500]
-  : &id008 !!python/tuple
+  : &id007 !!python/tuple
   - base
   - !!python/tuple [50, 450]
   ? !!python/tuple [100, 550]
-  : *id008
+  : *id007
   ? !!python/tuple [150, 150]
-  : *id009
+  : *id008
   ? !!python/tuple [150, 350]
   : !!python/tuple
   - base
   - !!python/tuple [350, 400]
   ? !!python/tuple [150, 400]
-  : *id006
+  : *id005
   ? !!python/tuple [150, 550]
-  : &id010 !!python/tuple
+  : &id009 !!python/tuple
   - base
   - !!python/tuple [100, 550]
   ? !!python/tuple [200, 150]
-  : *id006
+  : *id005
   ? !!python/tuple [200, 200]
-  : *id006
+  : *id005
   ? !!python/tuple [200, 250]
-  : *id008
+  : *id007
   ? !!python/tuple [200, 550]
-  : *id010
+  : *id009
   ? !!python/tuple [200, 600]
-  : &id011 !!python/tuple
+  : &id010 !!python/tuple
   - base
   - !!python/tuple [150, 550]
   ? !!python/tuple [250, 100]
-  : *id006
+  : *id005
   ? !!python/tuple [250, 200]
-  : *id006
+  : *id005
   ? !!python/tuple [250, 250]
-  : *id008
+  : *id007
   ? !!python/tuple [250, 500]
-  : *id010
+  : *id009
   ? !!python/tuple [300, 100]
-  : *id006
+  : *id005
   ? !!python/tuple [300, 350]
   : !!python/tuple
   - base
@@ -399,15 +375,15 @@ Solid:
   - base
   - !!python/tuple [250, 450]
   ? !!python/tuple [350, 50]
-  : *id006
+  : *id005
   ? !!python/tuple [350, 100]
-  : *id006
+  : *id005
   ? !!python/tuple [350, 200]
-  : *id011
-  ? !!python/tuple [350, 250]
   : *id010
+  ? !!python/tuple [350, 250]
+  : *id009
   ? !!python/tuple [350, 350]
-  : &id012 !!python/tuple
+  : &id011 !!python/tuple
   - base
   - !!python/tuple [100, 50]
   ? !!python/tuple [350, 400]
@@ -415,13 +391,13 @@ Solid:
   - base
   - !!python/tuple [350, 50]
   ? !!python/tuple [400, 50]
-  : *id006
+  : *id005
   ? !!python/tuple [400, 200]
-  : *id010
+  : *id009
   ? !!python/tuple [400, 350]
-  : *id012
+  : *id011
   ? !!python/tuple [400, 400]
-  : &id014 !!python/tuple
+  : &id013 !!python/tuple
   - base
   - !!python/tuple [300, 50]
   ? !!python/tuple [450, 300]
@@ -429,49 +405,49 @@ Solid:
   - base
   - !!python/tuple [100, 0]
   ? !!python/tuple [450, 350]
-  : &id013 !!python/tuple
+  : &id012 !!python/tuple
   - base
   - !!python/tuple [0, 0]
   ? !!python/tuple [500, 100]
-  : *id008
+  : *id007
   ? !!python/tuple [500, 250]
-  : &id015 !!python/tuple
+  : &id014 !!python/tuple
   - base
   - !!python/tuple [100, 0]
   ? !!python/tuple [500, 300]
-  : *id013
+  : *id012
   ? !!python/tuple [500, 350]
-  : *id014
-  ? !!python/tuple [550, 200]
-  : *id015
-  ? !!python/tuple [550, 250]
   : *id013
-  ? !!python/tuple [550, 300]
+  ? !!python/tuple [550, 200]
   : *id014
+  ? !!python/tuple [550, 250]
+  : *id012
+  ? !!python/tuple [550, 300]
+  : *id013
   ? !!python/tuple [600, 150]
   : !!python/tuple
   - base
   - !!python/tuple [0, 50]
   ? !!python/tuple [600, 200]
-  : *id013
+  : *id012
   ? !!python/tuple [600, 250]
-  : *id013
+  : *id012
   ? !!python/tuple [600, 550]
-  : &id016 !!python/tuple
+  : &id015 !!python/tuple
   - base
   - !!python/tuple [350, 400]
   ? !!python/tuple [650, 50]
-  : *id008
+  : *id007
   ? !!python/tuple [650, 150]
   : !!python/tuple
   - base
   - !!python/tuple [100, 50]
   ? !!python/tuple [650, 200]
-  : *id013
+  : *id012
   ? !!python/tuple [650, 250]
-  : *id014
+  : *id013
   ? !!python/tuple [650, 500]
-  : *id010
+  : *id009
   ? !!python/tuple [700, 150]
   : !!python/tuple
   - base
@@ -481,40 +457,40 @@ Solid:
   - base
   - !!python/tuple [300, 0]
   ? !!python/tuple [750, 250]
-  : *id010
+  : *id009
   ? !!python/tuple [800, 100]
   : !!python/tuple
   - base
   - !!python/tuple [300, 450]
   ? !!python/tuple [800, 200]
-  : *id010
+  : *id009
   ? !!python/tuple [800, 250]
-  : *id010
+  : *id009
   ? !!python/tuple [800, 450]
-  : *id016
+  : *id015
   ? !!python/tuple [800, 500]
-  : *id016
+  : *id015
   ? !!python/tuple [850, 150]
-  : &id017 !!python/tuple
+  : &id016 !!python/tuple
   - base
   - !!python/tuple [200, 450]
   ? !!python/tuple [850, 200]
-  : *id011
-  ? !!python/tuple [850, 400]
-  : *id016
-  ? !!python/tuple [850, 450]
-  : *id016
-  ? !!python/tuple [900, 150]
-  : *id017
-  ? !!python/tuple [900, 200]
   : *id010
+  ? !!python/tuple [850, 400]
+  : *id015
+  ? !!python/tuple [850, 450]
+  : *id015
+  ? !!python/tuple [900, 150]
+  : *id016
+  ? !!python/tuple [900, 200]
+  : *id009
   ? !!python/tuple [900, 250]
-  : *id017
+  : *id016
   ? !!python/tuple [900, 300]
-  : *id018
-  ? !!python/tuple [950, 300]
   : *id017
+  ? !!python/tuple [950, 300]
+  : *id016
   ? !!python/tuple [950, 350]
-  : *id018
+  : *id017
 Solid/Fore: {}
 Water: {}

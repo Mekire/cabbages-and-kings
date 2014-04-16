@@ -305,6 +305,13 @@ BG Colors:
   ? !!python/tuple [950, 400]
   : *id003
 BG Tiles: {}
+Chests:
+  ? !!python/tuple [900, 150]
+  : !!python/tuple
+  - item_place
+  - !!python/tuple [50, 50]
+  - !!python/tuple [head, sader]
+  - !!python/unicode '1'
 Enemies:
   ? !!python/tuple [200, 450]
   : !!python/tuple

@@ -157,6 +157,19 @@ BG Colors:
   ? !!python/tuple [950, 650]
   : *id001
 BG Tiles: {}
+Chests:
+  ? !!python/tuple [50, 200]
+  : !!python/tuple
+  - item_place
+  - !!python/tuple [50, 100]
+  - !!python/tuple [shield, tin]
+  - !!python/unicode '1'
+  ? !!python/tuple [550, 250]
+  : !!python/tuple
+  - item_place
+  - !!python/tuple [50, 0]
+  - diamond
+  - !!python/unicode '2'
 Enemies:
   ? !!python/tuple [200, 150]
   : !!python/tuple

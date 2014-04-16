@@ -16,6 +16,7 @@ class _Equipment(object):
     def __init__(self, name, stats, sheet, sheet_pos, arrange="standard"):
         self.name = name
         self.stats = self.defense, self.strength, self.speed = stats
+        self.sheet = sheet
         self.sort_stat = self.defense
         self.attack_images = "normal"
         sheet = prepare.GFX["equips"][sheet]
@@ -44,7 +45,7 @@ class NoHeadGear(_Equipment):
     """The initial headgearless player."""
     def __init__(self):
         stats = (0, 0, 0)
-        _Equipment.__init__(self, "none", stats, "heads", (0,0), "attack")
+        _Equipment.__init__(self, "none", stats, "head", (0,0), "attack")
         self.title = "No Headgear"
         self.descript = ["You should really find a helmet."]
         self.vision_impair = None
@@ -55,7 +56,7 @@ class Helm(_Equipment):
     """A minor improvement on having no helmet."""
     def __init__(self):
         stats = (1, 0, 0)
-        _Equipment.__init__(self, "helm", stats, "heads", (0,50), "attack")
+        _Equipment.__init__(self, "helm", stats, "head", (0,50), "attack")
         self.title = "Helm"
         self.descript = ["Average defense, average visibility.",
                          "Just pretty average."]
@@ -67,7 +68,7 @@ class Sader(_Equipment):
     """Very high defense, but the vision impairment is a tough tradeoff."""
     def __init__(self):
         stats = (3, 0, 0)
-        _Equipment.__init__(self, "sader", stats, "heads", (0,100), "attack")
+        _Equipment.__init__(self, "sader", stats, "head", (0,100), "attack")
         self.title = "Crusader Helm"
         self.descript = ["Great for protection,",
                          "but limited visibility... Seriously."]
@@ -82,7 +83,7 @@ class Diver(_Equipment):
     """Impaired vision is the price one pays for underwater breathing."""
     def __init__(self):
         stats = (1, 0, 0)
-        _Equipment.__init__(self, "diver", stats, "heads", (0,150), "attack")
+        _Equipment.__init__(self, "diver", stats, "head", (0,150), "attack")
         self.title = "Helm of the Mariner"
         self.descript = ["Underwater breathing, and you can almost see",
                          "where you're going. Amazing."]
@@ -97,7 +98,7 @@ class TopGoggles(_Equipment):
     """A novelty hat in which form seems to completely ignore function."""
     def __init__(self):
         stats = (1, 0, 0)
-        _Equipment.__init__(self, "goggles", stats, "heads", (0,200), "attack")
+        _Equipment.__init__(self, "goggles", stats, "head", (0,200), "attack")
         self.title = "Begoggled Tophat"
         self.descript = ["Wait, I don't get it.  Are there holes in the",
                          "tophat underneath the goggles?"]
@@ -113,7 +114,7 @@ class Cloth(_Equipment):
     """At least he doesn't start naked. Be thankful."""
     def __init__(self):
         stats = (0, 0, 0)
-        _Equipment.__init__(self, "cloth", stats, "bodies", (0,0))
+        _Equipment.__init__(self, "cloth", stats, "body", (0,0))
         self.title = "Peasant Clothes"
         self.descript = ["Leaves something to be desired",
                          "in the defense department."]
@@ -124,7 +125,7 @@ class ChainMail(_Equipment):
     """Higher defense at the cost of speed."""
     def __init__(self):
         stats = (3, 0, -0.7)
-        _Equipment.__init__(self, "chain", stats, "bodies", (200,0))
+        _Equipment.__init__(self, "chain", stats, "body", (200,0))
         self.title = "Chainmail"
         self.descript = ["What it has in defense,",
                          "it lacks in freedom of movement."]
@@ -149,7 +150,7 @@ class TinShield(_Equipment):
     """The first shield. Should only deflect basic projectiles."""
     def __init__(self):
         stats = (0, 0, 0)
-        _Equipment.__init__(self, "tin", stats, "shields", (0,0), "attack")
+        _Equipment.__init__(self, "tin", stats, "shield", (0,0), "attack")
         self.title = "Tin Shield"
         self.descript = ["Only slightly better than",
                          "having no shield at all."]
@@ -163,7 +164,7 @@ class ArmsLegs(_Equipment):
     """Starting shoes.  No gloves."""
     def __init__(self):
         stats = (0, 0, 0)
-        _Equipment.__init__(self, "normal", stats, "armslegs", (0,0), "other")
+        _Equipment.__init__(self, "normal", stats, "armleg", (0,0), "other")
         self.title = "Basic Shoes"
         self.descript = ["Just your basic shoes... Nothing special."]
         self.display = DISPLAY_SHEET.subsurface(0, 600, 50, 50)
@@ -188,7 +189,7 @@ class ArmsLegs(_Equipment):
 class _Weapon(_Equipment):
     """Prototype class for weapons."""
     def __init__(self, name, stats, sheet_pos):
-        _Equipment.__init__(self, name, stats, "weapons", sheet_pos, "other")
+        _Equipment.__init__(self, name, stats, "weapon", sheet_pos, "other")
         self.attack_images = None
         self.sort_stat = self.strength
         self.sprite = None

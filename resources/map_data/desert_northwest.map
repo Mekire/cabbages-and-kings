@@ -259,6 +259,13 @@ BG Tiles:
   : *id004
   ? !!python/tuple [850, 600]
   : *id004
+Chests:
+  ? !!python/tuple [500, 50]
+  : !!python/tuple
+  - item_place
+  - !!python/tuple [0, 50]
+  - !!python/tuple [head, helm]
+  - !!python/unicode '1'
 Enemies:
   ? !!python/tuple [200, 200]
   : !!python/tuple

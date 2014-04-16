@@ -1,6 +1,7 @@
 import pygame as pg
 
 from .. import tools, prepare
+from . import equips
 
 
 ITEM_SHEET = prepare.GFX["objects"]["items"]
@@ -87,7 +88,8 @@ class _Item(pg.sprite.Sprite):
             if self.height >= MAX_RISE:
                 self.kill()
         self.rect.topleft = self.exact_position
-        self.image = self.anim.get_next_frame(now)
+        if hasattr(self, "anim"):
+            self.image = self.anim.get_next_frame(now)
 
     def draw(self, surface, interpolate):
         """Basic draw function."""
@@ -140,7 +142,41 @@ class Key(_Item):
         player.inventory["keys"] += 1
 
 
+def make_equip_drop(GearClass):
+    """Given a equipment class, return a corresponding drop item class."""
+    class EquipDrop(_Item):
+        """This class works for creating drops for all equipment."""
+        def __init__(self, pos, dur, chest=False, ident=None, *groups):
+            pg.sprite.Sprite.__init__(self, *groups)
+            self.item = GearClass()
+            self.image = self.item.display
+            self.rect = pg.Rect((pos[0],pos[1]-1), prepare.CELL_SIZE)
+            self.exact_position = list(self.rect.topleft)
+            self.old_position = self.exact_position[:]
+            self.mask = pg.Mask(prepare.CELL_SIZE)
+            self.mask.fill()
+            self.timer = None
+            self.from_chest = chest
+            self.identifier = ident  #Used to stop respawning of unique items.
+            self.height = 0  #Used when item rises from chest.
+            self.sound_effect = None
+
+        def process_result(self, player):
+            """Add the gear item to the player's inventory."""
+            gear, name = self.item.sheet, self.item.name
+            player.inventory[gear][name] = self.item
+    return EquipDrop #Return the class, not an instance.
+
+
 ITEMS = {"heart" : Heart,
          "diamond" : Diamond,
          "potion" : Potion,
-         "key" : Key}
+         "key" : Key,
+         ("head", "helm") : make_equip_drop(equips.Helm),
+         ("head", "sader") : make_equip_drop(equips.Sader),
+         ("head", "diver") : make_equip_drop(equips.Diver),
+         ("head", "goggles") : make_equip_drop(equips.TopGoggles),
+         ("body", "chain") : make_equip_drop(equips.ChainMail),
+         ("shield", "tin") : make_equip_drop(equips.TinShield),
+         ("weapon", "labrys") : make_equip_drop(equips.Labrys),
+         ("weapon", "pitch") : make_equip_drop(equips.PitchFork)}

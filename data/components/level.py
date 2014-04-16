@@ -197,6 +197,10 @@ class Level(object):
         self.make_chests() ###Temporary
 
     def make_chests(self):
+        """
+        Create any treasure chests on the screen.  Chests are both solid
+        and interactable.
+        """
         groups = (self.solid_border, self.solids, self.interactables)
         for target in self.map_dict["Chests"]:
             sheet, source, item, ident = self.map_dict["Chests"][target]
@@ -207,6 +211,10 @@ class Level(object):
             chest.check_opened(self.player)
 
     def add_map_item(self, event):
+        """
+        If a map event is posted that the player doesn't already have,
+        check if there is an item with that event ID and add it to the map.
+        """
         for target in self.map_dict["Items"]:
             item, keyword = self.map_dict["Items"][target][2:]
             if keyword == event:

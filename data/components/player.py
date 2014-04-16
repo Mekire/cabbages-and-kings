@@ -185,8 +185,8 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.save_world_coords = (5, 5)
         self.start_coord = (9, 4)
         self.identifiers = {} #Unique identifiers the player has gotten.
-##        self.inventory = equips.make_equips(player_data["gear"])
-        self.inventory = equips.make_all_equips() ### Until chests are added.
+        self.inventory = equips.make_equips(player_data["gear"])
+##        self.inventory = equips.make_all_equips() ### Until chests are added.
         self.inventory["money"] = player_data["money"]
         self.inventory["keys"] = player_data["keys"]
         self.equipped = self.set_equips(player_data["equipped"])

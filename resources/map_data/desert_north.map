@@ -261,6 +261,13 @@ BG Tiles:
   : *id002
   ? !!python/tuple [400, 400]
   : *id002
+Chests:
+  ? !!python/tuple [350, 150]
+  : !!python/tuple
+  - item_place
+  - !!python/tuple [100, 100]
+  - !!python/tuple [weapon, labrys]
+  - !!python/unicode '1'
 Enemies:
   ? !!python/tuple [150, 500]
   : !!python/tuple

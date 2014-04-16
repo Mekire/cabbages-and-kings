@@ -297,6 +297,13 @@ BG Tiles:
   : !!python/tuple
   - base
   - !!python/tuple [0, 500]
+Chests:
+  ? !!python/tuple [550, 550]
+  : !!python/tuple
+  - item_place
+  - !!python/tuple [100, 50]
+  - !!python/tuple [head, diver]
+  - !!python/unicode '1'
 Enemies:
   ? !!python/tuple [100, 500]
   : !!python/tuple
