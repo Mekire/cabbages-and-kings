@@ -238,8 +238,12 @@ class BackGroundPage(PanelPage):
 class ItemPage(PanelPage):
     def __init__(self, map_state):
         PanelPage.__init__(self, "item_place", map_state)
-        self.item_type = Selector(**ITEM_TYPE)
-##        self.item_type.bind(self.set_type)
+        self.item_type_selector = Selector(**ITEM_TYPE)
+        self.item_type_selector.bind(self.set_type)
+        self.item_type = "Treasure Chest"
+
+    def set_type(self, name):
+        self.item_type = name
 
     def update(self, keys, now, panel_rect):
         point = pg.mouse.get_pos()
@@ -247,10 +251,10 @@ class ItemPage(PanelPage):
 
     def get_event(self, event):
         PanelPage.get_event(self, event)
-        self.item_type.get_event(event, self.rect.topleft)
+        self.item_type_selector.get_event(event, self.rect.topleft)
 
     def draw(self, surface, interpolate):
         PanelPage.draw(self, surface, interpolate)
-        self.item_type.draw(surface, self.rect.topleft)
+        self.item_type_selector.draw(surface, self.rect.topleft)
 
 

@@ -35,7 +35,6 @@ class _Item(pg.sprite.Sprite):
         self.old_position = self.exact_position[:]
         self.mask = pg.Mask(prepare.CELL_SIZE)
         self.mask.fill()
-        self.exact_position = list(self.rect.topleft)
         self.timer = tools.Timer(duration*1000, 1) if duration else None
         self.from_chest = chest
         self.identifier = ident  #Used to stop respawning of unique items.

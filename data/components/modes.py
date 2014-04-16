@@ -8,6 +8,19 @@ from . import panel
 BASIC = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
          "forest", "misc", "tatami", "water")
 
+ITEM_SHEET_DICT = {(0,0) : "heart",
+                   (50,0) : "diamond",
+                   (100,0) : "key",
+                   (150,0) : "potion",
+                   (0,50) : ("head", "helm"),
+                   (50,50) : ("head", "sader"),
+                   (100,50) : ("head", "diver"),
+                   (150,50) : ("head", "goggles"),
+                   (0,100) : ("body", "chain"),
+                   (50,100) : ("shield", "tin"),
+                   (100,100) : ("weapon", "labrys"),
+                   (150,100) : ("weapon", "pitch")}
+
 
 class _Mode(object):
     """Base class for modes."""
@@ -155,17 +168,53 @@ class Items(_Mode):
         pages = [panel.ItemPage(self.map_state)]
         self.panel = panel.Panel(self.map_state, pages)
 
-    def add_tile(self, *args):
-        """Called in update if self.adding flag is set."""
-        pass
-
-    def del_tile(self, point):
-        """Called in update if self.deleting flag is set."""
-        pass
+    @property
+    def item_type(self):
+        return self.panel.pages[self.panel.index].item_type
 
     def set_add_del(self, point, attribute):
         """Set adding or deleting attributes and retract panel."""
-        pass
+        if not self.active_panel.rect.collidepoint(point):
+            if attribute == "deleting" and not self.adding:
+                self.deleting = True
+                self.active_panel.retract()
+            elif not self.waiting and self.map_state.selected:
+                self.point = point
+                rect = map_prepare.MAP_RECT.inflate(-500, -600)
+                self.adding = True
+                prompt = 'Event id ("kill" for death of all enemies):'
+                self.waiting = InputWindow(rect, prompt)
+                self.active_panel.retract()
+
+    def add_tile(self, *args):
+        """Called in update if self.adding flag is set."""
+        sheet, src = self.map_state.selected
+        item = ITEM_SHEET_DICT[src]
+        if self.waiting.done != None:
+            try:
+                event_id = self.waiting.done
+                if event_id == "":
+                    raise ValueError
+                map_rect = map_prepare.MAP_RECT
+                size = map_prepare.CELL_SIZE
+                coord = tools.get_cell_coordinates(map_rect, self.point, size)
+                args = sheet, src, item, event_id
+                if self.item_type == "Treasure Chest":
+                    self.map_state.map_dict["Chests"][coord] = args
+                elif self.item_type == "On Event":
+                    self.map_state.map_dict["Items"][coord] = args
+            except ValueError:
+                print("Invalid input: Item not added.")
+            self.reset_add_del()
+
+    def del_tile(self, point):
+        """Called in update if self.deleting flag is set."""
+        map_rect = map_prepare.MAP_RECT
+        if map_rect.collidepoint(point):
+            size = map_prepare.CELL_SIZE
+            coord = tools.get_cell_coordinates(map_rect, point, size)
+            for item_type in ("Chests", "Items"):
+                self.map_state.map_dict[item_type].pop(coord, None)
 
 
 class InputWindow(object):

@@ -20,6 +20,10 @@ Z_ORDER = {"BG Tiles" : -4,
            "Solid/Fore" : 750,
            "Foreground" : 800}
 
+LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
+          "Solid/Fore", "Foreground", "Environment",
+          "Enemies", "Items", "Chests")
+
 
 class CollisionRect(pg.sprite.Sprite):
     """A rect that can be used as a sprite for collision purposes."""
@@ -174,15 +178,6 @@ class Level(object):
         self.player = player
         self.name = map_name
         self.map_dict = self.load_map(map_name)
-
-        self.map_dict["changes"] = {} ### Temp code
-        self.map_dict["chests"] = {}
-        self.map_dict["items"] = {}
-        self.map_dict["items"][(200,100)] = (0, 0, "key", None, False, "kill")
-        self.map_dict["chests"] = {}
-        self.map_dict["chests"][(450,150)] = (0, 0, True, "heart", "chest one")
-##        self.map_dict["chests"][(500,150)] = (0, 0, True, "diamond", "chest two")
-
         self.background = self.make_background()
         self.enemies = pg.sprite.Group()
         self.items = pg.sprite.Group()
@@ -203,20 +198,20 @@ class Level(object):
 
     def make_chests(self):
         groups = (self.solid_border, self.solids, self.interactables)
-        for target in self.map_dict["chests"]:
-            sheet, source, mask, item, ident = self.map_dict["chests"][target]
-            args = (sheet, source, target, mask, item, self.name, ident)
+        for target in self.map_dict["Chests"]:
+            sheet, source, item, ident = self.map_dict["Chests"][target]
+            args = (sheet, source, target, True, item, self.name, ident)
             chest = TreasureChest(*args)
             chest.add(groups)
             self.all_group.add(chest, layer=Z_ORDER["Solid"])
             chest.check_opened(self.player)
 
     def add_map_item(self, event):
-        for target in self.map_dict["items"]:
-            item, duration, chest, keyword = self.map_dict["items"][target][2:]
+        for target in self.map_dict["Items"]:
+            item, keyword = self.map_dict["Items"][target][2:]
             if keyword == event:
                 groups = (self.items, self.main_sprites, self.all_group)
-                args = target, duration, chest, (self.name, keyword)
+                args = target, None, False, (self.name, keyword)
                 args += groups
                 item_sprites.ITEMS[item](*args)
 
@@ -251,8 +246,10 @@ class Level(object):
     def load_map(self, map_name):
         """Load the map data from a resource file."""
         path = os.path.join(".", "resources", "map_data", map_name)
+        map_dict = {layer:{} for layer in LAYERS}
         with open(path) as myfile:
-            return yaml.load(myfile)
+            map_dict.update(yaml.load(myfile))
+        return map_dict
 
     def make_background(self):
         """Create the background as one big surface."""
