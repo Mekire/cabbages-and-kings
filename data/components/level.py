@@ -178,7 +178,7 @@ class Level(object):
         self.map_dict["changes"] = {} ### Temp code
         self.map_dict["chests"] = {}
         self.map_dict["items"] = {}
-        self.map_dict["items"]["kill"] = ("key", (200,100), None, False, "kill")
+        self.map_dict["items"][(200,100)] = (0, 0, "key", None, False, "kill")
         self.map_dict["chests"] = {}
         self.map_dict["chests"][(450,150)] = (0, 0, True, "heart", "chest one")
 ##        self.map_dict["chests"][(500,150)] = (0, 0, True, "diamond", "chest two")
@@ -201,7 +201,7 @@ class Level(object):
         self.posted = set() # Set of map events that have been posted.
         self.make_chests() ###Temporary
 
-    def make_chests(self):  ### Temporary chest testing code.
+    def make_chests(self):
         groups = (self.solid_border, self.solids, self.interactables)
         for target in self.map_dict["chests"]:
             sheet, source, mask, item, ident = self.map_dict["chests"][target]
@@ -211,12 +211,14 @@ class Level(object):
             self.all_group.add(chest, layer=Z_ORDER["Solid"])
             chest.check_opened(self.player)
 
-    def add_map_item(self, item, *args):
-        groups = (self.items, self.main_sprites, self.all_group)
-        target, duration, chest, keyword = args
-        args = target, duration, chest, (self.name, keyword)
-        args += groups
-        item_sprites.ITEMS[item](*args)
+    def add_map_item(self, event):
+        for target in self.map_dict["items"]:
+            item, duration, chest, keyword = self.map_dict["items"][target][2:]
+            if keyword == event:
+                groups = (self.items, self.main_sprites, self.all_group)
+                args = target, duration, chest, (self.name, keyword)
+                args += groups
+                item_sprites.ITEMS[item](*args)
 
     def spawn(self):
         """Create enemies, adding them to the required groups."""
@@ -293,14 +295,17 @@ class Level(object):
         return group
 
     def post_map_event(self, event):
+        """
+        Intercept a map_event and make appropriate changes to map.
+        If the change has persistence the player should add the event to
+        his list of identifiers.
+        """
         identifiers = self.player.identifiers.setdefault(self.name, set())
         if event not in self.posted:
             self.posted.add(event)
             if event not in identifiers:
-                if event in self.map_dict["items"]:
-                    self.add_map_item(*self.map_dict["items"][event])
-                elif event in self.map_dict["changes"]:
-                    pass
+                self.add_map_item(event)
+                ### Check map changes here too.
 
     def update(self, now):
         """

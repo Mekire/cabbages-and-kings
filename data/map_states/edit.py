@@ -68,7 +68,8 @@ class Edit(state_machine._State):
         self.toolbar = toolbar.ToolBar(self.map_state)
         self.set_toolbar_bindings()
         self.mode_dict = {"Standard" : modes.Standard(self.map_state),
-                          "Enemies" : modes.Enemies(self.map_state)}
+                          "Enemies" : modes.Enemies(self.map_state),
+                          "Items" : modes.Items(self.map_state)}
         self.mode = self.mode_dict[self.map_state.mode]
 
     def set_toolbar_bindings(self):

@@ -148,6 +148,13 @@ class Enemies(_Mode):
                 self.active_panel.retract()
 
 
+class Items(_Mode):
+    def make_panels(self):
+        """Create necessary panels and their pages."""
+        pages = [panel.PanelPage("item_place", self.map_state)]
+        self.panel = panel.Panel(self.map_state, pages)
+
+
 class InputWindow(object):
     def __init__(self, rect, prompt):
         self.rect = pg.Rect(rect)

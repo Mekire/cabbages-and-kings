@@ -206,6 +206,10 @@ class Button(_Widget):
             elif event.type == pg.KEYUP:
                 self.release_bound_key(event)
 
+    def bind_key(self, key):
+        """Add passed key to the bindings for this button."""
+        self.key_bindings.append(key)
+
     def press_bound_key(self, event):
         """Press button if bound key (or key+mod) combination is pressed."""
         if event.key in self.key_bindings:

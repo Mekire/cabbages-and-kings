@@ -77,6 +77,7 @@ class ToolBar(object):
     def make_widgets(self):
         """Create required GUI widgets."""
         self.mode_select = Selector(**MODE_SELECT_SETTINGS)
+        self.bind_keys_to_modes()
         self.layer_select = Selector(**LAYER_SELECT_SETTINGS)
         self.check_boxes = CheckBoxArray(**CHECK_ARRAY_SETTINGS)
         self.check_boxes.bind_key(pg.K_v, self.toggle_layer_visibility)
@@ -88,6 +89,12 @@ class ToolBar(object):
                         self.navs[0], self.navs[1],
                         self.save_button, self.load_button, self.new_button]
 
+    def bind_keys_to_modes(self):
+        """Bind each mode button to the keys 1-6."""
+        for i,button in enumerate(self.mode_select.buttons, 1):
+            key = getattr(pg, "K_{}".format(i))
+            button.bind_key(key)
+
     def toggle_layer_visibility(self, check_box_array):
         """
         Toggle the visibility of the currently selected layer via 'v-key'.
@@ -96,8 +103,19 @@ class ToolBar(object):
             if self.map_state.layer == check_box.name:
                 check_box.toggle()
 
+    def change_layer_with_keys(self, event):
+        """Move up and down layers with w/up and s/down keys."""
+        if event.key in (pg.K_w, pg.K_UP):
+            index = (LAYERS.index(self.map_state.layer)-1)%len(LAYERS)
+            self.layer_select.buttons[index].press()
+        elif event.key in (pg.K_s, pg.K_DOWN):
+            index = (LAYERS.index(self.map_state.layer)+1)%len(LAYERS)
+            self.layer_select.buttons[index].press()
+
     def get_event(self,event):
         """Recieve events from the Edit state and pass them to each widget."""
+        if event.type == pg.KEYDOWN:
+            self.change_layer_with_keys(event)
         for widget in self.widgets:
             widget.get_event(event)
 
