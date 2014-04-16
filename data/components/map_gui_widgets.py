@@ -140,15 +140,15 @@ class Selector(_Widget):
         if self.command:
             self.command(name)
 
-    def get_event(self, event):
+    def get_event(self, event, offset=(0,0)):
         """Pass events down to each button."""
         for button in self.buttons:
-            button.get_event(event)
+            button.get_event(event, offset)
 
-    def draw(self, surface):
+    def draw(self, surface, offset=(0,0)):
         """Update and draw each button to the target surface."""
         for button in self.buttons:
-            button.draw(surface)
+            button.draw(surface, offset)
 
 
 class Button(_Widget):

@@ -1,7 +1,7 @@
 import pygame as pg
 
 from .. import tools, map_prepare
-from .map_gui_widgets import Button
+from .map_gui_widgets import Button, Selector
 
 
 MIN_SCROLL = -302
@@ -19,14 +19,28 @@ FILL_BUTTON = {"name" : "Fill",
                "unclick" : True,
                "key_bindings" : [pg.K_f]}
 
+ITEM_TYPE = {"content" : ["Treasure Chest", "On Event"],
+             "start" : (140, 400),
+             "space" : (0,20),
+             "size" : (100,20),
+             "selected" : "Treasure Chest"}
+
 
 class Panel(object):
+    """
+    The panel from which the user selects tiles/enemies etc.  The visibility
+    variables of all panel instances are shared.
+    """
     rect = pg.Rect(-302, 48, 420, 604)
     scrolling = False
     visible = False
     scroll_direction = 1
 
     def __init__(self, map_state, pages):
+        """
+        The panel needs access to the map_state object.  The pages argument
+        is a list of PanelPage (or subclass) instances.
+        """
         self.map_state = map_state
         self.pages = pages
         self.index = 0
@@ -35,7 +49,7 @@ class Panel(object):
 
     @classmethod
     def do_scroll(cls):
-        """Scroll panel in and out when handle is clicked."""
+        """Scroll panel in and out when Panel.scrolling is True."""
         cls.rect.x += SCROLL_SPEED*cls.scroll_direction
         cls.rect.x = min(max(cls.rect.x, MIN_SCROLL), MAX_SCROLL)
         if cls.rect.x == MIN_SCROLL:
@@ -46,30 +60,36 @@ class Panel(object):
 
     @classmethod
     def retract(cls):
+        """Set variables to trigger panel retract."""
         if cls.visible:
             cls.scrolling = True
             cls.scroll_direction = -1
 
     @classmethod
     def toggle_scroll(cls):
+        """Flip the scrolling variables."""
         cls.scrolling = True
         cls.visible = True
 
     @property
     def pull_rect(self):
+        """Conveniece for retrieving the position of the panel pull tab."""
         return PULL_TAB.get_rect(right=self.rect.right-2,
                                  centery=self.rect.centery)
 
     @property
     def arrow_rect(self):
+        """Conveniece for retrieving the position of the pull tab arrows."""
         pull_rect = self.pull_rect
         return ARROWS.get_rect(centerx=pull_rect.centerx-1,
                                centery=pull_rect.centery)
 
     def is_ready(self):
+        """Check if the panel is ready to send selection events to the page."""
         return self.visible and not self.scrolling
 
     def make_panel(self):
+        """Create the base panel image."""
         image = pg.Surface(self.rect.size).convert_alpha()
         image.fill((0,0,0,0))
         image.fill(pg.Color("white"), (0,0,404,604))
@@ -77,6 +97,10 @@ class Panel(object):
         return image
 
     def get_event(self, event):
+        """
+        Check for scroll trigger events (keyboard/mouse) and if the panel
+        is currently ready, send event on to the current panel page.
+        """
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_SPACE:
                 self.toggle_scroll()
@@ -87,11 +111,16 @@ class Panel(object):
             self.pages[self.index].get_event(event)
 
     def update(self, keys, now):
+        """Update scrolling if needed and update current panel page."""
         if self.visible and self.scrolling:
             self.do_scroll()
         self.pages[self.index].update(keys, now, self.rect)
 
     def draw(self, surface, interpolate):
+        """
+        Draw panel elements including page.
+        Location of the panel is interpolated between frames while scrolling.
+        """
         scroll_direction = self.scroll_direction
         if self.visible and self.scrolling:
             pos = self.rect.copy()
@@ -204,4 +233,24 @@ class BackGroundPage(PanelPage):
 
     def draw_cursor(self, *args):
         pass
+
+
+class ItemPage(PanelPage):
+    def __init__(self, map_state):
+        PanelPage.__init__(self, "item_place", map_state)
+        self.item_type = Selector(**ITEM_TYPE)
+##        self.item_type.bind(self.set_type)
+
+    def update(self, keys, now, panel_rect):
+        point = pg.mouse.get_pos()
+        self.rect.topleft = panel_rect.move(2,2).topleft
+
+    def get_event(self, event):
+        PanelPage.get_event(self, event)
+        self.item_type.get_event(event, self.rect.topleft)
+
+    def draw(self, surface, interpolate):
+        PanelPage.draw(self, surface, interpolate)
+        self.item_type.draw(surface, self.rect.topleft)
+
 

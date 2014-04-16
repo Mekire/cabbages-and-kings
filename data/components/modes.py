@@ -10,6 +10,7 @@ BASIC = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
 
 
 class _Mode(object):
+    """Base class for modes."""
     def __init__(self, map_state):
         self.map_state = map_state
         self.make_panels()
@@ -151,8 +152,20 @@ class Enemies(_Mode):
 class Items(_Mode):
     def make_panels(self):
         """Create necessary panels and their pages."""
-        pages = [panel.PanelPage("item_place", self.map_state)]
+        pages = [panel.ItemPage(self.map_state)]
         self.panel = panel.Panel(self.map_state, pages)
+
+    def add_tile(self, *args):
+        """Called in update if self.adding flag is set."""
+        pass
+
+    def del_tile(self, point):
+        """Called in update if self.deleting flag is set."""
+        pass
+
+    def set_add_del(self, point, attribute):
+        """Set adding or deleting attributes and retract panel."""
+        pass
 
 
 class InputWindow(object):
