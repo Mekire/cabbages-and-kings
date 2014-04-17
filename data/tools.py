@@ -266,3 +266,14 @@ def get_rendered(font, text, color, cache):
         image = font.render(text, 0, color)
         cache[text] = image
     return image
+
+
+def rect_then_mask(one, two):
+    """
+    This is a callback function to be used with sprite group collision methods.
+    It initially checks if two sprites have overlapping rectangles. If this is
+    True, it will check if their masks collide and return the result.  If the
+    rectangles were not colliding, the mask check is not performed.
+    """
+    return pg.sprite.collide_rect(one,two) and pg.sprite.collide_mask(one,two)
+

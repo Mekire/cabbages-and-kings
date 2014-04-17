@@ -128,6 +128,12 @@ class TreasureChest(Tile):
                 self.mask = self.open_mask
 
     def update(self, now, player, group_dict, *args):
+        """
+        Check if the chest is open.  Then check if the add_to_map variable
+        has been set; if it has, add the new item to the appropriate sprite
+        groups.  The actual item is instantly added to the player's inventory
+        to avoid issues associated with leaving a map during the animation.
+        """
         self.check_opened(player)
         if self.add_to_map:
             item_groups = (group_dict["items"], group_dict["main"],
@@ -138,6 +144,11 @@ class TreasureChest(Tile):
             self.add_to_map = False
 
     def interact_with(self, player):
+        """
+        Open chest when player presses the action key.  Chest can not be
+        opened from above for both practical (collision mask changes) and
+        aesthetic purposes.
+        """
         if not self.open and player.rect.centery > self.rect.top+10:
             self.add_to_map = True
 
@@ -327,11 +338,10 @@ class Level(object):
         Check collisions and call the appropriate functions of the affected
         sprites.
         """
-        call_mask = pg.sprite.collide_mask
-        collide_group = pg.sprite.Group(self.solids, self.enemies, self.items)
-        hit = pg.sprite.spritecollide(self.player, collide_group, False)
-        mask_hits = pg.sprite.spritecollide(self.player, hit, False, call_mask)
-        for hit in mask_hits:
+        callback = tools.rect_then_mask
+        groups = pg.sprite.Group(self.solids, self.enemies, self.items)
+        hits = pg.sprite.spritecollide(self.player, groups, False, callback)
+        for hit in hits:
             hit.collide_with_player(self.player)
         self.process_attacks()
 

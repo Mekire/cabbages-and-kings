@@ -2,7 +2,7 @@ import os
 import sys
 import pygame as pg
 
-from .. import prepare
+from .. import prepare, tools
 from . import level
 
 
@@ -15,6 +15,11 @@ else:
 MAX_HISTORY = 3
 OFFSCREEN_THRESHOLD = 25 #Amount player can be offscreen before map scrolls.
 SCROLL_SPEED = 20.0
+
+
+class MapError(Exception):
+    """Exception thrown if the map fails to rectify a collision issue."""
+    pass
 
 
 class WorldMap(object):
@@ -129,7 +134,31 @@ class WorldMap(object):
                     self.scrolling = False
                     self.screen_copy = None
                     self.offset = [0, 0]
+                    self.after_scroll_safety_check()
             self.drawn_this_frame = False
+
+    def after_scroll_safety_check(self):
+        """
+        This method performs an initial collision check with the new map.
+        If the player is found to be overlapping a tile, a minor adjustment is
+        attempted (player will not be adjusted more than max_adjust pixels).
+        If the collision can not be avoided a MapError is thrown and the map
+        should be revised.
+        """
+        max_adjust = 15 #More than 15 pixels would probably be too noticeable.
+        callback = tools.rect_then_mask
+        collision_args = (self.player, self.level.solids, False, callback)
+        adjust = self.scroll_vector[::-1] #Adjusts perpendicular to scroll.
+        for count in range(max_adjust):
+            for direction in (1, -1):
+                move = direction*count*adjust[0], direction*count*adjust[1]
+                self.player.rect.move_ip(*move)
+                if not any(pg.sprite.spritecollide(*collision_args)):
+                    #Executes and returns if player confirmed clear.
+                    self.player.reset_position(self.player.rect.topleft)
+                    return
+                self.player.rect.move_ip(-move[0], -move[1])
+        raise MapError("Map collision after scroll. Please report this map.")
 
     def draw_scroll(self, surface, interpolate):
         """
