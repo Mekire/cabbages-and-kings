@@ -123,8 +123,11 @@ class SelectState(menu_helpers.BasicMenu):
         if player_sprite != "EMPTY":
             if player_sprite.image and not player_sprite.redraw:
                 player_sprite.redraw = redraw
+            player_sprite.direction = "front"
             player_sprite.adjust_frames(pg.time.get_ticks())
             expand = pg.transform.scale(player_sprite.image, (100,100))
+            player_sprite.direction = player_sprite.start_direction ###
+            player_sprite.redraw = redraw ###
             position = (PLAYER_START[0], PLAYER_START[1]+SLOT_SPACER*index)
             surface.blit(expand, position)
             self.draw_player_stats(surface, player_sprite, index)

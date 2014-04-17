@@ -66,6 +66,11 @@ DEFAULT_GEAR = {"head" : ["none"],
                 "weapon" : ["pitch"]}
 
 DEFAULT_PLAYER = {"name" : None,
+                  "world" : "overworld.wrl",
+                  "save_world_coords" : (5, 5),
+                  "start_coord" : (9, 4),
+                  "start_direction" : "right",
+                  "identifiers" : {},
                   "money" : 0,
                   "keys" : 0,
                   "gear" : DEFAULT_GEAR,

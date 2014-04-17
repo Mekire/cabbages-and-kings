@@ -2,11 +2,18 @@
 This module contains the primary gameplay state.
 """
 
+import sys
 import math
 import pygame as pg
 
 from .. import prepare, state_machine, menu_helpers
 from ..components import player, world, sidebar, enemy_sprites
+
+
+if sys.version_info[0] < 3:
+    import yaml
+else:
+    import yaml3 as yaml
 
 
 SMALL_FONT = pg.font.Font(prepare.FONTS["Fixedsys500c"], 32) ###
@@ -50,6 +57,22 @@ class Game(state_machine._State):
         self.persist["bg_color"] = self.world.level.background_color
         self.persist["sidebar"] = self.sidebar
         return self.persist
+
+    def save_player(self):
+        """
+        Retrieve needed data and save it in the player's save slot using YAML.
+        """
+        data = self.player.get_player_data()
+        try:
+            with open(prepare.SAVE_PATH) as my_file:
+                players = yaml.load(my_file)
+        except IOError:
+            print("Problem loading data. Exiting.")
+            raise
+        save_slot = self.persist["save_slot"]
+        players[save_slot] = data
+        with open(prepare.SAVE_PATH, 'w') as my_file:
+            yaml.dump(players, my_file)
 
     def get_event(self, event):
         """
@@ -121,7 +144,7 @@ class Game(state_machine._State):
                     self.next = self.play_again.next
                     self.player.reset()
                     self.reset_map = True
-                    ###Add save logic here.
+                    self.save_player() ###
 
 
 class IrisIn(object):

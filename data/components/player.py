@@ -146,6 +146,10 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
 
     @property
     def frame_speed(self):
+        """
+        Returns the total displacement undergone in a frame. Used for the
+        interpolation of the player's location in the draw phase.
+        """
         return (self.exact_position[0]-self.old_position[0],
                 self.exact_position[1]-self.old_position[1])
 
@@ -155,7 +159,7 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         Called on character creation as well as a continued game.
         """
         self.health = prepare.MAX_HEALTH
-        self.direction = "front"
+        self.direction = self.start_direction
         self.direction_stack = [] #Held keys in the order they were pressed.
         pos = (self.start_coord[0]*prepare.CELL_SIZE[0],
                self.start_coord[1]*prepare.CELL_SIZE[1])
@@ -177,20 +181,31 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.exact_position = list(self.rect.topleft)
         self.old_position = self.exact_position[:]
 
-    def set_player_data(self, player_data):
+    def set_player_data(self, data):
         """Set required stats based on player data."""
-        self.name = player_data["name"]
-        ### Get from player data later. ###
-        self.world = "overworld"
-        self.save_world_coords = (5, 5)
-        self.start_coord = (9, 4)
-        self.identifiers = {} #Unique identifiers the player has gotten.
-        self.inventory = equips.make_equips(player_data["gear"])
+        for key in data:
+            if key not in ("identifiers", "gear", "equipped", "money", "keys"):
+                setattr(self, key, data[key])
+        self.identifiers = data["identifiers"].copy() #Persistant event flags.
+        self.inventory = equips.make_equips(data["gear"])
 ##        self.inventory = equips.make_all_equips() ### Until chests are added.
-        self.inventory["money"] = player_data["money"]
-        self.inventory["keys"] = player_data["keys"]
-        self.equipped = self.set_equips(player_data["equipped"])
+        self.inventory["money"] = data["money"]
+        self.inventory["keys"] = data["keys"]
+        self.equipped = self.set_equips(data["equipped"])
         self.defense,self.strength,self.speed = self.calc_stats(self.equipped)
+
+    def get_player_data(self):
+        """Return a dictionary of the data that needs to be saved."""
+        data = {}
+        for key in prepare.DEFAULT_PLAYER:
+            if key not in ("gear", "equipped", "money", "keys"):
+                data[key] = getattr(self, key)
+        data["money"] = self.inventory["money"]
+        data["keys"] = self.inventory["keys"]
+        gears = prepare.DEFAULT_GEAR.keys()
+        data["gear"] = {gear:list(self.inventory[gear]) for gear in gears}
+        data["equipped"] = {gear:self.equipped[gear].name for gear in gears}
+        return data
 
     def set_equips(self, equip_data):
         """
