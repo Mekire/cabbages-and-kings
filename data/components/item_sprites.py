@@ -143,7 +143,7 @@ class Key(_Item):
 
 
 def make_equip_drop(GearClass):
-    """Given a equipment class, return a corresponding drop item class."""
+    """Given an equipment class, return a corresponding drop item class."""
     class EquipDrop(_Item):
         """This class works for creating drops for all equipment."""
         def __init__(self, pos, dur, chest=False, ident=None, *groups):

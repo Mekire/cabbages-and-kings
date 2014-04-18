@@ -18,14 +18,16 @@ ENEMY_COORDS = {
     "skeleton" : [(0,1),(1,1),(2,1),(3,1),(4,1),(5,1),
                   (7,1),(7,0),(8,1),(8,0),(9,1),(9,0)],
     "tank" : [(0,7),(1,7),(2,7),(3,7),(4,7),(5,7),(6,7),(7,7),
-              (4,8),(5,8),(6,8),(7,8),(8,7),(9,7),(8,8)],
-    "frog" : [(0,11),(1,11),(0,12),(1,12),(2,12),(3,12),
-              (2,11),(3,11),(4,11),(5,11),(6,11),(7,11),
-              (8,11),(9,11),(9,12),(4,12),(5,12),(6,12),(7,12)],
-    "crab" : [(0,10),(1,10),(2,10),(3,10),(4,10),(5,10),(6,10),(7,10),(8,10)],
+              (8,6),(5,8),(6,8),(7,8),(8,7),(9,7),(8,8)],
+
+    "frog" : [(0,10),(1,10),(0,11),(1,11),(2,11),(3,11),
+              (2,10),(3,10),(4,11),(5,11),(6,11),(8,12),
+              (4,10),(5,10),(6,10),(7,11),(8,11),(9,11),(9,12)],
+
+    "crab" : [(4,9),(5,9),(6,9),(7,9),(8,9),(9,9),(7,10),(8,10),(9,10)],
     "zombie" : [(0,3),(1,3),(6,4),(7,4),(8,2),(9,2),(2,3),(3,3),(8,4),(9,4),
-                (8,6),(9,6),(4,3),(5,3),(6,3),(7,3),(8,3),(9,3)],
-    "snail" : [(0,9),(1,9),(2,9),(3,9),(4,9),(5,9),(6,9),(7,9),(8,9)],
+                (9,5),(9,6),(4,3),(5,3),(6,3),(7,3),(8,3),(9,3)],
+    "snail" : [(0,8),(1,8),(2,8),(3,8),(4,8),(0,9),(1,9),(2,9),(3,9)],
     "mushroom" : [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),
                   (6,0),(7,0),(8,0),(9,0),(9,1)],
     "blue_oni" : [(0,1),(1,1),(4,1),(7,1),(8,1),(2,1),(3,1),(5,1),(0,2),
@@ -36,7 +38,7 @@ ENEMY_COORDS = {
                 (0,6),(1,6),(2,6),(3,6),(4,6),(5,6),(6,4),(7,4),(8,4),(9,4)],
     "lantern" : [(0,7),(1,7),(6,6),(7,6),(2,7),(3,7),(4,7),
                  (5,7),(6,7),(7,7),(8,7),(9,7),(9,6)],
-    "evil_elf" : [(0,8),(1,8),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8)],
+    "evil_self" : [(0,8),(1,8),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8)],
     "knight" : [(0,11),(1,11),(2,11),(3,11),(4,11),(5,11),
                 (6,11),(7,11),(0,12),(1,12),(2,12),(3,12)]}
 
@@ -302,59 +304,112 @@ class _Enemy(pg.sprite.Sprite):
         surface.blit(self.image, self.rect)
 
 
-class Cabbage(_Enemy):
-    """The eponymous Cabbage monster. (1 direction)"""
+class _BasicFrontFrames(_Enemy):
+    """
+    Used for enemy sprites that only have frames in 1 direction.
+    Include: Cabbage, Spider, Turtle, Crab.
+    """
     def __init__(self, *args):
-        _Enemy.__init__(self, "cabbage", ENEMY_SHEET, *args)
+        _Enemy.__init__(self, *args)
         self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
                       "hit" : tools.Anim(self.frames[2:4], 20),
-                      "die" : tools.Anim(self.frames[4:], 5, 1)}
+                      "die" : None} #Set die in specific class declaration.
         self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+
+
+class _SideFramesOnly(_Enemy):
+    """
+    Used for enemy sprites that only have frames for the right and left sides.
+    The right frames are flipped versions of the left.
+    Include: Snake, Scorpion, Snail.
+    """
+    def __init__(self, *args):
+        _Enemy.__init__(self, *args)
+        self.anim_directions = ["left", "right"]
+        self.anim_direction = random.choice(self.anim_directions)
+        self.ai = LinearAI(self)
+        walk = {"left" : tools.Anim(self.frames[:2], 7),
+                "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
+                                pg.transform.flip(self.frames[1], 1, 0)], 7)}
+        hit = {"left" : tools.Anim(self.frames[2:4], 20),
+               "right" : tools.Anim([pg.transform.flip(self.frames[2], 1, 0),
+                                pg.transform.flip(self.frames[3], 1, 0)], 20)}
+        die_frames = self.frames[4:]+[self.frames[-1]]
+        flipped_die = [pg.transform.flip(frame, 1, 0) for frame in die_frames]
+        die = {"left" : tools.Anim(self.frames[4:], 5, 1),
+               "right" : tools.Anim(flipped_die, 5, 1)}
+        self.anims = {"walk" : walk, "hit" : hit, "die" : die}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+
+
+class Cabbage(_BasicFrontFrames):
+    """The eponymous Cabbage monster. (1 direction)"""
+    def __init__(self, *args):
+        _BasicFrontFrames.__init__(self, "cabbage", ENEMY_SHEET, *args)
+        die_frames = self.frames[4:]+[self.frames[-1]]
+        self.anims["die"] = tools.Anim(die_frames, 5, 1)
         self.health = 3
         self.attack = 4
         self.drops = ["heart"]
 
 
-class Spider(_Enemy):
+class Spider(_BasicFrontFrames):
     """Spider like monster; shoots webs (not implemented) (1 direction)."""
     def __init__(self, *args):
-        _Enemy.__init__(self, "spider", ENEMY_SHEET, *args)
-        death_frames = self.frames[4:6]+self.frames[6:]*2
-        self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
-                      "hit" : tools.Anim(self.frames[2:4], 20),
-                      "die" : tools.Anim(death_frames, 5, 1)}
-        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        _BasicFrontFrames.__init__(self, "spider", ENEMY_SHEET, *args)
+        die_frames = self.frames[4:6]+self.frames[6:]*2
+        self.anims["die"] = tools.Anim(die_frames, 5, 1)
         self.health = 6
         self.attack = 6
         self.drops = ["diamond", None]
 
 
-class Crab(_Enemy):
+class Crab(_BasicFrontFrames):
     """Irritated crab. Shoots bubbles (not implemented) (1 direction)."""
     def __init__(self, *args):
-        _Enemy.__init__(self, "crab", ENEMY_SHEET, *args)
-        death_frames = self.frames[4:7]+self.frames[7:]*2
-        self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
-                      "hit" : tools.Anim(self.frames[2:4], 20),
-                      "die" : tools.Anim(death_frames, 5, 1)}
-        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        _BasicFrontFrames.__init__(self, "crab", ENEMY_SHEET, *args)
+        die_frames = self.frames[4:7]+self.frames[7:]*2
+        self.anims["die"] = tools.Anim(die_frames, 5, 1)
         self.health = 6
         self.attack = 6
         self.drops = [None, None, "diamond"]
 
 
-class Turtle(_Enemy):
-    """Spider like monster; shoots webs (not implemented) (1 direction)."""
+class Turtle(_BasicFrontFrames):
+    """Spinning tornado turtle (1 direction)."""
     def __init__(self, *args):
-        _Enemy.__init__(self, "turtle", ENEMY_SHEET, *args)
-        death_frames = self.frames[2:5]+[self.frames[5]]*2
-        self.anims = {"walk" : tools.Anim(self.frames[:2], 7),
-                      "hit" : tools.Anim(self.frames[2:4], 20),
-                      "die" : tools.Anim(death_frames, 5, 1)}
-        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        _BasicFrontFrames.__init__(self, "turtle", ENEMY_SHEET, *args)
+        die_frames = self.frames[2:5]+[self.frames[5]]*2
+        self.anims["die"] = tools.Anim(die_frames, 5, 1)
         self.health = 12
         self.attack = 6
         self.drops = [None]
+
+
+class Snake(_SideFramesOnly):
+    """An annoying snake. (2 directions)"""
+    def __init__(self, *args):
+        _SideFramesOnly.__init__(self, "snake", ENEMY_SHEET, *args)
+        self.health = 6
+        self.attack = 6
+        self.drops = ["diamond", "potion", None, None]
+
+
+class Scorpion(_SideFramesOnly):
+    """A high damage scorpion. (2 directions)"""
+    def __init__(self, *args):
+        _SideFramesOnly.__init__(self, "scorpion", ENEMY_SHEET, *args)
+        self.health = 6
+        self.attack = 10
+        self.drops = ["heart", None]
+
+class Snail(_SideFramesOnly):
+    """A toxic trail leaving snail (not implemented). (2 directions)"""
+    def __init__(self, *args):
+        _SideFramesOnly.__init__(self, "snail", ENEMY_SHEET, *args)
+        self.health = 10
+        self.attack = 8
+        self.drops = ["diamond", "heart", None, None]
 
 
 class Zombie(_Enemy):
@@ -382,53 +437,28 @@ class Zombie(_Enemy):
         self.drops = ["key"]
 
 
-class Snake(_Enemy):
-    """An annoying snake. (2 directions)"""
+class Frog(_Enemy):
+    """Your standard hoppy frog (4 directions)"""
     def __init__(self, *args):
-        _Enemy.__init__(self, "snake", ENEMY_SHEET, *args)
-        self.anim_directions = ["left", "right"]
-        self.anim_direction = random.choice(self.anim_directions)
-        self.ai = LinearAI(self)
-        walk = {"left" : tools.Anim(self.frames[:2], 7),
-                "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
-                                pg.transform.flip(self.frames[1], 1, 0)], 7)}
-        hit = {"left" : tools.Anim(self.frames[2:4], 20),
-               "right" : tools.Anim([pg.transform.flip(self.frames[2], 1, 0),
-                                pg.transform.flip(self.frames[3], 1, 0)], 20)}
-        flipped_die = [pg.transform.flip(f, 1, 0) for f in self.frames[4:]]
-        die = {"left" : tools.Anim(self.frames[4:], 5, 1),
-               "right" : tools.Anim(flipped_die, 5, 1)}
+        _Enemy.__init__(self,  "frog", ENEMY_SHEET, *args)
+        walk = {"front" : tools.Anim(self.frames[:2], 7),
+                "back" : tools.Anim(self.frames[2:4], 7),
+                "left" : tools.Anim([pg.transform.flip(self.frames[4], 1, 0),
+                               pg.transform.flip(self.frames[5], 1, 0)], 7),
+                "right" : tools.Anim(self.frames[4:6], 7)}
+        hit = {"front" : tools.Anim(self.frames[6:8], 20),
+               "back" : tools.Anim(self.frames[8:10], 20),
+               "left" : tools.Anim([pg.transform.flip(self.frames[10], 1, 0),
+                               pg.transform.flip(self.frames[11], 1, 0)], 20),
+               "right" : tools.Anim(self.frames[10:12], 20)}
+        die_frames = self.frames[12:]
         self.anims = {"walk" : walk,
                       "hit" : hit,
-                      "die" : die}
+                      "die" : tools.Anim(die_frames, 5, 1)}
         self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
         self.health = 6
         self.attack = 6
-        self.drops = ["diamond", "potion"]
-
-
-class Scorpion(_Enemy):
-    """A high damage scorpion. (2 directions)"""
-    def __init__(self, *args):
-        _Enemy.__init__(self, "scorpion", ENEMY_SHEET, *args)
-        self.anim_directions = ["left", "right"]
-        self.anim_direction = random.choice(self.anim_directions)
-        walk = {"left" : tools.Anim(self.frames[:2], 7),
-                "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
-                                pg.transform.flip(self.frames[1], 1, 0)], 7)}
-        hit = {"left" : tools.Anim(self.frames[2:4], 20),
-               "right" : tools.Anim([pg.transform.flip(self.frames[2], 1, 0),
-                                pg.transform.flip(self.frames[3], 1, 0)], 20)}
-        flipped_die = [pg.transform.flip(f, 1, 0) for f in self.frames[4:]]
-        die = {"left" : tools.Anim(self.frames[4:], 5, 1),
-               "right" : tools.Anim(flipped_die, 5, 1)}
-        self.anims = {"walk" : walk,
-                      "hit" : hit,
-                      "die" : die}
-        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
-        self.health = 6
-        self.attack = 10
-        self.drops = ["heart", None]
+        self.drops = ["heart", None, None]
 
 
 class Skeleton(_Enemy):
@@ -460,9 +490,9 @@ class Skeleton(_Enemy):
 
 ENEMY_DICT = {(0, 0) : Cabbage,
               (50, 0) : Spider,
-              (100, 0) : None, #Frog,
+              (100, 0) : Frog,
               (150, 0) : None, #Mushroom,
-              (200, 0) : None, #Snail,
+              (200, 0) : Snail,
               (250, 0) : Crab,
               (300, 0) : Skeleton,
               (350, 0) : Zombie,
