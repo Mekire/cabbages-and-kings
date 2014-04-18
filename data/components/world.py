@@ -115,6 +115,8 @@ class WorldMap(object):
         centerx, centery = self.player.rect.center
         new_center = centerx%prepare.PLAY_RECT.w, centery%prepare.PLAY_RECT.h
         self.player.reset_position(new_center, "center")
+        #Fixes the "stuck in attack pose after scroll" glitch hopefully.
+        self.player.equipped["weapon"].sprite.reset_attack()
         self.screen_copy = pg.display.get_surface().copy()
         self.level.shadows.update()
         self.level.draw(self.next_screen, 0)
