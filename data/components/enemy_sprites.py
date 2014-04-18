@@ -8,6 +8,7 @@ from .. import prepare, tools
 KNOCK_SPEED = 12.5  #Pixels per frame.
 
 ENEMY_SHEET = prepare.GFX["enemies"]["enemysheet"]
+ENEMY_SHEET_2 = prepare.GFX["enemies"]["enemysheet1"]
 
 ENEMY_COORDS = {
     "cabbage" : [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0)],
@@ -19,26 +20,26 @@ ENEMY_COORDS = {
                   (7,1),(7,0),(8,1),(8,0),(9,1),(9,0)],
     "tank" : [(0,7),(1,7),(2,7),(3,7),(4,7),(5,7),(6,7),(7,7),
               (8,6),(5,8),(6,8),(7,8),(8,7),(9,7),(8,8)],
-
     "frog" : [(0,10),(1,10),(0,11),(1,11),(2,11),(3,11),
               (2,10),(3,10),(4,11),(5,11),(6,11),(8,12),
               (4,10),(5,10),(6,10),(7,11),(8,11),(9,11),(9,12)],
-
     "crab" : [(4,9),(5,9),(6,9),(7,9),(8,9),(9,9),(7,10),(8,10),(9,10)],
+
     "zombie" : [(0,3),(1,3),(6,4),(7,4),(8,2),(9,2),(2,3),(3,3),(8,4),(9,4),
                 (9,5),(9,6),(4,3),(5,3),(6,3),(7,3),(8,3),(9,3)],
+
     "snail" : [(0,8),(1,8),(2,8),(3,8),(4,8),(0,9),(1,9),(2,9),(3,9)],
     "mushroom" : [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),
                   (6,0),(7,0),(8,0),(9,0),(9,1)],
-    "blue_oni" : [(0,1),(1,1),(4,1),(7,1),(8,1),(2,1),(3,1),(5,1),(0,2),
-                  (1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),(8,2)],
-    "red_oni" : [(0,3),(1,3),(4,3),(7,3),(8,3),(2,3),(3,3),(5,3),(0,4),
-                 (1,4),(2,4),(3,4),(4,4),(5,4),(6,2),(7,2),(8,2)],
+    "blue_oni" : [(0,1),(1,1),(4,1),(9,2),(7,1),(8,1),(2,1),(3,1),(5,1),(6,1),
+                  (0,2),(1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),(8,2)],
+    "red_oni" : [(0,3),(1,3),(4,3),(5,3),(8,3),(9,3),(2,3),(3,3),(6,3),(7,3),
+                 (0,4),(1,4),(2,4),(3,4),(4,4),(5,4),(6,2),(7,2),(8,2)],
     "daruma" : [(0,5),(1,5),(2,5),(3,5),(4,5),(5,5),(6,5),(7,5),(8,5),(9,5),
                 (0,6),(1,6),(2,6),(3,6),(4,6),(5,6),(6,4),(7,4),(8,4),(9,4)],
     "lantern" : [(0,7),(1,7),(6,6),(7,6),(2,7),(3,7),(4,7),
                  (5,7),(6,7),(7,7),(8,7),(9,7),(9,6)],
-    "evil_self" : [(0,8),(1,8),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8)],
+    "evil_elf" : [(0,8),(1,8),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8)],
     "knight" : [(0,11),(1,11),(2,11),(3,11),(4,11),(5,11),
                 (6,11),(7,11),(0,12),(1,12),(2,12),(3,12)]}
 
@@ -142,6 +143,10 @@ class _Enemy(pg.sprite.Sprite):
 
     @property
     def frame_speed(self):
+        """
+        Returns the total displacement undergone in a frame. Used for the
+        interpolation of the sprites' location in the draw phase.
+        """
         return (self.exact_position[0]-self.old_position[0],
                 self.exact_position[1]-self.old_position[1])
 
@@ -342,6 +347,28 @@ class _SideFramesOnly(_Enemy):
         self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
 
 
+class _FourDirFrames(_Enemy):
+    """
+    Used for four direction enemies.
+    The left frames are flipped versions of the right.
+    """
+    def __init__(self, *args):
+        _Enemy.__init__(self, *args)
+        self.ai = LinearAI(self)
+        walk = {"front" : tools.Anim(self.frames[:2], 7),
+                "back" : tools.Anim(self.frames[2:4], 7),
+                "left" : tools.Anim([pg.transform.flip(self.frames[4], 1, 0),
+                               pg.transform.flip(self.frames[5], 1, 0)], 7),
+                "right" : tools.Anim(self.frames[4:6], 7)}
+        hit = {"front" : tools.Anim(self.frames[6:8], 20),
+               "back" : tools.Anim(self.frames[8:10], 20),
+               "left" : tools.Anim([pg.transform.flip(self.frames[10], 1, 0),
+                               pg.transform.flip(self.frames[11], 1, 0)], 20),
+               "right" : tools.Anim(self.frames[10:12], 20)}
+        self.anims = {"walk" : walk, "hit" : hit, "die" : None}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+
+
 class Cabbage(_BasicFrontFrames):
     """The eponymous Cabbage monster. (1 direction)"""
     def __init__(self, *args):
@@ -403,6 +430,7 @@ class Scorpion(_SideFramesOnly):
         self.attack = 10
         self.drops = ["heart", None]
 
+
 class Snail(_SideFramesOnly):
     """A toxic trail leaving snail (not implemented). (2 directions)"""
     def __init__(self, *args):
@@ -412,53 +440,49 @@ class Snail(_SideFramesOnly):
         self.drops = ["diamond", "heart", None, None]
 
 
-class Zombie(_Enemy):
+class Zombie(_FourDirFrames):
     """The typical stock zombie. (4 directions)"""
     def __init__(self, *args):
-        _Enemy.__init__(self,  "zombie", ENEMY_SHEET, *args)
+        _FourDirFrames.__init__(self,  "zombie", ENEMY_SHEET, *args)
         self.ai = LinearAI(self)
-        walk = {"front" : tools.Anim(self.frames[:2], 7),
-                "back" : tools.Anim(self.frames[2:4], 7),
-                "left" : tools.Anim([pg.transform.flip(self.frames[4], 1, 0),
-                               pg.transform.flip(self.frames[5], 1, 0)], 7),
-                "right" : tools.Anim(self.frames[4:6], 7)}
-        hit = {"front" : tools.Anim(self.frames[6:8], 20),
-               "back" : tools.Anim(self.frames[8:10], 20),
-               "left" : tools.Anim([pg.transform.flip(self.frames[10], 1, 0),
-                               pg.transform.flip(self.frames[11], 1, 0)], 20),
-               "right" : tools.Anim(self.frames[10:12], 20)}
         die_frames = self.frames[12:]+self.frames[16:]
-        self.anims = {"walk" : walk,
-                      "hit" : hit,
-                      "die" : tools.Anim(die_frames, 5, 1)}
-        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        self.anims["die"] = tools.Anim(die_frames, 5, 1)
         self.health = 10
         self.attack = 8
         self.drops = ["key"]
 
 
-class Frog(_Enemy):
+class Frog(_FourDirFrames):
     """Your standard hoppy frog (4 directions)"""
     def __init__(self, *args):
-        _Enemy.__init__(self,  "frog", ENEMY_SHEET, *args)
-        walk = {"front" : tools.Anim(self.frames[:2], 7),
-                "back" : tools.Anim(self.frames[2:4], 7),
-                "left" : tools.Anim([pg.transform.flip(self.frames[4], 1, 0),
-                               pg.transform.flip(self.frames[5], 1, 0)], 7),
-                "right" : tools.Anim(self.frames[4:6], 7)}
-        hit = {"front" : tools.Anim(self.frames[6:8], 20),
-               "back" : tools.Anim(self.frames[8:10], 20),
-               "left" : tools.Anim([pg.transform.flip(self.frames[10], 1, 0),
-                               pg.transform.flip(self.frames[11], 1, 0)], 20),
-               "right" : tools.Anim(self.frames[10:12], 20)}
+        _FourDirFrames.__init__(self,  "frog", ENEMY_SHEET, *args)
         die_frames = self.frames[12:]
-        self.anims = {"walk" : walk,
-                      "hit" : hit,
-                      "die" : tools.Anim(die_frames, 5, 1)}
-        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        self.anims["die"] = tools.Anim(die_frames, 5, 1)
         self.health = 6
         self.attack = 6
         self.drops = ["heart", None, None]
+
+
+class AoOni(_FourDirFrames):
+    """Let's go to Onigashima."""
+    def __init__(self, *args):
+        _FourDirFrames.__init__(self,  "blue_oni", ENEMY_SHEET_2, *args)
+        die_frames = self.frames[12:]
+        self.anims["die"] = tools.Anim(die_frames, 10, 1)
+        self.health = 15
+        self.attack = 8
+        self.drops = ["heart", None, None]
+
+
+class AkaOni(_FourDirFrames):
+    """Let's go to Onigashima."""
+    def __init__(self, *args):
+        _FourDirFrames.__init__(self,  "red_oni", ENEMY_SHEET_2, *args)
+        die_frames = self.frames[12:]
+        self.anims["die"] = tools.Anim(die_frames, 10, 1)
+        self.health = 10
+        self.attack = 15
+        self.drops = ["diamond", None, None]
 
 
 class Skeleton(_Enemy):
@@ -499,8 +523,8 @@ ENEMY_DICT = {(0, 0) : Cabbage,
               (0, 50) : Snake,
               (50, 50) : Scorpion,
               (100, 50) : Turtle,
-              (150, 50) : None, #AoOni,
-              (200, 50) : None, #AkaOni,
+              (150, 50) : AoOni,
+              (200, 50) : AkaOni,
               (250, 50) : None, #Lantern,
               (300, 50) : None, #Daruma,
               (350, 50) : None, #FireBall,
