@@ -38,6 +38,8 @@ class Tile(pg.sprite.Sprite):
         """If the player can collide with it pass mask=True."""
         pg.sprite.Sprite.__init__(self)
         self.rect = pg.Rect(target, prepare.CELL_SIZE)
+        self.exact_position = list(self.rect.topleft)
+        self.old_position = self.exact_position[:]
         self.sheet = prepare.GFX["mapsheets"][sheet]
         self.image = self.sheet.subsurface(pg.Rect(source, prepare.CELL_SIZE))
         if mask:
@@ -49,6 +51,77 @@ class Tile(pg.sprite.Sprite):
         have this method.
         """
         player.collide_with_solid()
+
+    def update(self, *args):
+        self.rect.topleft = self.exact_position
+
+
+class PushBlock(Tile):
+    def __init__(self, sheet, source, target, mask, post_event):
+        Tile.__init__(self, sheet, source, target, True)
+        self.post_event = post_event
+        self.mask.fill() #Solid block masks for pushblocks avoid problems.
+        self.linked_tiles = None
+        self.event_key = "kill" ###
+        self.start_rect = self.rect.copy()
+        self.offset = [0,0]
+        self.pushed = False
+        self.is_pushing = False
+        self.pushed_for_frames = 0
+        self.push_direction = None
+        self.speed = 2
+
+    @property
+    def frame_speed(self):
+        """
+        Returns the total displacement undergone in a frame. Used for the
+        interpolation of the player's location in the draw phase.
+        """
+        return (self.exact_position[0]-self.old_position[0],
+                self.exact_position[1]-self.old_position[1])
+
+    def collide_with_player(self, player):
+        player.collide_with_solid()
+        if player.direction_stack and not (self.pushed or self.is_pushing):
+            direction = player.direction_stack[-1]
+            vector = prepare.DIRECT_DICT[player.direction]
+            player.exact_position[0] += player.speed*vector[0]
+            player.exact_position[1] += player.speed*vector[1]
+            player.rect.topleft = player.exact_position
+            if pg.sprite.collide_mask(self, player):
+                self.push_direction = player.direction
+            player.exact_position[0] -= player.speed*vector[0]
+            player.exact_position[1] -= player.speed*vector[1]
+            player.rect.topleft = player.exact_position
+
+    def update(self, *args):
+        if not (self.pushed or self.is_pushing):
+            self.check_if_pushing()
+        elif self.is_pushing and not self.pushed:
+            self.pushing()
+
+    def check_if_pushing(self):
+        if self.push_direction:
+            self.pushed_for_frames += 1
+            if self.pushed_for_frames >= 15:
+                self.is_pushing = True
+            else:
+                self.push_direction = None
+        else:
+            self.pushed_for_frames = 0
+
+    def pushing(self):
+        unit_vec = prepare.DIRECT_DICT[self.push_direction]
+        vec = unit_vec[0]*self.speed, unit_vec[1]*self.speed
+        self.offset = [self.offset[0]+vec[0], self.offset[1]+vec[1]]
+        if any(abs(component) >= 50 for component in self.offset):
+            self.pushed = True
+            final = unit_vec[0]*50, unit_vec[1]*50
+            self.rect.topleft = self.start_rect.move(*final).topleft
+            if self.event_key:
+                self.post_event(self.event_key)
+        else:
+            self.rect.topleft = self.start_rect.move(*self.offset).topleft
 
 
 class AnimatedTile(Tile):
@@ -193,6 +266,7 @@ class Level(object):
         self.enemies = pg.sprite.Group()
         self.items = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
+        self.moving = pg.sprite.Group(self.player)
         self.all_group, self.solids = self.make_all_layer_groups()
         self.solid_border = pg.sprite.Group(self.solids, self.make_borders())
         self.interactables = pg.sprite.Group() ###
@@ -205,7 +279,14 @@ class Level(object):
         self.spawn()
         self.shadows = self.make_shadows()
         self.posted = set() # Set of map events that have been posted.
-        self.make_chests() ###Temporary
+        self.make_chests()
+        self.make_push()
+
+    def make_push(self): ### Temporary test code
+        push = PushBlock("base", (200,500), (200,50), True, self.post_map_event)
+        self.all_group.add(push, layer=Z_ORDER["Solid"])
+        groups = (self.solids, self.solid_border, self.moving)
+        push.add(*groups)
 
     def make_chests(self):
         """
@@ -236,7 +317,7 @@ class Level(object):
 
     def spawn(self):
         """Create enemies, adding them to the required groups."""
-        groups = (self.enemies, self.main_sprites, self.all_group)
+        groups = (self.enemies, self.main_sprites, self.moving, self.all_group)
         for target in self.map_dict["Enemies"]:
             sheet, source, speed = self.map_dict["Enemies"][target]
             enemy_sprites.ENEMY_DICT[source](target, speed, *groups)
@@ -356,9 +437,11 @@ class Level(object):
     def draw(self, surface, interpolate):
         """Draw all sprites and layers to the surface."""
         surface.blit(self.background, (0,0))
-        for sprite in self.main_sprites:
+        for sprite in self.moving:
             interpolated = (sprite.frame_speed[0]*interpolate,
                             sprite.frame_speed[1]*interpolate)
             sprite.rect.move_ip(*interpolated)
+        for sprite in self.main_sprites:
             self.all_group.change_layer(sprite, sprite.rect.centery)
+
         self.all_group.draw(surface)
