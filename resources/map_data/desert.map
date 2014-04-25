@@ -283,6 +283,11 @@ Enemies:
   - enemy_place
   - !!python/tuple [200, 50]
   - 0.5
+  ? !!python/tuple [200, 0]
+  : !!python/tuple
+  - enemy_place
+  - !!python/tuple [50, 50]
+  - 0.0
   ? !!python/tuple [350, 500]
   : !!python/tuple
   - enemy_place

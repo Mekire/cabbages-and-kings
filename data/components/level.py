@@ -57,8 +57,10 @@ class Tile(pg.sprite.Sprite):
 
 
 class PushBlock(Tile):
-    def __init__(self, sheet, source, target, mask, post_event):
+    def __init__(self, sheet, source, target, mask,
+                 post_event, pushable="1110"):
         Tile.__init__(self, sheet, source, target, True)
+        self.pushable = self.set_pushable_directions(pushable)
         self.post_event = post_event
         self.mask.fill() #Solid block masks for pushblocks avoid problems.
         self.linked_tiles = None
@@ -69,7 +71,11 @@ class PushBlock(Tile):
         self.is_pushing = False
         self.pushed_for_frames = 0
         self.push_direction = None
-        self.speed = 2
+        self.speed = 1.5
+
+    def set_pushable_directions(self, binary):
+        directions = ["back", "right", "front", "left"]
+        return {directions[i] for i,num in enumerate(binary) if num == "1"}
 
     @property
     def frame_speed(self):
@@ -94,21 +100,28 @@ class PushBlock(Tile):
             player.exact_position[1] -= player.speed*vector[1]
             player.rect.topleft = player.exact_position
 
-    def update(self, *args):
+    def update(self, now, player, groups):
         if not (self.pushed or self.is_pushing):
-            self.check_if_pushing()
+            self.check_if_pushing(groups)
         elif self.is_pushing and not self.pushed:
             self.pushing()
 
-    def check_if_pushing(self):
-        if self.push_direction:
+    def check_if_pushing(self, groups):
+        if self.push_direction and self.push_direction in self.pushable:
             self.pushed_for_frames += 1
-            if self.pushed_for_frames >= 15:
+            if self.pushed_for_frames >= 15 and self.check_if_clear(groups):
                 self.is_pushing = True
             else:
                 self.push_direction = None
         else:
             self.pushed_for_frames = 0
+
+    def check_if_clear(self, groups):
+        enemies = groups["enemies"]
+        unit_vec = prepare.DIRECT_DICT[self.push_direction]
+        final = unit_vec[0]*50, unit_vec[1]*50
+        test_sprite = CollisionRect(self.start_rect.move(*final))
+        return not pg.sprite.spritecollideany(test_sprite, enemies)
 
     def pushing(self):
         unit_vec = prepare.DIRECT_DICT[self.push_direction]
@@ -272,6 +285,7 @@ class Level(object):
         self.interactables = pg.sprite.Group() ###
         self.group_dict = {"solid_border" : self.solid_border,
                            "projectiles" : None,
+                           "enemies" : self.enemies,
                            "items" : self.items,
                            "main" : self.main_sprites,
                            "all" : self.all_group}
@@ -443,5 +457,4 @@ class Level(object):
             sprite.rect.move_ip(*interpolated)
         for sprite in self.main_sprites:
             self.all_group.change_layer(sprite, sprite.rect.centery)
-
         self.all_group.draw(surface)
