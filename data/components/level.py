@@ -57,8 +57,20 @@ class Tile(pg.sprite.Sprite):
 
 
 class PushBlock(Tile):
+    """
+    A class for blocks that the player can push on the map to trigger
+    various events.
+    """
     def __init__(self, sheet, source, target, mask,
                  post_event, pushable="1110"):
+        """
+        The argument post_event is a callback function (generally
+        Level.post_map_event); it is used to trigger changes by posting
+        the event_key to the level map.  Pushable is a 4 digit binary string;
+        each bit corresponds to the directions NESW (for example the string
+        '1110' would mean the block could be pushed in all directions except
+        for West).
+        """
         Tile.__init__(self, sheet, source, target, True)
         self.pushable = self.set_pushable_directions(pushable)
         self.post_event = post_event
@@ -74,6 +86,10 @@ class PushBlock(Tile):
         self.speed = 1.5
 
     def set_pushable_directions(self, binary):
+        """
+        Return a set of the pushable direction strings from the binary
+        representation.
+        """
         directions = ["back", "right", "front", "left"]
         return {directions[i] for i,num in enumerate(binary) if num == "1"}
 
@@ -81,12 +97,18 @@ class PushBlock(Tile):
     def frame_speed(self):
         """
         Returns the total displacement undergone in a frame. Used for the
-        interpolation of the player's location in the draw phase.
+        interpolation of the object's location in the draw phase.
         """
         return (self.exact_position[0]-self.old_position[0],
                 self.exact_position[1]-self.old_position[1])
 
     def collide_with_player(self, player):
+        """The player's position will initially be reset as with any solid
+        block collision; then it is checked if the player would collide with
+        the block if they took another step in their current direction
+        (if they are currently walking).  If this returns True, set the
+        push_direction to the player's direction.
+        """
         player.collide_with_solid()
         if player.direction_stack and not (self.pushed or self.is_pushing):
             direction = player.direction_stack[-1]
@@ -101,12 +123,24 @@ class PushBlock(Tile):
             player.rect.topleft = player.exact_position
 
     def update(self, now, player, groups):
+        """
+        If the block has not yet been moved, check if the player is currently
+        pushing the block.  If the block is currently moving, update its
+        position.
+        """
         if not (self.pushed or self.is_pushing):
             self.check_if_pushing(groups)
         elif self.is_pushing and not self.pushed:
             self.pushing()
 
     def check_if_pushing(self, groups):
+        """
+        If the player is pushing the block in a pushable direction, increment
+        pushed_for_frames.  If the block has been being pushed for 15 frames,
+        and the function check_if_clear has confirmed there are no enemies in
+        the way, set is_pushing to True.  If the player is ever not pushing,
+        reset pushed_for_frames back to zero.
+        """
         if self.push_direction and self.push_direction in self.pushable:
             self.pushed_for_frames += 1
             if self.pushed_for_frames >= 15 and self.check_if_clear(groups):
@@ -117,6 +151,10 @@ class PushBlock(Tile):
             self.pushed_for_frames = 0
 
     def check_if_clear(self, groups):
+        """
+        Check if there is an enemy that would be collided with in the final
+        position of the block.
+        """
         enemies = groups["enemies"]
         unit_vec = prepare.DIRECT_DICT[self.push_direction]
         final = unit_vec[0]*50, unit_vec[1]*50
@@ -124,6 +162,10 @@ class PushBlock(Tile):
         return not pg.sprite.spritecollideany(test_sprite, enemies)
 
     def pushing(self):
+        """
+        Animate the movement of the block.  If the block has moved a full cell,
+        post the event_key using the callback post_event (if applicable).
+        """
         unit_vec = prepare.DIRECT_DICT[self.push_direction]
         vec = unit_vec[0]*self.speed, unit_vec[1]*self.speed
         self.offset = [self.offset[0]+vec[0], self.offset[1]+vec[1]]
