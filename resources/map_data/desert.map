@@ -283,11 +283,6 @@ Enemies:
   - enemy_place
   - !!python/tuple [200, 50]
   - 0.5
-  ? !!python/tuple [200, 0]
-  : !!python/tuple
-  - enemy_place
-  - !!python/tuple [50, 50]
-  - 0.0
   ? !!python/tuple [350, 500]
   : !!python/tuple
   - enemy_place
@@ -320,6 +315,14 @@ Enemies:
   - 1.0
 Environment: {}
 Foreground:
+  ? !!python/tuple [200, 350]
+  : !!python/tuple
+  - exttemple
+  - !!python/tuple [350, 0]
+  ? !!python/tuple [200, 400]
+  : !!python/tuple
+  - exttemple
+  - !!python/tuple [350, 50]
   ? !!python/tuple [300, 550]
   : !!python/tuple
   - base
@@ -533,8 +536,4 @@ Solid:
   ? !!python/tuple [950, 350]
   : *id019
 Solid/Fore: {}
-Water:
-  ? !!python/tuple [450, 50]
-  : !!python/tuple
-  - base
-  - !!python/tuple [350, 400]
+Water: {}

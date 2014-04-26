@@ -62,7 +62,7 @@ class PushBlock(Tile):
     various events.
     """
     def __init__(self, sheet, source, target, mask,
-                 post_event, pushable="1110"):
+                 post_event, pushable="1111", stack_height=2):
         """
         The argument post_event is a callback function (generally
         Level.post_map_event); it is used to trigger changes by posting
@@ -73,9 +73,10 @@ class PushBlock(Tile):
         """
         Tile.__init__(self, sheet, source, target, True)
         self.pushable = self.set_pushable_directions(pushable)
+        self.stack_height = stack_height
+        self.linked = None
         self.post_event = post_event
         self.mask.fill() #Solid block masks for pushblocks avoid problems.
-        self.linked_tiles = None
         self.event_key = "kill" ###
         self.start_rect = self.rect.copy()
         self.offset = [0,0]
@@ -103,7 +104,8 @@ class PushBlock(Tile):
                 self.exact_position[1]-self.old_position[1])
 
     def collide_with_player(self, player):
-        """The player's position will initially be reset as with any solid
+        """
+        The player's position will initially be reset as with any solid
         block collision; then it is checked if the player would collide with
         the block if they took another step in their current direction
         (if they are currently walking).  If this returns True, set the
@@ -122,12 +124,20 @@ class PushBlock(Tile):
             player.exact_position[1] -= player.speed*vector[1]
             player.rect.topleft = player.exact_position
 
+    def get_stacked_tiles(self, groups):
+        rect = pg.Rect(0, 0, 50, 50*self.stack_height)
+        rect.bottomleft = self.rect.topleft
+        test = CollisionRect(rect)
+        return pg.sprite.spritecollide(test, groups["foreground"], False)
+
     def update(self, now, player, groups):
         """
         If the block has not yet been moved, check if the player is currently
         pushing the block.  If the block is currently moving, update its
         position.
         """
+        if self.stack_height and not self.linked:
+            self.linked = self.get_stacked_tiles(groups)
         if not (self.pushed or self.is_pushing):
             self.check_if_pushing(groups)
         elif self.is_pushing and not self.pushed:
@@ -161,6 +171,15 @@ class PushBlock(Tile):
         test_sprite = CollisionRect(self.start_rect.move(*final))
         return not pg.sprite.spritecollideany(test_sprite, enemies)
 
+    def push_stack(self):
+        if self.linked:
+            ordered = sorted(self.linked, key=attrgetter('rect.y'), reverse=1)
+            current = self.rect
+            for sprite in ordered:
+                sprite.rect.bottomleft = current.topleft
+                sprite.exact_position = list(sprite.rect.topleft)
+                current = sprite.rect
+
     def pushing(self):
         """
         Animate the movement of the block.  If the block has moved a full cell,
@@ -177,6 +196,7 @@ class PushBlock(Tile):
                 self.post_event(self.event_key)
         else:
             self.rect.topleft = self.start_rect.move(*self.offset).topleft
+        self.push_stack()
 
 
 class AnimatedTile(Tile):
@@ -322,10 +342,11 @@ class Level(object):
         self.items = pg.sprite.Group()
         self.main_sprites = pg.sprite.Group(self.player)
         self.moving = pg.sprite.Group(self.player)
-        self.all_group, self.solids = self.make_all_layer_groups()
+        self.all_group, self.solids, foreground = self.make_all_layer_groups()
         self.solid_border = pg.sprite.Group(self.solids, self.make_borders())
         self.interactables = pg.sprite.Group() ###
         self.group_dict = {"solid_border" : self.solid_border,
+                           "foreground" : foreground,
                            "projectiles" : None,
                            "enemies" : self.enemies,
                            "items" : self.items,
@@ -339,7 +360,7 @@ class Level(object):
         self.make_push()
 
     def make_push(self): ### Temporary test code
-        push = PushBlock("base", (200,500), (200,50), True, self.post_map_event)
+        push = PushBlock("exttemple", (350,100), (200,450), True, self.post_map_event)
         self.all_group.add(push, layer=Z_ORDER["Solid"])
         groups = (self.solids, self.solid_border, self.moving)
         push.add(*groups)
@@ -422,13 +443,15 @@ class Level(object):
         """Create sprite groups for all layers."""
         all_group = pg.sprite.LayeredUpdates()
         solid_group = pg.sprite.Group()
-        for layer in ("Foreground", "BG Tiles"):
-            all_group.add(self.make_tile_group(layer), layer=Z_ORDER[layer])
+        layer = "BG Tiles"
+        all_group.add(self.make_tile_group(layer), layer=Z_ORDER[layer])
+        foreground = self.make_tile_group("Foreground")
+        all_group.add(foreground, layer=Z_ORDER["Foreground"])
         for layer in ("Solid/Fore", "Solid", "Water"):
             solids = self.make_tile_group(layer, True)
             all_group.add(solids, layer=Z_ORDER[layer])
             solid_group.add(solids)
-        return all_group, solid_group
+        return all_group, solid_group, foreground
 
     def make_tile_group(self, layer, mask=False):
         """
