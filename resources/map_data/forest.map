@@ -1,0 +1,376 @@
+BG Colors:
+  fill: !!python/tuple [112, 255, 109, 255]
+  ? !!python/tuple [0, 0]
+  : &id001 !!python/tuple
+  - background
+  - !!python/tuple [0, 127, 14, 255]
+  ? !!python/tuple [0, 50]
+  : *id001
+  ? !!python/tuple [0, 100]
+  : *id001
+  ? !!python/tuple [0, 150]
+  : *id001
+  ? !!python/tuple [0, 200]
+  : *id001
+  ? !!python/tuple [50, 0]
+  : *id001
+  ? !!python/tuple [50, 50]
+  : *id001
+  ? !!python/tuple [50, 100]
+  : *id001
+  ? !!python/tuple [50, 150]
+  : *id001
+  ? !!python/tuple [50, 500]
+  : &id002 !!python/tuple
+  - background
+  - !!python/tuple [181, 112, 66, 255]
+  ? !!python/tuple [50, 550]
+  : *id002
+  ? !!python/tuple [100, 0]
+  : *id001
+  ? !!python/tuple [100, 50]
+  : *id001
+  ? !!python/tuple [100, 100]
+  : *id001
+  ? !!python/tuple [100, 450]
+  : *id002
+  ? !!python/tuple [100, 500]
+  : *id002
+  ? !!python/tuple [100, 550]
+  : *id002
+  ? !!python/tuple [100, 600]
+  : *id002
+  ? !!python/tuple [150, 0]
+  : *id001
+  ? !!python/tuple [150, 50]
+  : *id001
+  ? !!python/tuple [150, 450]
+  : *id002
+  ? !!python/tuple [150, 600]
+  : *id002
+  ? !!python/tuple [200, 0]
+  : *id001
+  ? !!python/tuple [200, 50]
+  : *id001
+  ? !!python/tuple [200, 200]
+  : &id003 !!python/tuple
+  - background
+  - !!python/tuple [181, 112, 66, 255]
+  ? !!python/tuple [200, 450]
+  : *id002
+  ? !!python/tuple [200, 500]
+  : *id002
+  ? !!python/tuple [200, 550]
+  : *id002
+  ? !!python/tuple [200, 600]
+  : *id002
+  ? !!python/tuple [250, 0]
+  : *id001
+  ? !!python/tuple [250, 150]
+  : *id003
+  ? !!python/tuple [250, 200]
+  : *id003
+  ? !!python/tuple [250, 250]
+  : *id003
+  ? !!python/tuple [250, 500]
+  : *id002
+  ? !!python/tuple [250, 550]
+  : *id002
+  ? !!python/tuple [300, 200]
+  : *id003
+  ? !!python/tuple [400, 0]
+  : *id001
+  ? !!python/tuple [450, 0]
+  : *id001
+  ? !!python/tuple [450, 50]
+  : *id001
+  ? !!python/tuple [500, 0]
+  : *id001
+  ? !!python/tuple [500, 50]
+  : *id001
+  ? !!python/tuple [500, 100]
+  : *id001
+  ? !!python/tuple [500, 150]
+  : *id001
+  ? !!python/tuple [550, 0]
+  : *id001
+  ? !!python/tuple [550, 50]
+  : *id001
+  ? !!python/tuple [550, 100]
+  : *id001
+  ? !!python/tuple [600, 0]
+  : *id001
+  ? !!python/tuple [600, 50]
+  : *id001
+  ? !!python/tuple [650, 0]
+  : *id001
+  ? !!python/tuple [700, 0]
+  : *id001
+  ? !!python/tuple [800, 0]
+  : *id001
+  ? !!python/tuple [850, 0]
+  : *id001
+  ? !!python/tuple [850, 50]
+  : *id001
+  ? !!python/tuple [900, 0]
+  : *id001
+  ? !!python/tuple [900, 50]
+  : *id001
+  ? !!python/tuple [900, 100]
+  : *id001
+  ? !!python/tuple [950, 0]
+  : *id001
+  ? !!python/tuple [950, 50]
+  : *id001
+  ? !!python/tuple [950, 100]
+  : *id001
+  ? !!python/tuple [950, 150]
+  : *id001
+BG Tiles: {}
+Chests: {}
+Enemies:
+  ? !!python/tuple [150, 200]
+  : !!python/tuple
+  - enemy_place
+  - &id005 !!python/tuple [50, 0]
+  - 1.0
+  ? !!python/tuple [150, 450]
+  : !!python/tuple
+  - enemy_place
+  - &id004 !!python/tuple [100, 0]
+  - 1.0
+  ? !!python/tuple [200, 450]
+  : !!python/tuple
+  - enemy_place
+  - *id004
+  - 1.0
+  ? !!python/tuple [300, 500]
+  : !!python/tuple
+  - enemy_place
+  - *id004
+  - 1.0
+  ? !!python/tuple [350, 200]
+  : !!python/tuple
+  - enemy_place
+  - *id005
+  - 1.0
+  ? !!python/tuple [350, 500]
+  : !!python/tuple
+  - enemy_place
+  - *id004
+  - 1.0
+  ? !!python/tuple [550, 550]
+  : !!python/tuple
+  - enemy_place
+  - *id005
+  - 1.0
+  ? !!python/tuple [600, 500]
+  : !!python/tuple
+  - enemy_place
+  - *id005
+  - 1.0
+  ? !!python/tuple [650, 450]
+  : !!python/tuple
+  - enemy_place
+  - *id005
+  - 1.0
+Environment: {}
+Foreground: {}
+Items: {}
+Solid:
+  ? !!python/tuple [0, 0]
+  : &id006 !!python/tuple
+  - base
+  - !!python/tuple [50, 400]
+  ? !!python/tuple [0, 150]
+  : &id007 !!python/tuple
+  - base
+  - !!python/tuple [200, 450]
+  ? !!python/tuple [0, 200]
+  : *id006
+  ? !!python/tuple [0, 350]
+  : &id010 !!python/tuple
+  - base
+  - !!python/tuple [150, 400]
+  ? !!python/tuple [50, 150]
+  : *id006
+  ? !!python/tuple [50, 350]
+  : &id008 !!python/tuple
+  - base
+  - !!python/tuple [50, 400]
+  ? !!python/tuple [100, 50]
+  : *id006
+  ? !!python/tuple [100, 100]
+  : *id006
+  ? !!python/tuple [100, 350]
+  : !!python/tuple
+  - base
+  - !!python/tuple [0, 400]
+  ? !!python/tuple [150, 50]
+  : *id007
+  ? !!python/tuple [150, 350]
+  : *id008
+  ? !!python/tuple [200, 0]
+  : *id006
+  ? !!python/tuple [200, 50]
+  : *id006
+  ? !!python/tuple [200, 200]
+  : &id009 !!python/tuple
+  - base
+  - !!python/tuple [300, 550]
+  ? !!python/tuple [250, 0]
+  : *id006
+  ? !!python/tuple [250, 150]
+  : *id009
+  ? !!python/tuple [250, 250]
+  : *id009
+  ? !!python/tuple [300, 200]
+  : *id009
+  ? !!python/tuple [300, 350]
+  : *id008
+  ? !!python/tuple [350, 350]
+  : *id008
+  ? !!python/tuple [350, 550]
+  : *id009
+  ? !!python/tuple [400, 350]
+  : *id010
+  ? !!python/tuple [400, 400]
+  : *id009
+  ? !!python/tuple [450, 0]
+  : *id010
+  ? !!python/tuple [450, 250]
+  : *id008
+  ? !!python/tuple [450, 300]
+  : *id010
+  ? !!python/tuple [450, 350]
+  : *id010
+  ? !!python/tuple [450, 450]
+  : *id008
+  ? !!python/tuple [450, 500]
+  : *id008
+  ? !!python/tuple [450, 550]
+  : !!python/tuple
+  - base
+  - !!python/tuple [200, 400]
+  ? !!python/tuple [450, 600]
+  : *id010
+  ? !!python/tuple [450, 650]
+  : *id010
+  ? !!python/tuple [500, 50]
+  : *id010
+  ? !!python/tuple [500, 100]
+  : &id011 !!python/tuple
+  - base
+  - !!python/tuple [200, 400]
+  ? !!python/tuple [500, 150]
+  : *id010
+  ? !!python/tuple [500, 200]
+  : *id008
+  ? !!python/tuple [500, 350]
+  : *id011
+  ? !!python/tuple [500, 400]
+  : !!python/tuple
+  - base
+  - !!python/tuple [200, 450]
+  ? !!python/tuple [500, 450]
+  : &id012 !!python/tuple
+  - base
+  - !!python/tuple [50, 400]
+  ? !!python/tuple [550, 400]
+  : *id012
+  ? !!python/tuple [600, 350]
+  : *id008
+  ? !!python/tuple [600, 400]
+  : *id012
+  ? !!python/tuple [650, 350]
+  : *id008
+  ? !!python/tuple [700, 350]
+  : *id008
+  ? !!python/tuple [750, 100]
+  : !!python/tuple
+  - base
+  - !!python/tuple [0, 50]
+  ? !!python/tuple [750, 150]
+  : !!python/tuple
+  - base
+  - !!python/tuple [250, 50]
+  ? !!python/tuple [750, 350]
+  : &id015 !!python/tuple
+  - base
+  - !!python/tuple [0, 400]
+  ? !!python/tuple [800, 100]
+  : !!python/tuple
+  - base
+  - !!python/tuple [50, 0]
+  ? !!python/tuple [800, 150]
+  : !!python/tuple
+  - base
+  - !!python/tuple [300, 0]
+  ? !!python/tuple [800, 350]
+  : *id008
+  ? !!python/tuple [850, 0]
+  : &id014 !!python/tuple
+  - base
+  - !!python/tuple [50, 400]
+  ? !!python/tuple [850, 350]
+  : &id013 !!python/tuple
+  - base
+  - !!python/tuple [150, 400]
+  ? !!python/tuple [900, 50]
+  : &id016 !!python/tuple
+  - base
+  - !!python/tuple [200, 450]
+  ? !!python/tuple [900, 350]
+  : *id013
+  ? !!python/tuple [950, 50]
+  : *id014
+  ? !!python/tuple [950, 150]
+  : *id014
+  ? !!python/tuple [950, 200]
+  : *id015
+  ? !!python/tuple [950, 250]
+  : *id016
+  ? !!python/tuple [950, 300]
+  : *id016
+  ? !!python/tuple [950, 350]
+  : *id008
+  ? !!python/tuple [950, 450]
+  : !!python/tuple
+  - base
+  - !!python/tuple [0, 50]
+  ? !!python/tuple [950, 500]
+  : !!python/tuple
+  - base
+  - !!python/tuple [150, 50]
+  ? !!python/tuple [950, 550]
+  : !!python/tuple
+  - base
+  - !!python/tuple [250, 50]
+  ? !!python/tuple [950, 650]
+  : !!python/tuple
+  - base
+  - !!python/tuple [200, 450]
+Solid/Fore: {}
+Water:
+  ? !!python/tuple [100, 500]
+  : !!python/tuple
+  - water
+  - !!python/tuple [0, 0]
+  ? !!python/tuple [100, 550]
+  : !!python/tuple
+  - water
+  - !!python/tuple [0, 50]
+  ? !!python/tuple [150, 500]
+  : &id017 !!python/tuple
+  - water
+  - !!python/tuple [100, 0]
+  ? !!python/tuple [150, 550]
+  : *id017
+  ? !!python/tuple [200, 500]
+  : !!python/tuple
+  - water
+  - !!python/tuple [50, 0]
+  ? !!python/tuple [200, 550]
+  : !!python/tuple
+  - water
+  - !!python/tuple [50, 50]
