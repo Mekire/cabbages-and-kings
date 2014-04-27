@@ -25,6 +25,12 @@ ITEM_TYPE = {"content" : ["Treasure Chest", "On Event"],
              "size" : (100,20),
              "selected" : "Treasure Chest"}
 
+SPECIAL_TYPE = {"content" : ["Push Block", "Burnable", "Breakable"],
+             "start" : (140, 100),
+             "space" : (0,20),
+             "size" : (100,20),
+             "selected" : "Push Block"}
+
 
 class Panel(object):
     """
@@ -138,7 +144,10 @@ class PanelPage(object):
     def __init__(self, sheet_name, map_state):
         self.map_state = map_state
         self.sheet_name = sheet_name
-        self.image = map_prepare.GFX["mapsheets"][sheet_name]
+        if sheet_name:
+            self.image = map_prepare.GFX["mapsheets"][sheet_name]
+        else:
+            self.image = pg.Surface((0,0)).convert()
         self.rect = self.image.get_rect()
         self.cursor = self.make_selector_cursor()
 
@@ -238,12 +247,12 @@ class BackGroundPage(PanelPage):
 class ItemPage(PanelPage):
     def __init__(self, map_state):
         PanelPage.__init__(self, "item_place", map_state)
-        self.item_type_selector = Selector(**ITEM_TYPE)
-        self.item_type_selector.bind(self.set_type)
-        self.item_type = "Treasure Chest"
+        self.selector = Selector(**ITEM_TYPE)
+        self.selector.bind(self.set_type)
+        self.selected = "Treasure Chest"
 
     def set_type(self, name):
-        self.item_type = name
+        self.selected = name
 
     def update(self, keys, now, panel_rect):
         point = pg.mouse.get_pos()
@@ -251,10 +260,16 @@ class ItemPage(PanelPage):
 
     def get_event(self, event):
         PanelPage.get_event(self, event)
-        self.item_type_selector.get_event(event, self.rect.topleft)
+        self.selector.get_event(event, self.rect.topleft)
 
     def draw(self, surface, interpolate):
         PanelPage.draw(self, surface, interpolate)
-        self.item_type_selector.draw(surface, self.rect.topleft)
+        self.selector.draw(surface, self.rect.topleft)
 
 
+class SpecialPage(ItemPage):
+    def __init__(self, map_state):
+        PanelPage.__init__(self, None, map_state)
+        self.selector = Selector(**SPECIAL_TYPE)
+        self.selector.bind(self.set_type)
+        self.selected = "Push Block"

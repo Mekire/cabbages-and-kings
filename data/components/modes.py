@@ -1,8 +1,7 @@
 import pygame as pg
 
 from .. import tools, map_prepare
-from ..components import map_gui_widgets
-from . import panel
+from . import panel, map_gui_widgets
 
 
 BASIC = ("base", "exttemple", "inttemple1", "inttemple2", "dungeon1",
@@ -215,6 +214,16 @@ class Items(_Mode):
             coord = tools.get_cell_coordinates(map_rect, point, size)
             for item_type in ("Chests", "Items"):
                 self.map_state.map_dict[item_type].pop(coord, None)
+
+
+class Special(_Mode):
+    def make_panels(self):
+        """Create necessary panels and their pages."""
+        pages = [panel.SpecialPage(self.map_state)]
+        self.panel = panel.Panel(self.map_state, pages)
+
+    def set_add_del(self, point, attribute):
+        pass
 
 
 class InputWindow(object):
