@@ -8,7 +8,7 @@ import wx
 import pygame as pg
 
 from .. import map_prepare, state_machine
-from ..components import toolbar, panel, modes
+from ..map_components import toolbar, panel, modes
 
 if sys.version_info[0] < 3:
     import yaml
