@@ -61,8 +61,8 @@ class PushBlock(Tile):
     A class for blocks that the player can push on the map to trigger
     various events.
     """
-    def __init__(self, sheet, source, target, mask,
-                 post_event, pushable="1111", stack_height=2):
+    def __init__(self, sheet, source, target, mask, post_event,
+                 pushable="1111", stack_height=2, event_key=None):
         """
         The argument post_event is a callback function (generally
         Level.post_map_event); it is used to trigger changes by posting
@@ -77,7 +77,7 @@ class PushBlock(Tile):
         self.linked = None
         self.post_event = post_event
         self.mask.fill() #Solid block masks for pushblocks avoid problems.
-        self.event_key = "kill" ###
+        self.event_key = event_key
         self.start_rect = self.rect.copy()
         self.offset = [0,0]
         self.pushed = False
@@ -360,7 +360,8 @@ class Level(object):
         self.make_push()
 
     def make_push(self): ### Temporary test code
-        push = PushBlock("exttemple", (350,100), (200,450), True, self.post_map_event)
+        push = PushBlock("exttemple", (350,100), (200,450), True,
+                         self.post_map_event, event_key="kill")
         self.all_group.add(push, layer=Z_ORDER["Solid"])
         groups = (self.solids, self.solid_border, self.moving)
         push.add(*groups)

@@ -25,8 +25,8 @@ ITEM_TYPE = {"content" : ["Treasure Chest", "On Event"],
              "size" : (100,20),
              "selected" : "Treasure Chest"}
 
-SPECIAL_TYPE = {"content" : ["Push Block", "Burnable", "Breakable"],
-             "start" : (140, 100),
+SPECIAL_TYPE = {"content" : ["Portal", "Push Block", "Burnable", "Breakable"],
+             "start" : (140, 50),
              "space" : (0,20),
              "size" : (100,20),
              "selected" : "Push Block"}

@@ -189,7 +189,7 @@ class Items(_Mode):
         """Called in update if self.adding flag is set."""
         sheet, src = self.map_state.selected
         item = ITEM_SHEET_DICT[src]
-        if self.waiting.done != None:
+        if self.waiting.done is not None:
             try:
                 event_id = self.waiting.done
                 if event_id == "":
@@ -221,16 +221,101 @@ class Special(_Mode):
         """Create necessary panels and their pages."""
         pages = [panel.SpecialPage(self.map_state)]
         self.panel = panel.Panel(self.map_state, pages)
+        self.coord = None
+        self.waiting_mode = "DIRECTION"
+        self.block_args = []
+        self.prompts = {"DIRECTION" : ("Enter pushable directions "
+                                       "('1111'='NESW'): "),
+                        "STACKED" : "Number Stacked: ",
+                        "ID" : "Identifier key: "}
+        self.checks = {"DIRECTION" : self.check_direction_input,
+                       "STACKED" : self.check_stack,
+                       "ID" : self.check_id}
+        self.nexts = {"DIRECTION" : "STACKED",
+                       "STACKED" : "ID",
+                       "ID" : "DONE"}
 
     def set_add_del(self, point, attribute):
+        if not self.active_panel.rect.collidepoint(point):
+            if attribute == "deleting" and not self.adding:
+                self.deleting = True
+                self.active_panel.retract()
+            elif not self.waiting:
+                map_rect = map_prepare.MAP_RECT
+                self.coord = tools.get_cell_coordinates(map_rect,point,(50,50))
+                if self.coord in self.map_state.map_dict["Solid"]:
+                    self.adding = True
+                    self.point = point
+                    rect = map_prepare.MAP_RECT.inflate(-500, -600)
+                    prompt = self.prompts[self.waiting_mode]
+                    self.waiting = InputWindow(rect, prompt)
+                else:
+                    print("Push blocks must be places on solid tiles.")
+                self.active_panel.retract()
+
+
+    def add_tile(self, *args):
+        """Called in update if self.adding flag is set."""
+##        sheet, source = self.map_state.map_dict["Solid"][coord][:2]
+        if self.waiting.done is not None:
+            try:
+                self.checks[self.waiting_mode]()
+                self.block_args.append(self.waiting.done)
+                if self.nexts[self.waiting_mode] == "DONE":
+                    self.reset()
+                else:
+                    self.waiting_mode = self.nexts[self.waiting_mode]
+                    rect = map_prepare.MAP_RECT.inflate(-500, -600)
+                    prompt = self.prompts[self.waiting_mode]
+                    self.waiting = InputWindow(rect, prompt)
+            except ValueError:
+                print("Invalid input: PushBlock not added.")
+                self.reset()
+
+    def reset(self):
+        """Reset needed variables for adding a new block."""
+        self.reset_add_del()
+        self.waiting_mode = "DIRECTION"
+        self.block_args = []
+
+    def check_direction_input(self):
+        """
+        Check if binary direction string is valid.  Must have a length of 4
+        and contain only 0s and 1s.
+        """
+        directions = self.waiting.done
+        if len(directions) != 4 or any(c not in "01" for c in directions):
+            raise ValueError
+        return directions
+
+    def check_stack(self):
+        """Check stacked value is valid.  Must be a non-negative integer."""
+        stacked = int(self.waiting.done)
+        if stacked < 0:
+            raise ValueError
+        return stacked
+
+    def check_id(self):
+        """Confirm ID value is valid.  All non empty strings pass."""
+        if not self.waiting.done:
+            raise ValueError
+        return self.waiting.done
+
+    def del_tile(self, point):
+        """Called in update if self.deleting flag is set."""
         pass
 
 
 class InputWindow(object):
+    """A box for text input used to prompt for custom arguments."""
     def __init__(self, rect, prompt):
+        """
+        The argument rect is the total size of the window.
+        Prompt is the text shown to the player indicating what is needed.
+        """
         self.rect = pg.Rect(rect)
         zeroed = pg.Rect((0,0), self.rect.size)
-        self.font = pg.font.Font(None, 35)
+        self.font = pg.font.SysFont("arial", 25)
         self.prompt = self.font.render(prompt, 1, pg.Color("white"))
         self.prompt_rect = self.prompt.get_rect(centerx=zeroed.centerx, y=10)
         self.image = pg.Surface(self.rect.size).convert()
@@ -242,14 +327,23 @@ class InputWindow(object):
         self.done = None
 
     def update(self):
+        """
+        Update the text box widget and set done to True if the text box
+        loses focus.
+        """
         self.textbox.update()
         if not self.textbox.active:
             self.done = self.textbox.final
 
     def get_event(self, event):
+        """Pass the event on to the actual text box widget."""
         self.textbox.get_event(event)
 
     def draw(self, surface):
+        """
+        Draw the text box to the image and then draw the image to the
+        target surface.
+        """
         self.textbox.draw(self.image)
         self.image.blit(self.prompt, self.prompt_rect)
         surface.blit(self.image, self.rect)
