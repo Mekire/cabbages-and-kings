@@ -166,14 +166,14 @@ class _Enemy(pg.sprite.Sprite):
         Called from the level class if the player is attacking and the
         weapon rect collides with the sprite.
         """
-        if not self.hit_state:
+        if not self.hit_state and self.state != "spawn":
             self.health -= player.strength
             if self.health > 0:
-                self.state = "hit"
-                self.hit_state = tools.Timer(300, 1)
-                self.knock_state = True
-                self.knock_dir = player.direction
-                self.got_knocked_collision(obstacles)
+                    self.state = "hit"
+                    self.hit_state = tools.Timer(300, 1)
+                    self.knock_state = True
+                    self.knock_dir = player.direction
+                    self.got_knocked_collision(obstacles)
             elif self.state != "die":
                 self.drop_item(*item_groups)
                 self.state = "die"
@@ -252,7 +252,7 @@ class _Enemy(pg.sprite.Sprite):
         """
         obstacles = group_dict["solid_border"]
         self.old_position = self.exact_position[:]
-        if self.state not in ("hit", "die"):
+        if self.state not in ("hit", "die", "spawn"):
             if self.direction:
                 self.move()
             else:
@@ -268,6 +268,8 @@ class _Enemy(pg.sprite.Sprite):
         elif self.state == "die" and self.get_anim().done:
             self.kill()
             self.shadow.kill()
+        elif self.state == "spawn" and self.get_anim().done:
+            self.state = "walk"
         self.rect.topleft = self.exact_position
         self.image = self.get_anim().get_next_frame(now)
 
@@ -488,6 +490,7 @@ class Skeleton(_Enemy):
     def __init__(self, *args):
         _Enemy.__init__(self,  "skeleton", ENEMY_SHEET, *args)
         self.ai = LinearAI(self)
+        self.state = "spawn"
         walk = {"front" : tools.Anim([self.frames[3],
                                pg.transform.flip(self.frames[3], 1, 0)], 7),
                 "back" : tools.Anim([self.frames[2],
@@ -503,7 +506,8 @@ class Skeleton(_Enemy):
         die_frames = self.frames[3:5]+[self.frames[5]]*2
         self.anims = {"walk" : walk,
                       "hit" : hit,
-                      "die" : tools.Anim(die_frames, 5, 1)}
+                      "die" : tools.Anim(die_frames, 5, 1),
+                      "spawn" : tools.Anim(die_frames[::-1], 3, 1)}
         self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
         self.health = 6
         self.attack = 6

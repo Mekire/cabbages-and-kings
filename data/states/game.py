@@ -229,6 +229,7 @@ class RetrySkeleton(enemy_sprites.Skeleton):
         self.rect = pg.Rect(0, 0, 100, 100)
         self.rect.center = pos
         self.anim_direction = "front"
+        self.state = "walk"
         self.anim = self.get_anim()
         self.image = None
 
