@@ -22,7 +22,7 @@ Z_ORDER = {"BG Tiles" : -4,
 
 LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Solid/Fore", "Foreground", "Environment",
-          "Enemies", "Items", "Chests")
+          "Enemies", "Items", "Chests", "Push")
 
 
 class CollisionRect(pg.sprite.Sprite):
@@ -125,6 +125,7 @@ class PushBlock(Tile):
             player.rect.topleft = player.exact_position
 
     def get_stacked_tiles(self, groups):
+        print(50*self.stack_height)
         rect = pg.Rect(0, 0, 50, 50*self.stack_height)
         rect.bottomleft = self.rect.topleft
         test = CollisionRect(rect)
@@ -360,11 +361,16 @@ class Level(object):
         self.make_push()
 
     def make_push(self): ### Temporary test code
-        push = PushBlock("exttemple", (350,100), (200,450), True,
-                         self.post_map_event, event_key="kill")
-        self.all_group.add(push, layer=Z_ORDER["Solid"])
-        groups = (self.solids, self.solid_border, self.moving)
-        push.add(*groups)
+        for target in self.map_dict["Push"]:
+            data = self.map_dict["Push"][target]
+            sheet, source = data[:2]
+            args = [sheet, source, target, True, self.post_map_event]+data[2:]
+            print(data[2:])
+            push = PushBlock(*args)
+            self.all_group.add(push, layer=Z_ORDER["Solid"])
+            groups = (self.solids, self.solid_border, self.moving)
+            push.add(*groups)
+
 
     def make_chests(self):
         """

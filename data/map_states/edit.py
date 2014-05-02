@@ -20,10 +20,10 @@ BACKGROUND_COLOR = (30, 40, 50)
 
 LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Solid/Fore", "Foreground", "Environment",
-          "Enemies", "Items", "Chests")
+          "Enemies", "Items", "Chests", "Push")
 
 STANDARDS = LAYERS[1:6]
-OTHERS = ("Enemies", "Items", "Chests")
+OTHERS = ("Enemies", "Items", "Chests", "Push")
 
 
 class MapState(object):

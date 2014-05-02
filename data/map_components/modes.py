@@ -223,7 +223,7 @@ class Special(_Mode):
         self.panel = panel.Panel(self.map_state, pages)
         self.coord = None
         self.waiting_mode = "DIRECTION"
-        self.block_args = []
+        self.args = []
         self.prompts = {"DIRECTION" : ("Enter pushable directions "
                                        "('1111'='NESW'): "),
                         "STACKED" : "Number Stacked: ",
@@ -250,19 +250,18 @@ class Special(_Mode):
                     prompt = self.prompts[self.waiting_mode]
                     self.waiting = InputWindow(rect, prompt)
                 else:
-                    print("Push blocks must be places on solid tiles.")
+                    print("Push blocks must be placed on solid tiles.")
                 self.active_panel.retract()
 
 
     def add_tile(self, *args):
         """Called in update if self.adding flag is set."""
-##        sheet, source = self.map_state.map_dict["Solid"][coord][:2]
         if self.waiting.done is not None:
             try:
-                self.checks[self.waiting_mode]()
-                self.block_args.append(self.waiting.done)
+                user_input = self.checks[self.waiting_mode]()
+                self.args.append(user_input)
                 if self.nexts[self.waiting_mode] == "DONE":
-                    self.reset()
+                    self.make_final_changes()
                 else:
                     self.waiting_mode = self.nexts[self.waiting_mode]
                     rect = map_prepare.MAP_RECT.inflate(-500, -600)
@@ -272,11 +271,22 @@ class Special(_Mode):
                 print("Invalid input: PushBlock not added.")
                 self.reset()
 
+    def make_final_changes(self):
+        """
+        If all input fields have been satisfied with valid results, remove the
+        target block from the solid layer and place corresponding block in the
+        Push layer.
+        """
+        sheet, source = self.map_state.map_dict["Solid"][self.coord][:2]
+        self.map_state.map_dict["Solid"].pop(self.coord)
+        self.map_state.map_dict["Push"][self.coord] = [sheet, source]+self.args
+        self.reset()
+
     def reset(self):
         """Reset needed variables for adding a new block."""
         self.reset_add_del()
         self.waiting_mode = "DIRECTION"
-        self.block_args = []
+        self.args = []
 
     def check_direction_input(self):
         """
@@ -303,7 +313,11 @@ class Special(_Mode):
 
     def del_tile(self, point):
         """Called in update if self.deleting flag is set."""
-        pass
+        map_rect = map_prepare.MAP_RECT
+        if map_rect.collidepoint(point):
+            size = map_prepare.CELL_SIZE
+            coord = tools.get_cell_coordinates(map_rect, point, size)
+            self.map_state.map_dict["Push"].pop(coord, None)
 
 
 class InputWindow(object):

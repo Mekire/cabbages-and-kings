@@ -372,13 +372,20 @@ Items:
   - *id013
   - diamond
   - !!python/unicode 'kill'
+Push:
+  ? !!python/tuple [400, 350]
+  : - inttemple2
+    - !!python/tuple [200, 150]
+    - !!python/unicode '1111'
+    - 1
+    - !!python/unicode 'kill'
 Solid:
   ? !!python/tuple [0, 300]
   : &id015 !!python/tuple
   - base
   - !!python/tuple [200, 450]
   ? !!python/tuple [0, 500]
-  : &id023 !!python/tuple
+  : &id022 !!python/tuple
   - base
   - !!python/tuple [100, 50]
   ? !!python/tuple [0, 550]
@@ -449,10 +456,6 @@ Solid:
   : !!python/tuple
   - base
   - !!python/tuple [50, 50]
-  ? !!python/tuple [400, 350]
-  : &id022 !!python/tuple
-  - inttemple2
-  - !!python/tuple [200, 150]
   ? !!python/tuple [400, 450]
   : !!python/tuple
   - misc
@@ -504,7 +507,9 @@ Solid:
   ? !!python/tuple [700, 650]
   : *id021
   ? !!python/tuple [750, 350]
-  : *id022
+  : !!python/tuple
+  - inttemple2
+  - !!python/tuple [200, 150]
   ? !!python/tuple [750, 600]
   : *id020
   ? !!python/tuple [750, 650]
@@ -514,11 +519,11 @@ Solid:
   ? !!python/tuple [800, 150]
   : *id017
   ? !!python/tuple [800, 650]
-  : *id023
+  : *id022
   ? !!python/tuple [850, 200]
   : *id017
   ? !!python/tuple [850, 500]
-  : &id025 !!python/tuple
+  : &id024 !!python/tuple
   - base
   - !!python/tuple [200, 450]
   ? !!python/tuple [850, 650]
@@ -528,7 +533,7 @@ Solid:
   ? !!python/tuple [900, 350]
   : *id017
   ? !!python/tuple [900, 600]
-  : &id024 !!python/tuple
+  : &id023 !!python/tuple
   - base
   - !!python/tuple [300, 550]
   ? !!python/tuple [900, 650]
@@ -536,8 +541,8 @@ Solid:
   - base
   - !!python/tuple [100, 550]
   ? !!python/tuple [950, 550]
-  : *id024
+  : *id023
   ? !!python/tuple [950, 650]
-  : *id025
+  : *id024
 Solid/Fore: {}
 Water: {}

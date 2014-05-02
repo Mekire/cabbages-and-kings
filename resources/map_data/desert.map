@@ -315,14 +315,6 @@ Enemies:
   - 1.0
 Environment: {}
 Foreground:
-  ? !!python/tuple [200, 350]
-  : !!python/tuple
-  - exttemple
-  - !!python/tuple [350, 0]
-  ? !!python/tuple [200, 400]
-  : !!python/tuple
-  - exttemple
-  - !!python/tuple [350, 50]
   ? !!python/tuple [300, 550]
   : !!python/tuple
   - base
@@ -332,6 +324,7 @@ Foreground:
   - base
   - !!python/tuple [350, 450]
 Items: {}
+Push: {}
 Solid:
   ? !!python/tuple [0, 200]
   : &id007 !!python/tuple
