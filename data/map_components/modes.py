@@ -169,7 +169,7 @@ class Items(_Mode):
 
     @property
     def item_type(self):
-        return self.panel.pages[self.panel.index].item_type
+        return self.panel.pages[self.panel.index].selected
 
     def set_add_del(self, point, attribute):
         """Set adding or deleting attributes and retract panel."""

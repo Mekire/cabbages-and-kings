@@ -294,6 +294,14 @@ Enemies:
   - 1.0
 Environment: {}
 Foreground:
+  ? !!python/tuple [200, 300]
+  : !!python/tuple
+  - exttemple
+  - !!python/tuple [350, 0]
+  ? !!python/tuple [200, 350]
+  : !!python/tuple
+  - exttemple
+  - !!python/tuple [350, 50]
   ? !!python/tuple [300, 100]
   : !!python/tuple
   - base
@@ -302,7 +310,20 @@ Foreground:
   : !!python/tuple
   - base
   - !!python/tuple [300, 400]
-Items: {}
+Items:
+  ? !!python/tuple [200, 400]
+  : !!python/tuple
+  - item_place
+  - !!python/tuple [0, 0]
+  - heart
+  - !!python/unicode 'statue'
+Push:
+  ? !!python/tuple [200, 400]
+  : - exttemple
+    - !!python/tuple [350, 100]
+    - !!python/unicode '1110'
+    - 2
+    - !!python/unicode 'statue'
 Solid:
   ? !!python/tuple [0, 0]
   : !!python/tuple

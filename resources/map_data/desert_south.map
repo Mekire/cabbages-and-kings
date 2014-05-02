@@ -379,6 +379,12 @@ Push:
     - !!python/unicode '1111'
     - 1
     - !!python/unicode 'kill'
+  ? !!python/tuple [650, 350]
+  : - inttemple2
+    - !!python/tuple [200, 50]
+    - !!python/unicode '1111'
+    - 3
+    - !!python/unicode 'null'
 Solid:
   ? !!python/tuple [0, 300]
   : &id015 !!python/tuple
@@ -496,10 +502,6 @@ Solid:
   : *id020
   ? !!python/tuple [600, 650]
   : *id018
-  ? !!python/tuple [650, 350]
-  : !!python/tuple
-  - inttemple2
-  - !!python/tuple [200, 50]
   ? !!python/tuple [650, 650]
   : !!python/tuple
   - base
