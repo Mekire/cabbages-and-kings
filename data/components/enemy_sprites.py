@@ -169,11 +169,11 @@ class _Enemy(pg.sprite.Sprite):
         if not self.hit_state and self.state != "spawn":
             self.health -= player.strength
             if self.health > 0:
-                    self.state = "hit"
-                    self.hit_state = tools.Timer(300, 1)
-                    self.knock_state = True
-                    self.knock_dir = player.direction
-                    self.got_knocked_collision(obstacles)
+                self.state = "hit"
+                self.hit_state = tools.Timer(300, 1)
+                self.knock_state = True
+                self.knock_dir = player.direction
+                self.got_knocked_collision(obstacles)
             elif self.state != "die":
                 self.drop_item(*item_groups)
                 self.state = "die"

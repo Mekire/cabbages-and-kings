@@ -125,6 +125,10 @@ class PushBlock(Tile):
             player.rect.topleft = player.exact_position
 
     def get_stacked_tiles(self, groups):
+        """
+        Find the tiles that are stacked on the pushblock via collision with the
+        foreground group.
+        """
         rect = pg.Rect(0, 0, 50, 50*self.stack_height)
         rect.bottomleft = self.rect.topleft
         test = CollisionRect(rect)

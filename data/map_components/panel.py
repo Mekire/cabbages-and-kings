@@ -120,7 +120,7 @@ class Panel(object):
         """Update scrolling if needed and update current panel page."""
         if self.visible and self.scrolling:
             self.do_scroll()
-        self.pages[self.index].update(keys, now, self.rect)
+        self.pages[self.index].update(keys, now, self.rect, self.visible)
 
     def draw(self, surface, interpolate):
         """
@@ -141,7 +141,13 @@ class Panel(object):
 
 
 class PanelPage(object):
+    """Base class for panel pages."""
     def __init__(self, sheet_name, map_state):
+        """
+        Argument sheet_name is the string name for the sheet corresponding
+        to the map_prepare.GFX["mapsheets"] dictionary.  The page must also
+        have access to the map_state object.
+        """
         self.map_state = map_state
         self.sheet_name = sheet_name
         if sheet_name:
@@ -151,15 +157,21 @@ class PanelPage(object):
         self.rect = self.image.get_rect()
         self.cursor = self.make_selector_cursor()
 
-    def update(self, keys, now, panel_rect):
+    def update(self, keys, now, panel_rect, visible):
+        """
+        Set the position of the pages rect based on the location of the
+        panel's rect.
+        """
         self.rect.topleft = panel_rect.move(2,2).topleft
 
     def get_event(self, event):
+        """If the page is clicked on run the set_select method."""
         if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
                 self.set_select(event.pos)
 
     def draw(self, surface, interpolate):
+        """Draw the page to the surface, followed by the cursor if needed."""
         surface.fill((40,40,40), (2, 2, 400, 600))
         surface.blit(self.image, (2,2))
         self.draw_cursor(surface, self.image)
@@ -184,6 +196,7 @@ class PanelPage(object):
             surface.blit(self.cursor, location)
 
     def set_select(self, point):
+        """Set the selected item and corresponding image."""
         cell_size = map_prepare.CELL_SIZE
         coords = tools.get_cell_coordinates(self.rect, point, cell_size)
         self.map_state.selected = (self.sheet_name, coords)
@@ -192,37 +205,53 @@ class PanelPage(object):
 
 
 class BackGroundPage(PanelPage):
+    """
+    The background page has slightly different behavior than the standard
+    pages and requires its own class."""
     def __init__(self, map_state):
+        """Create the fill button and bind it to appropriate method."""
         PanelPage.__init__(self, "background", map_state)
         self.fill_button = Button(**FILL_BUTTON)
         self.fill_button.bind(self.fill_all)
 
     def fill_all(self, name):
+        """
+        Set the background fill color if a color is currently selected and
+        the fill button is clicked.
+        """
         selected = self.map_state.selected
         if selected:
             self.map_state.map_dict["BG Colors"]["fill"] = selected[1]
 
-    def make_image(self):
-        image = pg.Surface((400, 600)).convert_alpha()
-        image.blit(self.image, (0,0))
-        return image
-
-    def update(self, keys, now, panel_rect):
+    def update(self, keys, now, panel_rect, visible):
+        """
+        If the mouse is over the background page and it is visible,
+        set the cursor to the dropper.
+        """
         point = pg.mouse.get_pos()
-        if panel_rect.collidepoint(point):
+        if panel_rect.collidepoint(point) and visible:
             if pg.mouse.get_cursor() != map_prepare.DROPPER:
-                pg.mouse.set_cursor((16,16), (0,15), *map_prepare.DROPPER)
+                pg.mouse.set_cursor(*map_prepare.DROPPER)
         self.rect.topleft = panel_rect.move(2,2).topleft
 
     def get_event(self, event):
+        """
+        Run the standard PanelPage get_event method but also send the event
+        to the fill button.
+        """
         PanelPage.get_event(self, event)
         self.fill_button.get_event(event, self.rect.topleft)
 
     def draw(self, surface, interpolate):
+        """Draw page and fill button."""
         PanelPage.draw(self, surface, interpolate)
         self.fill_button.draw(surface, self.rect.topleft)
 
     def set_select(self, point):
+        """
+        Set the selected to the color tuple at point rather than to
+        coordinates on the map sheet.
+        """
         cell_size = map_prepare.CELL_SIZE
         coords = tools.get_cell_coordinates(self.rect, point, cell_size)
         get_point = point[0]-self.rect.x, point[1]-self.rect.y
@@ -238,36 +267,50 @@ class BackGroundPage(PanelPage):
         self.map_state.select_image = image
 
     def make_selector_cursor(self):
+        """Not needed for this page."""
         pass
 
     def draw_cursor(self, *args):
+        """Not needed for this page."""
         pass
 
 
 class ItemPage(PanelPage):
+    """
+    Page for item placement.  Contains the selctable item images as well
+    as a selector menu to choose if the item comes from a treasure chest or
+    is spawned after a particular map event.
+    """
     def __init__(self, map_state):
+        """Create the selector menu and bind it to appropriate callback."""
         PanelPage.__init__(self, "item_place", map_state)
         self.selector = Selector(**ITEM_TYPE)
         self.selector.bind(self.set_type)
         self.selected = "Treasure Chest"
 
     def set_type(self, name):
+        """Call back for the selector menu."""
         self.selected = name
 
-    def update(self, keys, now, panel_rect):
-        point = pg.mouse.get_pos()
-        self.rect.topleft = panel_rect.move(2,2).topleft
-
     def get_event(self, event):
+        """
+        Run the standard PanelPage get_event method but also send the event
+        to the selector.
+        """
         PanelPage.get_event(self, event)
         self.selector.get_event(event, self.rect.topleft)
 
     def draw(self, surface, interpolate):
+        """Draw page and selector menu."""
         PanelPage.draw(self, surface, interpolate)
         self.selector.draw(surface, self.rect.topleft)
 
 
 class SpecialPage(ItemPage):
+    """
+    Page for portals, push, break, and burn blocks.
+    Similar functionality to item page.
+    """
     def __init__(self, map_state):
         PanelPage.__init__(self, None, map_state)
         self.selector = Selector(**SPECIAL_TYPE)
