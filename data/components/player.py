@@ -128,14 +128,13 @@ class _ImageProcessing(object):
             return to_blit
 
 
-class Player(pg.sprite.Sprite, _ImageProcessing):
+class Player(tools._BaseSprite, _ImageProcessing):
     """A class to represent our main protagonist."""
     def __init__(self, data):
         """
         Most member variables are initialized within set_player_data and reset.
         """
-        pg.sprite.Sprite.__init__(self)
-        self.rect = pg.Rect((0,0), prepare.CELL_SIZE)
+        tools._BaseSprite.__init__(self, (0,0), prepare.CELL_SIZE)
         self.controls = prepare.DEFAULT_CONTROLS
         self.set_player_data(data)
         self.mask = self.make_mask()
@@ -143,15 +142,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.death_anim = self.make_death_animation()
         self.image = None
         self.reset()
-
-    @property
-    def frame_speed(self):
-        """
-        Returns the total displacement undergone in a frame. Used for the
-        interpolation of the player's location in the draw phase.
-        """
-        return (self.exact_position[0]-self.old_position[0],
-                self.exact_position[1]-self.old_position[1])
 
     def reset(self):
         """
@@ -171,16 +161,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
         self.shadow = shadow.Shadow((40,20), self.rect)
         self.redraw = True
 
-    def reset_position(self, value, attribute="topleft"):
-        """
-        Set the player's location variables to a new point.  The attribute
-        argument can be specified to assign to a chosen attribute of the
-        player's rect.
-        """
-        setattr(self.rect, attribute, value)
-        self.exact_position = list(self.rect.topleft)
-        self.old_position = self.exact_position[:]
-
     def set_player_data(self, data):
         """Set required stats based on player data."""
         for key in data:
@@ -188,7 +168,6 @@ class Player(pg.sprite.Sprite, _ImageProcessing):
                 setattr(self, key, data[key])
         self.identifiers = data["identifiers"].copy() #Persistant event flags.
         self.inventory = equips.make_equips(data["gear"])
-##        self.inventory = equips.make_all_equips() ### Until chests are added.
         self.inventory["money"] = data["money"]
         self.inventory["keys"] = data["keys"]
         self.equipped = self.set_equips(data["equipped"])

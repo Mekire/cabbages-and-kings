@@ -155,6 +155,36 @@ class Timer(object):
             return True
 
 
+class _BaseSprite(pg.sprite.Sprite):
+    """
+    A very basic base class that contains some commonly used functionality.
+    """
+    def __init__(self, pos, size, *groups):
+        pg.sprite.Sprite.__init__(self, *groups)
+        self.rect = pg.Rect(pos, size)
+        self.exact_position = list(self.rect.topleft)
+        self.old_position = self.exact_position[:]
+
+    @property
+    def frame_speed(self):
+        """
+        Returns the total displacement undergone in a frame. Used for the
+        interpolation of the sprite's location in the draw phase.
+        """
+        return (self.exact_position[0]-self.old_position[0],
+                self.exact_position[1]-self.old_position[1])
+
+    def reset_position(self, value, attribute="topleft"):
+        """
+        Set the sprite's location variables to a new point.  The attribute
+        argument can be specified to assign to a chosen attribute of the
+        sprite's rect.
+        """
+        setattr(self.rect, attribute, value)
+        self.exact_position = list(self.rect.topleft)
+        self.old_position = self.exact_position[:]
+
+
 ### Resource loading functions.
 def load_all_gfx(directory,colorkey=(255,0,255),accept=(".png",".jpg",".bmp")):
     """
@@ -297,4 +327,3 @@ def rect_then_mask(one, two):
     rectangles were not colliding, the mask check is not performed.
     """
     return pg.sprite.collide_rect(one,two) and pg.sprite.collide_mask(one,two)
-

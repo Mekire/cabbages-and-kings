@@ -207,7 +207,8 @@ class PanelPage(object):
 class BackGroundPage(PanelPage):
     """
     The background page has slightly different behavior than the standard
-    pages and requires its own class."""
+    pages and requires its own class.
+    """
     def __init__(self, map_state):
         """Create the fill button and bind it to appropriate method."""
         PanelPage.__init__(self, "background", map_state)

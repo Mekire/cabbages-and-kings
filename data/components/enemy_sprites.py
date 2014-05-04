@@ -110,19 +110,16 @@ class LinearAI(BasicAI):
         return new_dir if new_dir else opposite
 
 
-class _Enemy(pg.sprite.Sprite):
+class _Enemy(tools._BaseSprite):
     """
     The base class for all enemies.
     """
     def __init__(self, name, sheet, pos, speed, *groups):
-        pg.sprite.Sprite.__init__(self, *groups)
         coords, size = ENEMY_COORDS[name], prepare.CELL_SIZE
+        tools._BaseSprite.__init__(self, pos, size, *groups)
         self.frames = tools.strip_coords_from_sheet(sheet, coords, size)
-        self.rect = pg.Rect(pos, prepare.CELL_SIZE)
         self.mask = pg.Mask(prepare.CELL_SIZE)
         self.mask.fill()
-        self.exact_position = list(self.rect.topleft)
-        self.old_position = self.exact_position[:]
         self.steps = [0, 0]
         self.ai = BasicAI(self)
         self.speed = speed
@@ -138,15 +135,6 @@ class _Enemy(pg.sprite.Sprite):
         self.knock_collide = None
         self.knock_clear = None
         self.drops = [None]
-
-    @property
-    def frame_speed(self):
-        """
-        Returns the total displacement undergone in a frame. Used for the
-        interpolation of the sprites' location in the draw phase.
-        """
-        return (self.exact_position[0]-self.old_position[0],
-                self.exact_position[1]-self.old_position[1])
 
     def get_occupied_cell(self):
         """

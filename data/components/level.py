@@ -32,14 +32,11 @@ class CollisionRect(pg.sprite.Sprite):
         self.rect = rect
 
 
-class Tile(pg.sprite.Sprite):
+class Tile(tools._BaseSprite):
     """A basic tile."""
     def __init__(self, sheet, source, target, mask):
         """If the player can collide with it pass mask=True."""
-        pg.sprite.Sprite.__init__(self)
-        self.rect = pg.Rect(target, prepare.CELL_SIZE)
-        self.exact_position = list(self.rect.topleft)
-        self.old_position = self.exact_position[:]
+        tools._BaseSprite.__init__(self, target, prepare.CELL_SIZE)
         self.sheet = prepare.GFX["mapsheets"][sheet]
         self.image = self.sheet.subsurface(pg.Rect(source, prepare.CELL_SIZE))
         if mask:
@@ -93,15 +90,6 @@ class PushBlock(Tile):
         """
         directions = ["back", "right", "front", "left"]
         return {directions[i] for i,num in enumerate(binary) if num == "1"}
-
-    @property
-    def frame_speed(self):
-        """
-        Returns the total displacement undergone in a frame. Used for the
-        interpolation of the object's location in the draw phase.
-        """
-        return (self.exact_position[0]-self.old_position[0],
-                self.exact_position[1]-self.old_position[1])
 
     def collide_with_player(self, player):
         """
