@@ -424,10 +424,10 @@ class Spider(_BasicFrontFrames):
             if not self.shooting:
                 web = projectiles.Web(self, group_dict["projectiles"])
                 trail = projectiles.WebLine(self, web)
-                group_dict["all"].add(web, layer="Projectiles")
-                group_dict["all"].add(trail, layer="Projectiles")
+                z_level = prepare.Z_ORDER["Projectiles"]
+                group_dict["all"].add(web, layer=z_level)
+                group_dict["all"].add(trail, layer=z_level)
                 self.shooting.add(web)
-##            return web
 
 
 class Crab(_BasicFrontFrames):

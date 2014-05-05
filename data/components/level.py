@@ -13,14 +13,6 @@ else:
     import yaml3 as yaml
 
 
-Z_ORDER = {"BG Tiles" : -4,
-           "Water" : -3,
-           "Shadows" : -2,
-           "Solid" : -1,
-           "Solid/Fore" : 750,
-           "Foreground" : 800,
-           "Projectiles" : 850}
-
 LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Solid/Fore", "Foreground", "Environment",
           "Enemies", "Items", "Chests", "Push")
@@ -361,7 +353,7 @@ class Level(object):
             sheet, source = data[:2]
             args = [sheet, source, target, True, self.post_map_event]+data[2:]
             push = PushBlock(*args)
-            self.all_group.add(push, layer=Z_ORDER["Solid"])
+            self.all_group.add(push, layer=prepare.Z_ORDER["Solid"])
             groups = (self.solids, self.solid_border, self.moving)
             push.add(*groups)
 
@@ -377,7 +369,7 @@ class Level(object):
             args = (sheet, source, target, True, item, self.name, ident)
             chest = TreasureChest(*args)
             chest.add(groups)
-            self.all_group.add(chest, layer=Z_ORDER["Solid"])
+            self.all_group.add(chest, layer=prepare.Z_ORDER["Solid"])
             chest.check_opened(self.player)
 
     def add_map_item(self, event):
@@ -403,7 +395,7 @@ class Level(object):
     def make_shadows(self):
         """Create shadows for the player and all enemies."""
         shadows = [enemy.shadow for enemy in self.enemies]+[self.player.shadow]
-        self.all_group.add(shadows, layer=Z_ORDER["Shadows"])
+        self.all_group.add(shadows, layer=prepare.Z_ORDER["Shadows"])
         return pg.sprite.Group(shadows)
 
     def make_borders(self):
@@ -445,12 +437,12 @@ class Level(object):
         all_group = pg.sprite.LayeredUpdates()
         solid_group = pg.sprite.Group()
         layer = "BG Tiles"
-        all_group.add(self.make_tile_group(layer), layer=Z_ORDER[layer])
+        all_group.add(self.make_tile_group(layer), layer=prepare.Z_ORDER[layer])
         foreground = self.make_tile_group("Foreground")
-        all_group.add(foreground, layer=Z_ORDER["Foreground"])
+        all_group.add(foreground, layer=prepare.Z_ORDER["Foreground"])
         for layer in ("Solid/Fore", "Solid", "Water"):
             solids = self.make_tile_group(layer, True)
-            all_group.add(solids, layer=Z_ORDER[layer])
+            all_group.add(solids, layer=prepare.Z_ORDER[layer])
             solid_group.add(solids)
         return all_group, solid_group, foreground
 

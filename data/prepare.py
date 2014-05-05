@@ -76,6 +76,15 @@ DEFAULT_PLAYER = {"name" : None,
                   "gear" : DEFAULT_GEAR,
                   "equipped" : {k:v[0] for k,v in DEFAULT_GEAR.items()}}
 
+#Draw layer order for all types of items.
+Z_ORDER = {"BG Tiles" : -4,
+           "Water" : -3,
+           "Shadows" : -2,
+           "Solid" : -1,
+           "Solid/Fore" : 750,
+           "Foreground" : 800,
+           "Projectiles" : 850}
+
 #Resource loading (Fonts and music just contain path names).
 SAVE_PATH = os.path.join("resources", "save_data", "save_data.dat")
 FONTS = tools.load_all_fonts(os.path.join("resources", "fonts"))

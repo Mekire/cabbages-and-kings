@@ -68,7 +68,7 @@ class Web(tools._BaseSprite):
 
 
 class WebLine(pg.sprite.Sprite):
-    null_surface = pg.Surface((1200,700)).convert()
+    null_surface = pg.Surface((1000,700)).convert()
     def __init__(self, owner, web):
         pg.sprite.Sprite.__init__(self)
         self.owner = owner
