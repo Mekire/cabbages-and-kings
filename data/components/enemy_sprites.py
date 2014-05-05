@@ -1,7 +1,7 @@
 import random
 import pygame as pg
 
-from . import shadow, item_sprites
+from . import shadow, item_sprites, projectiles
 from .. import prepare, tools
 
 
@@ -110,6 +110,34 @@ class LinearAI(BasicAI):
         return new_dir if new_dir else opposite
 
 
+class CrabWalk(BasicAI):
+    """
+    An AI that favors horizontal movement over vertical.
+    Used for crabs and spiders.
+    """
+    def __init__(self, sprite):
+        BasicAI.__init__(self, sprite)
+
+    def __call__(self, obstacles):
+        """Make AI classes callable."""
+        return self.get_direction(obstacles)
+
+    def get_direction(self, obstacles):
+        """Sprite has a 3:4 chance of moving horizontally."""
+        directions = ["front", "back"]+["left"]*3+["right"]*3
+        random.shuffle(directions)
+        new_dir = None
+        while not new_dir:
+            new_dir = directions.pop()
+            move = (prepare.DIRECT_DICT[new_dir][0]*prepare.CELL_SIZE[0],
+                    prepare.DIRECT_DICT[new_dir][1]*prepare.CELL_SIZE[1])
+            self.sprite.rect.move_ip(*move)
+            if self.check_collisions(obstacles):
+                new_dir = None
+            self.sprite.rect.move_ip(-move[0], -move[1])
+        return new_dir
+
+
 class _Enemy(tools._BaseSprite):
     """
     The base class for all enemies.
@@ -124,6 +152,7 @@ class _Enemy(tools._BaseSprite):
         self.ai = BasicAI(self)
         self.speed = speed
         self.direction = None
+        self.previous_direction = None
         self.anim_directions = prepare.DIRECTIONS[:]
         self.anim_direction = random.choice(self.anim_directions)
         self.shadow = shadow.Shadow((40,20), self.rect)
@@ -134,7 +163,12 @@ class _Enemy(tools._BaseSprite):
         self.knock_dir = None
         self.knock_collide = None
         self.knock_clear = None
+        self.busy = False
+        self.act_mid_step = False
         self.drops = [None]
+
+    def check_action(self, player, group_dict):
+        pass
 
     def get_occupied_cell(self):
         """
@@ -241,11 +275,15 @@ class _Enemy(tools._BaseSprite):
         obstacles = group_dict["solid_border"]
         self.old_position = self.exact_position[:]
         if self.state not in ("hit", "die", "spawn"):
-            if self.direction:
+            if self.act_mid_step and not self.busy:
+                self.busy = self.check_action(player, group_dict)
+            if self.direction and not self.busy:
                 self.move()
             else:
                 self.change_direction(obstacles)
             if any(x >= prepare.CELL_SIZE[i] for i,x in enumerate(self.steps)):
+                if not self.act_mid_step and not self.busy:
+                    self.busy = self.check_action(player, group_dict)
                 self.change_direction(obstacles)
         if self.hit_state:
             self.hit_state.check_tick(now)
@@ -274,6 +312,7 @@ class _Enemy(tools._BaseSprite):
         element of CELL_SIZE, query AI for new direction.
         """
         self.snap_to_grid()
+        self.previous_direction = self.direction
         self.direction = self.ai(obstacles)
         if self.direction in self.anim_directions:
             self.anim_direction = self.direction
@@ -374,9 +413,21 @@ class Spider(_BasicFrontFrames):
         _BasicFrontFrames.__init__(self, "spider", ENEMY_SHEET, *args)
         die_frames = self.frames[4:6]+self.frames[6:]*2
         self.anims["die"] = tools.Anim(die_frames, 5, 1)
+        self.ai = CrabWalk(self)
         self.health = 6
         self.attack = 6
         self.drops = ["diamond", None]
+        self.shooting = pg.sprite.Group()
+
+    def check_action(self, player, group_dict):
+        if self.previous_direction and random.random() <= 0.25:
+            if not self.shooting:
+                web = projectiles.Web(self, group_dict["projectiles"])
+                trail = projectiles.WebLine(self, web)
+                group_dict["all"].add(web, layer="Projectiles")
+                group_dict["all"].add(trail, layer="Projectiles")
+                self.shooting.add(web)
+##            return web
 
 
 class Crab(_BasicFrontFrames):
@@ -385,6 +436,7 @@ class Crab(_BasicFrontFrames):
         _BasicFrontFrames.__init__(self, "crab", ENEMY_SHEET, *args)
         die_frames = self.frames[4:7]+self.frames[7:]*2
         self.anims["die"] = tools.Anim(die_frames, 5, 1)
+        self.ai = CrabWalk(self)
         self.health = 6
         self.attack = 6
         self.drops = [None, None, "diamond"]

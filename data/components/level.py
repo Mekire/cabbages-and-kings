@@ -18,7 +18,8 @@ Z_ORDER = {"BG Tiles" : -4,
            "Shadows" : -2,
            "Solid" : -1,
            "Solid/Fore" : 750,
-           "Foreground" : 800}
+           "Foreground" : 800,
+           "Projectiles" : 850}
 
 LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Solid/Fore", "Foreground", "Environment",
@@ -335,11 +336,14 @@ class Level(object):
         self.main_sprites = pg.sprite.Group(self.player)
         self.moving = pg.sprite.Group(self.player)
         self.all_group, self.solids, foreground = self.make_all_layer_groups()
-        self.solid_border = pg.sprite.Group(self.solids, self.make_borders())
+        self.borders = self.make_borders()
+        self.solid_border = pg.sprite.Group(self.solids, self.borders)
         self.interactables = pg.sprite.Group() ###
-        self.group_dict = {"solid_border" : self.solid_border,
+        self.projectiles = pg.sprite.Group()
+        self.group_dict = {"borders" : self.borders,
+                           "solid_border" : self.solid_border,
                            "foreground" : foreground,
-                           "projectiles" : None,
+                           "projectiles" : self.projectiles,
                            "enemies" : self.enemies,
                            "items" : self.items,
                            "main" : self.main_sprites,
@@ -496,7 +500,8 @@ class Level(object):
         sprites.
         """
         callback = tools.rect_then_mask
-        groups = pg.sprite.Group(self.solids, self.enemies, self.items)
+        groups = pg.sprite.Group(self.solids, self.enemies,
+                                 self.items, self.projectiles)
         hits = pg.sprite.spritecollide(self.player, groups, False, callback)
         for hit in hits:
             hit.collide_with_player(self.player)
