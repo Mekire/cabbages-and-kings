@@ -152,7 +152,6 @@ class _Enemy(tools._BaseSprite):
         self.ai = BasicAI(self)
         self.speed = speed
         self.direction = None
-        self.previous_direction = None
         self.anim_directions = prepare.DIRECTIONS[:]
         self.anim_direction = random.choice(self.anim_directions)
         self.shadow = shadow.Shadow((40,20), self.rect)
@@ -312,7 +311,6 @@ class _Enemy(tools._BaseSprite):
         element of CELL_SIZE, query AI for new direction.
         """
         self.snap_to_grid()
-        self.previous_direction = self.direction
         self.direction = self.ai(obstacles)
         if self.direction in self.anim_directions:
             self.anim_direction = self.direction
@@ -334,6 +332,9 @@ class _Enemy(tools._BaseSprite):
     def draw(self, surface):
         """Generic draw function."""
         surface.blit(self.image, self.rect)
+
+    def on_map_change(self):
+        self.busy = False
 
 
 class _BasicFrontFrames(_Enemy):
@@ -420,14 +421,8 @@ class Spider(_BasicFrontFrames):
         self.shooting = pg.sprite.Group()
 
     def check_action(self, player, group_dict):
-        if self.previous_direction and random.random() <= 0.25:
-            if not self.shooting:
-                web = projectiles.Web(self, group_dict["projectiles"])
-                trail = projectiles.WebLine(self, web)
-                z_level = prepare.Z_ORDER["Projectiles"]
-                group_dict["all"].add(web, layer=z_level)
-                group_dict["all"].add(trail, layer=z_level)
-                self.shooting.add(web)
+        if not self.shooting and random.random() <= 0.25:
+            self.shooting.add(projectiles.Web(self, group_dict))
 
 
 class Crab(_BasicFrontFrames):
@@ -554,6 +549,38 @@ class Skeleton(_Enemy):
         self.drops = ["heart", None]
 
 
+class FireBallGenerator(_Enemy):
+    def __init__(self, target, speed, *groups):
+        tools._BaseSprite.__init__(self, target, prepare.CELL_SIZE, *groups)
+        self.image = pg.Surface((1,1)).convert_alpha() #Required by interface.
+        self.image.fill((0,0,0,0))
+        self.speed = speed*100 #Miliseconds between shots.
+        self.shot_delay = random.random()*self.speed/2
+        self.timer = None
+
+    def reset_timer(self):
+        self.timer = tools.Timer(self.speed)
+        self.timer.check_tick(pg.time.get_ticks())
+
+    def collide_with_player(self, player):
+        pass
+
+    def got_hit(self, player, obstacles, *item_groups):
+        pass
+
+    def update(self, now, player, group_dict):
+        if not self.timer:
+            self.reset_timer()
+        if self.timer.check_tick(now-self.shot_delay):
+            groups = group_dict["projectiles"], group_dict["moving"]
+            fire = projectiles.FireBall(self, *groups)
+            group_dict["all"].add(fire, layer=prepare.Z_ORDER["Projectiles"])
+
+    def on_map_change(self):
+        _Enemy.on_map_change(self)
+        self.timer = None
+
+
 ENEMY_DICT = {(0, 0) : Cabbage,
               (50, 0) : Spider,
               (100, 0) : Frog,
@@ -569,7 +596,7 @@ ENEMY_DICT = {(0, 0) : Cabbage,
               (200, 50) : AkaOni,
               (250, 50) : None, #Lantern,
               (300, 50) : None, #Daruma,
-              (350, 50) : None, #FireBall,
+              (350, 50) : FireBallGenerator,
               (0, 100) : None, #Knight,
               (50, 100) : None, #EvilElf,
               (100, 100) : None, #Tank,

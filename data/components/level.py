@@ -339,6 +339,7 @@ class Level(object):
                            "enemies" : self.enemies,
                            "items" : self.items,
                            "main" : self.main_sprites,
+                           "moving" : self.moving,
                            "all" : self.all_group}
         self.all_group.add(self.player)
         self.spawn()
@@ -347,7 +348,8 @@ class Level(object):
         self.make_chests()
         self.make_push()
 
-    def make_push(self): ### Temporary test code
+    def make_push(self):
+        """Create all push blocks."""
         for target in self.map_dict["Push"]:
             data = self.map_dict["Push"][target]
             sheet, source = data[:2]
@@ -356,7 +358,6 @@ class Level(object):
             self.all_group.add(push, layer=prepare.Z_ORDER["Solid"])
             groups = (self.solids, self.solid_border, self.moving)
             push.add(*groups)
-
 
     def make_chests(self):
         """
@@ -394,7 +395,8 @@ class Level(object):
 
     def make_shadows(self):
         """Create shadows for the player and all enemies."""
-        shadows = [enemy.shadow for enemy in self.enemies]+[self.player.shadow]
+        shadows = [e.shadow for e in self.enemies if hasattr(e, "shadow")]
+        shadows += [self.player.shadow]
         self.all_group.add(shadows, layer=prepare.Z_ORDER["Shadows"])
         return pg.sprite.Group(shadows)
 
@@ -517,3 +519,10 @@ class Level(object):
         for sprite in self.main_sprites:
             self.all_group.change_layer(sprite, sprite.rect.centery)
         self.all_group.draw(surface)
+
+    def on_map_change(self):
+        groups = pg.sprite.Group(self.group_dict["projectiles"],
+                                 self.group_dict["enemies"])
+        for sprite in groups:
+            sprite.on_map_change()
+

@@ -184,6 +184,9 @@ class _BaseSprite(pg.sprite.Sprite):
         self.exact_position = list(self.rect.topleft)
         self.old_position = self.exact_position[:]
 
+    def on_map_change(self):
+        pass
+
 
 ### Resource loading functions.
 def load_all_gfx(directory,colorkey=(255,0,255),accept=(".png",".jpg",".bmp")):

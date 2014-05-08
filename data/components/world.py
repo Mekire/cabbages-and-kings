@@ -93,6 +93,7 @@ class WorldMap(object):
             self.current_coords[0] += self.scroll_vector[0]
             self.current_coords[1] += self.scroll_vector[1]
             next_map = self.world_dict[tuple(self.current_coords)]
+            self.level.on_map_change()
             self.level = self.update_history(next_map)
             self.scrolling = True
 
