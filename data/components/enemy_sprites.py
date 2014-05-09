@@ -33,8 +33,8 @@ ENEMY_COORDS = {
                   (0,2),(1,2),(2,2),(3,2),(4,2),(5,2),(6,2),(7,2),(8,2)],
     "red_oni" : [(0,3),(1,3),(4,3),(5,3),(8,3),(9,3),(2,3),(3,3),(6,3),(7,3),
                  (0,4),(1,4),(2,4),(3,4),(4,4),(5,4),(6,2),(7,2),(8,2)],
-    "daruma" : [(0,5),(1,5),(2,5),(3,5),(4,5),(5,5),(6,5),(7,5),(8,5),(9,5),
-                (0,6),(1,6),(2,6),(3,6),(4,6),(5,6),(6,4),(7,4),(8,4),(9,4)],
+    "daruma" : [(0,5),(1,5),(2,5),(3,5),(6,4),(7,4),(8,4),(9,4),(4,5),(5,5),
+                (6,5),(7,5),(8,5),(9,5),(0,6),(1,6),(2,6),(3,6),(4,6),(5,6)],
     "lantern" : [(0,7),(1,7),(6,6),(7,6),(2,7),(3,7),(4,7),
                  (5,7),(6,7),(7,7),(8,7),(9,7),(9,6)],
     "evil_elf" : [(0,8),(1,8),(2,8),(3,8),(4,8),(5,8),(6,8),(7,8)],
@@ -475,6 +475,16 @@ class Snail(_SideFramesOnly):
         self.drops = ["diamond", "heart", None, None]
 
 
+class Lantern(_SideFramesOnly):
+    """A haunted lantern. (2 directions)"""
+    def __init__(self, *args):
+        _SideFramesOnly.__init__(self, "lantern", ENEMY_SHEET_2, *args)
+        self.ai = BasicAI(self)
+        self.health = 6
+        self.attack = 6
+        self.drops = ["heart", None, None]
+
+
 class Zombie(_FourDirFrames):
     """The typical stock zombie. (4 directions)"""
     def __init__(self, *args):
@@ -533,11 +543,11 @@ class Skeleton(_Enemy):
                 "left" : tools.Anim(self.frames[:2], 7),
                 "right" : tools.Anim([pg.transform.flip(self.frames[0], 1, 0),
                                pg.transform.flip(self.frames[1], 1, 0)], 7)}
-        hit = {"front" : tools.Anim(self.frames[10:], 7),
-               "back" : tools.Anim(self.frames[8:10], 7),
-               "left" : tools.Anim(self.frames[6:8], 7),
+        hit = {"front" : tools.Anim(self.frames[10:], 20),
+               "back" : tools.Anim(self.frames[8:10], 20),
+               "left" : tools.Anim(self.frames[6:8], 20),
                "right" : tools.Anim([pg.transform.flip(self.frames[6], 1, 0),
-                               pg.transform.flip(self.frames[7], 1, 0)], 7)}
+                               pg.transform.flip(self.frames[7], 1, 0)], 20)}
         die_frames = self.frames[3:5]+[self.frames[5]]*2
         self.anims = {"walk" : walk,
                       "hit" : hit,
@@ -549,7 +559,51 @@ class Skeleton(_Enemy):
         self.drops = ["heart", None]
 
 
+class Daruma(_Enemy):
+    """A bouncy Daruma with a typical lack of depth perception."""
+    def __init__(self, *args):
+        _Enemy.__init__(self,  "daruma", ENEMY_SHEET_2, *args)
+        self.anim_directions = ["front", "back"]
+        self.anim_direction = random.choice(self.anim_directions)
+        self.ai = BasicAI(self)
+        walk = {"front" : tools.Anim(self.frames[:2], 7),
+                "back" : tools.Anim(self.frames[4:6], 7)}
+        hit = {"front" : tools.Anim(self.frames[2:4], 7),
+               "back" : tools.Anim(self.frames[6:8], 7)}
+        die = tools.Anim(self.frames[8:], 10, 1)
+        self.anims = {"walk" : walk, "hit" : hit, "die" : die}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        self.health = 6
+        self.attack = 6
+        self.drops = ["heart", None]
+
+
+class EvilElf(_Enemy):
+    """Elf that shoots arrows (not implemented) (4 directions)"""
+    def __init__(self, *args):
+        _Enemy.__init__(self,  "evil_elf", ENEMY_SHEET_2, *args)
+        self.ai = LinearAI(self)
+        walk = {"front" : tools.Anim(self.frames[:2], 7),
+                "back" : tools.Anim(self.frames[6:8], 7),
+                "left" : tools.Anim(self.frames[2:4], 7),
+                "right" : tools.Anim(self.frames[4:6], 7)}
+        hit = {"front" : tools.Anim(self.frames[:2], 20),
+                "back" : tools.Anim(self.frames[6:8], 20),
+                "left" : tools.Anim(self.frames[2:4], 20),
+                "right" : tools.Anim(self.frames[4:6], 20)}
+        death_cell_coords = [(3,1), (4,1), (5,1), (6,1), (6,1)]
+        death_args = (ENEMY_SHEET, death_cell_coords, prepare.CELL_SIZE)
+        death_cells = tools.strip_coords_from_sheet(*death_args)
+        die = tools.Anim(death_cells, 3, loops=1)
+        self.anims = {"walk" : walk, "hit" : hit, "die" : die}
+        self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
+        self.health = 6
+        self.attack = 6
+        self.drops = ["heart", None]
+
+
 class FireBallGenerator(_Enemy):
+    """Creates fireballs at a specified interval."""
     def __init__(self, target, speed, *groups):
         tools._BaseSprite.__init__(self, target, prepare.CELL_SIZE, *groups)
         self.image = pg.Surface((1,1)).convert_alpha() #Required by interface.
@@ -559,16 +613,26 @@ class FireBallGenerator(_Enemy):
         self.timer = None
 
     def reset_timer(self):
+        """
+        This timer is reset every time the player leaves the screen to
+        prevent projectiles from syncronizing.
+        """
         self.timer = tools.Timer(self.speed)
         self.timer.check_tick(pg.time.get_ticks())
 
     def collide_with_player(self, player):
+        """The generator itself can not hit or be hit."""
         pass
 
     def got_hit(self, player, obstacles, *item_groups):
+        """The generator itself can not hit or be hit."""
         pass
 
     def update(self, now, player, group_dict):
+        """
+        If the timer isn't setup, reset it.  Check timer tick and
+        add a new fireball if ready.
+        """
         if not self.timer:
             self.reset_timer()
         if self.timer.check_tick(now-self.shot_delay):
@@ -577,6 +641,9 @@ class FireBallGenerator(_Enemy):
             group_dict["all"].add(fire, layer=prepare.Z_ORDER["Projectiles"])
 
     def on_map_change(self):
+        """
+        The timer must be reset to None on map change to avoid syncronization.
+        """
         _Enemy.on_map_change(self)
         self.timer = None
 
@@ -594,10 +661,10 @@ ENEMY_DICT = {(0, 0) : Cabbage,
               (100, 50) : Turtle,
               (150, 50) : AoOni,
               (200, 50) : AkaOni,
-              (250, 50) : None, #Lantern,
-              (300, 50) : None, #Daruma,
+              (250, 50) : Lantern,
+              (300, 50) : Daruma,
               (350, 50) : FireBallGenerator,
               (0, 100) : None, #Knight,
-              (50, 100) : None, #EvilElf,
+              (50, 100) : EvilElf,
               (100, 100) : None, #Tank,
               (150, 100) : None} #Turret}
