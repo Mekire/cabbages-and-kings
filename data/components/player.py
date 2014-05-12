@@ -130,7 +130,7 @@ class _ImageProcessing(object):
 
 class Player(tools._BaseSprite, _ImageProcessing):
     """A class to represent our main protagonist."""
-    def __init__(self, data):
+    def __init__(self, data=None):
         """
         Most member variables are initialized within set_player_data and reset.
         """

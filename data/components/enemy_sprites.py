@@ -409,7 +409,7 @@ class Cabbage(_BasicFrontFrames):
 
 
 class Spider(_BasicFrontFrames):
-    """Spider like monster; shoots webs (not implemented) (1 direction)."""
+    """Spider like monster; shoots webs (1 direction)."""
     def __init__(self, *args):
         _BasicFrontFrames.__init__(self, "spider", ENEMY_SHEET, *args)
         die_frames = self.frames[4:6]+self.frames[6:]*2
@@ -421,6 +421,10 @@ class Spider(_BasicFrontFrames):
         self.shooting = pg.sprite.Group()
 
     def check_action(self, player, group_dict):
+        """
+        Every time the spider finishes moving a cell it has a chance to
+        shoot a web.
+        """
         if not self.shooting and random.random() <= 0.25:
             self.shooting.add(projectiles.Web(self, group_dict))
 
@@ -568,8 +572,8 @@ class Daruma(_Enemy):
         self.ai = BasicAI(self)
         walk = {"front" : tools.Anim(self.frames[:2], 7),
                 "back" : tools.Anim(self.frames[4:6], 7)}
-        hit = {"front" : tools.Anim(self.frames[2:4], 7),
-               "back" : tools.Anim(self.frames[6:8], 7)}
+        hit = {"front" : tools.Anim(self.frames[2:4], 20),
+               "back" : tools.Anim(self.frames[6:8], 20)}
         die = tools.Anim(self.frames[8:], 10, 1)
         self.anims = {"walk" : walk, "hit" : hit, "die" : die}
         self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
@@ -591,10 +595,9 @@ class EvilElf(_Enemy):
                 "back" : tools.Anim(self.frames[6:8], 20),
                 "left" : tools.Anim(self.frames[2:4], 20),
                 "right" : tools.Anim(self.frames[4:6], 20)}
-        death_cell_coords = [(3,1), (4,1), (5,1), (6,1), (6,1)]
-        death_args = (ENEMY_SHEET, death_cell_coords, prepare.CELL_SIZE)
-        death_cells = tools.strip_coords_from_sheet(*death_args)
-        die = tools.Anim(death_cells, 3, loops=1)
+        death_args = (ENEMY_SHEET, (150,50), prepare.CELL_SIZE, 3)
+        death_frames = tools.strip_from_sheet(*death_args)
+        die = tools.Anim(death_frames, 3, loops=1)
         self.anims = {"walk" : walk, "hit" : hit, "die" : die}
         self.image = self.get_anim().get_next_frame(pg.time.get_ticks())
         self.health = 6

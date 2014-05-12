@@ -184,6 +184,9 @@ class _BaseSprite(pg.sprite.Sprite):
         self.exact_position = list(self.rect.topleft)
         self.old_position = self.exact_position[:]
 
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
+
     def on_map_change(self):
         pass
 
