@@ -130,11 +130,11 @@ class _ImageProcessing(object):
 
 class Player(tools._BaseSprite, _ImageProcessing):
     """A class to represent our main protagonist."""
-    def __init__(self, data=None):
+    def __init__(self, data, *groups):
         """
         Most member variables are initialized within set_player_data and reset.
         """
-        tools._BaseSprite.__init__(self, (0,0), prepare.CELL_SIZE)
+        tools._BaseSprite.__init__(self, (0,0), prepare.CELL_SIZE, *groups)
         self.controls = prepare.DEFAULT_CONTROLS
         self.set_player_data(data)
         self.mask = self.make_mask()
