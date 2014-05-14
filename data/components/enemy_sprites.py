@@ -671,3 +671,23 @@ ENEMY_DICT = {(0, 0) : Cabbage,
               (50, 100) : EvilElf,
               (100, 100) : None, #Tank,
               (150, 100) : None} #Turret}
+
+
+ENEMY_NAME = {"cabbage" : Cabbage,
+              "spider" : Spider,
+              "turtle" : Turtle,
+              "snake" : Snake,
+              "scorpion" : Scorpion,
+              "skeleton" : Skeleton,
+              "tank" : None, #Tank,
+              "frog" : Frog,
+              "crab" : Crab,
+              "zombie" : Zombie,
+              "snail" : Snail,
+              "mushroom" : None, #Mushroom,
+              "blue_oni" : AoOni,
+              "red_oni" : AkaOni,
+              "daruma" : Daruma,
+              "lantern" : Lantern,
+              "evil_elf" : EvilElf,
+              "knight" : None} #Knight}

@@ -14,6 +14,7 @@ DELAY_UNTIL_SCROLL = 10000 #Miliseconds.
 SKY_COLOR = (66, 120, 150)
 SKY_RECT = pg.Rect(0, 0, 1200, 514)
 STAR_COLORS = [(74,156,173), (40, 40, 50), (250, 230, 250)]
+NIGHT_SKY_COLOR = (0, 0, 30)
 
 
 class Title(state_machine._State):
@@ -31,6 +32,9 @@ class Title(state_machine._State):
         self.start_time = now
         self.timer = tools.Timer(DELAY_UNTIL_SCROLL, 1)
         self.timer.check_tick(now)
+        self.scrolling = False
+        self.elements = self.make_elements()
+        self.star_field.reset()
 
     def make_elements(self):
         group = pg.sprite.LayeredUpdates()
@@ -67,6 +71,7 @@ class TitleImage(tools._BaseSprite):
     def __init__(self, *groups):
         self.image = prepare.GFX["misc"]["titlewords"]
         tools._BaseSprite.__init__(self, (0,0), self.image.get_size(), *groups)
+        self.needed_groups = groups
 
     def update(self, now, scrolling):
         if scrolling:
@@ -99,13 +104,17 @@ class TitlePlayer(player.Player):
     def __init__(self, *groups):
         player.Player.__init__(self, prepare.DEFAULT_PLAYER, *groups)
         self.inventory = equips.make_all_equips()
-        self.direction = "right"
-        self.direction_stack = [self.direction]
-        self.reset_position((-300,300))
         self.speed = 3.5
         self.dancing = False
         self.done_dancing = False
         self.dance_timer = tools.Timer(1000, 1)
+        self.prepare()
+
+    def prepare(self):
+        self.reset_position((-300,300))
+        self.set_equips(prepare.DEFAULT_PLAYER["equipped"])
+        self.direction = "right"
+        self.direction_stack = [self.direction]
 
     def switch_direction(self):
         if not (-350 < self.rect.x < 1250):
@@ -169,18 +178,22 @@ class StarField(object):
     def __init__(self):
         self.alpha = 0
         self.alpha_speed = 2
-        self.raw_stars = pg.Surface((1200,514)).convert()
-        self.raw_stars.fill(pg.Color("black"))
+        self.raw_stars = pg.Surface(SKY_RECT.size).convert()
+        self.raw_stars.fill(NIGHT_SKY_COLOR)
         for i in range(1000):
             pos = [random.randrange(SKY_RECT.size[i]) for i in (0,1)]
             self.raw_stars.set_at(pos, random.choice(STAR_COLORS))
         self.stars = self.make_stars()
 
+    def reset(self):
+        self.alpha = 0
+
     def make_stars(self):
+        min_distance_from_horizon = 10
         group = pg.sprite.Group()
         for i in range(50):
             pos = (random.randrange(SKY_RECT.w),
-                   random.randrange(SKY_RECT.h-10))
+                   random.randrange(SKY_RECT.h-min_distance_from_horizon))
             Star(pos, group)
         return group
 
@@ -192,7 +205,22 @@ class StarField(object):
         image = self.raw_stars.copy()
         self.stars.draw(image)
         image.set_alpha(self.alpha)
-        surface.blit(image, (0,0))
+        surface.blit(image, SKY_RECT)
+
+
+class ScrollObjects(object):
+    def __init__(self):
+        self.enemies = [("cabbage", "spider"),
+                        ("frog", "snail"),
+                        ("mushroom", "crab"),
+                        ("skeleton", "zombie"),
+                        ("snake", "scorpion"),
+                        ("turtle", "tank"),
+                        ("blue_oni", "red_oni"),
+                        ("daruma", "lantern"),
+                        ("evil_elf", "knight")]
+        self.items = [("heart", "diamond"),
+                      ("key", "potion")]
 
 
 def render_font(font, size, msg, color=(255,255,255)):

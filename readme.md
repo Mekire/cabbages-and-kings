@@ -1,4 +1,5 @@
-<table>
+<font color="#FFFFFF">
+<table bgcolor="#00000F">
     <tbody>
         <tr>	
             <th>Title</th>
@@ -17,4 +18,4 @@
             <td><a href="http://i1192.photobucket.com/albums/aa340/Mekire/Cabbages/05-camp.png~original"><img src="http://i1192.photobucket.com/albums/aa340/Mekire/Cabbages/05-camp.png~original" width="200" height="120"/></a></td>
             <td><a href="http://i1192.photobucket.com/albums/aa340/Mekire/Cabbages/06-death.png~original"><img src="http://i1192.photobucket.com/albums/aa340/Mekire/Cabbages/06-death.png~original" width="200" height="120"/></a></td></tr>
     </tbody></table>
-<table>  
+</font>
