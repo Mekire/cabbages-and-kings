@@ -44,18 +44,9 @@ class WorldMap(object):
 
     def load(self, world_name):
         """Load world given a world_name."""
-        return {(5,5) : "desert.map",
-                (5,4) : "desert_north.map",
-                (4,4) : "desert_northwest.map",
-                (6,4) : "desert_northeast.map",
-                (4,6) : "desert_southwest.map",
-                (4,5) : "desert_west.map",
-                (6,5) : "desert_east.map",
-                (6,6) : "desert_southeast.map",
-                (5,6) : "desert_south.map"}
-##        path = os.path.join(".", "resources", "map_data", world_name)
-##        with open(path) as myfile:
-##            return yaml.load(myfile)
+        path = os.path.join(".", "resources", "world_data", world_name)
+        with open(path) as myfile:
+            return yaml.load(myfile)
 
     def update_history(self, next_map_name):
         """
