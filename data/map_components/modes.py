@@ -213,63 +213,112 @@ class Items(_Mode):
             size = map_prepare.CELL_SIZE
             coord = tools.get_cell_coordinates(map_rect, point, size)
             for item_type in ("Chests", "Items"):
-                self.map_state.map_dict[item_type].pop(coord, None)
+                self.map_state.map_dict[item_type].pop(coord, None)        
 
 
 class Special(_Mode):
+    @property
+    def special_type(self):
+        return self.panel.pages[self.panel.index].selected
+    
     def make_panels(self):
         """Create necessary panels and their pages."""
         pages = [panel.SpecialPage(self.map_state)]
         self.panel = panel.Panel(self.map_state, pages)
         self.coord = None
-        self.waiting_mode = "DIRECTION"
-        self.args = []
-        self.prompts = {"DIRECTION" : ("Enter pushable directions "
-                                       "('1111'='NESW'): "),
-                        "STACKED" : "Number Stacked: ",
-                        "ID" : "Identifier key: "}
-        self.checks = {"DIRECTION" : self.check_direction_input,
-                       "STACKED" : self.check_stack,
-                       "ID" : self.check_id}
-        self.nexts = {"DIRECTION" : "STACKED",
-                       "STACKED" : "ID",
-                       "ID" : "DONE"}
 
+        self.start_waiting_mode = {"Push Block" : "DIRECTION",
+            "Portal" : "WORLD"}
+        self.waiting_mode = None
+        self.args = []
+        
+        self.prompts_push = {"DIRECTION" : "Enter pushable directions ('1111'='NESW'): ",
+            "STACKED" : "Number Stacked: ",
+            "ID" : "Identifier key: "}
+        self.checks_push = {"DIRECTION" : self.check_direction_input,
+            "STACKED" : self.check_stack,
+            "ID" : self.check_non_empty}
+        self.nexts_push = {"DIRECTION" : "STACKED",
+            "STACKED" : "ID",
+            "ID" : "DONE"}
+
+        self.prompts_portal = {"WORLD" : ("Enter world map name: "),
+            "MAP_COORDS" : "Enter map coordinates: ",
+            "START_COORDS" : "Enter start position within map: "}
+        self.checks_portal = {"WORLD" : self.check_non_empty,
+                              "MAP_COORDS" : self.check_coords,
+                              "START_COORDS" : self.check_coords}
+        self.nexts_portal = {"WORLD" : "MAP_COORDS",
+            "MAP_COORDS" : "START_COORDS",
+            "START_COORDS" : "DONE"}
+            
     def set_add_del(self, point, attribute):
-        if not self.active_panel.rect.collidepoint(point):
-            if attribute == "deleting" and not self.adding:
-                self.deleting = True
-                self.active_panel.retract()
-            elif not self.waiting:
-                map_rect = map_prepare.MAP_RECT
-                self.coord = tools.get_cell_coordinates(map_rect,point,(50,50))
-                if self.coord in self.map_state.map_dict["Solid"]:
+        if self.special_type == "Push Block":
+            if not self.active_panel.rect.collidepoint(point):
+                if attribute == "deleting" and not self.adding:
+                    self.deleting = True
+                    self.active_panel.retract()
+                elif not self.waiting:
+                    map_rect = map_prepare.MAP_RECT
+                    self.coord = tools.get_cell_coordinates(map_rect,point,(50,50))
+                    if self.coord in self.map_state.map_dict["Solid"]:
+                        self.waiting_mode = self.start_waiting_mode["Push Block"]
+                        self.adding = True
+                        self.point = point
+                        rect = map_prepare.MAP_RECT.inflate(-500, -600)
+                        prompt = self.prompts_push[self.waiting_mode]
+                        self.waiting = InputWindow(rect, prompt)
+                    else:
+                        print("Push blocks must be placed on solid tiles.")
+                    self.active_panel.retract()
+        elif self.special_type == "Portal":
+            if not self.active_panel.rect.collidepoint(point):
+                if attribute == "deleting" and not self.adding:
+                    self.deleting = True
+                    self.active_panel.retract()
+                elif not self.waiting:
+                    self.waiting_mode = self.start_waiting_mode["Portal"]
+                    map_rect = map_prepare.MAP_RECT
+                    self.coord = tools.get_cell_coordinates(map_rect,point,(50,50))
                     self.adding = True
                     self.point = point
                     rect = map_prepare.MAP_RECT.inflate(-500, -600)
-                    prompt = self.prompts[self.waiting_mode]
+                    prompt = self.prompts_portal[self.waiting_mode]
                     self.waiting = InputWindow(rect, prompt)
-                else:
-                    print("Push blocks must be placed on solid tiles.")
-                self.active_panel.retract()
-
+                    self.active_panel.retract()
 
     def add_tile(self, *args):
         """Called in update if self.adding flag is set."""
-        if self.waiting.done is not None:
-            try:
-                user_input = self.checks[self.waiting_mode]()
-                self.args.append(user_input)
-                if self.nexts[self.waiting_mode] == "DONE":
-                    self.make_final_changes()
-                else:
-                    self.waiting_mode = self.nexts[self.waiting_mode]
-                    rect = map_prepare.MAP_RECT.inflate(-500, -600)
-                    prompt = self.prompts[self.waiting_mode]
-                    self.waiting = InputWindow(rect, prompt)
-            except ValueError:
-                print("Invalid input: PushBlock not added.")
-                self.reset()
+        if self.special_type == "Push Block":
+            if self.waiting.done is not None:
+                try:
+                    user_input = self.checks_push[self.waiting_mode]()
+                    self.args.append(user_input)
+                    if self.nexts_push[self.waiting_mode] == "DONE":
+                        self.make_final_changes()
+                    else:
+                        self.waiting_mode = self.nexts_push[self.waiting_mode]
+                        rect = map_prepare.MAP_RECT.inflate(-500, -600)
+                        prompt = self.prompts_push[self.waiting_mode]
+                        self.waiting = InputWindow(rect, prompt)
+                except ValueError:
+                    print("Invalid input: PushBlock not added.")
+                    self.reset()
+        elif self.special_type == "Portal":
+            if self.waiting.done is not None:
+                try:
+                    user_input = self.checks_portal[self.waiting_mode]()
+                    self.args.append(user_input)
+                    if self.nexts_portal[self.waiting_mode] == "DONE":
+                        self.make_final_changes()
+                    else:
+                        self.waiting_mode = self.nexts_portal[self.waiting_mode]
+                        rect = map_prepare.MAP_RECT.inflate(-500, -600)
+                        prompt = self.prompts_portal[self.waiting_mode]
+                        self.waiting = InputWindow(rect, prompt)
+                except ValueError:
+                    print("Invalid input: Portal not added.")
+                    self.reset()
 
     def make_final_changes(self):
         """
@@ -277,17 +326,24 @@ class Special(_Mode):
         target block from the solid layer and place corresponding block in the
         Push layer.
         """
-        sheet, source = self.map_state.map_dict["Solid"][self.coord][:2]
-        self.map_state.map_dict["Solid"].pop(self.coord)
-        self.map_state.map_dict["Push"][self.coord] = [sheet, source]+self.args
+        if self.special_type == "Push Block":
+            sheet, source = self.map_state.map_dict["Solid"][self.coord][:2]
+            self.map_state.map_dict["Solid"].pop(self.coord)
+            self.map_state.map_dict["Push"][self.coord] = [sheet, source] + self.args
+        elif self.special_type == "Portal":
+            self.map_state.map_dict["Portal"][self.coord] = self.args
+            print("Added portal: {}".format(self.args))
         self.reset()
 
     def reset(self):
         """Reset needed variables for adding a new block."""
         self.reset_add_del()
-        self.waiting_mode = "DIRECTION"
         self.args = []
-
+        if self.special_type == "Push Block":
+            self.waiting_mode = "DIRECTION"
+        elif self.special_type == "Portal":
+            self.waiting_mode = "WORLD"
+            
     def check_direction_input(self):
         """
         Check if binary direction string is valid.  Must have a length of 4
@@ -305,19 +361,35 @@ class Special(_Mode):
             raise ValueError
         return stacked
 
-    def check_id(self):
-        """Confirm ID value is valid.  All non empty strings pass."""
+    def check_non_empty(self):
+        """Confirm input is valid.  All non empty strings pass."""
         if not self.waiting.done:
             raise ValueError
         return self.waiting.done
 
+    def check_coords(self):
+        """Confirm input is valid.  Accepts len 2 tuples of integers."""
+        coords = self.waiting.done.split(",")
+        coords = tuple(int(c) for c in coords)
+        if len(coords) != 2:
+            raise ValueError
+        return coords
+
     def del_tile(self, point):
         """Called in update if self.deleting flag is set."""
-        map_rect = map_prepare.MAP_RECT
-        if map_rect.collidepoint(point):
-            size = map_prepare.CELL_SIZE
-            coord = tools.get_cell_coordinates(map_rect, point, size)
-            self.map_state.map_dict["Push"].pop(coord, None)
+        if self.special_type == "Push Block":
+            map_rect = map_prepare.MAP_RECT
+            if map_rect.collidepoint(point):
+                size = map_prepare.CELL_SIZE
+                coord = tools.get_cell_coordinates(map_rect, point, size)
+                self.map_state.map_dict["Push"].pop(coord, None)
+        elif self.special_type == "Portal":
+            map_rect = map_prepare.MAP_RECT
+            if map_rect.collidepoint(point):
+                size = map_prepare.CELL_SIZE
+                coord = tools.get_cell_coordinates(map_rect, point, size)
+                self.map_state.map_dict["Portal"].pop(coord, None)
+                print("Deleted portal at coord.")
 
 
 class InputWindow(object):

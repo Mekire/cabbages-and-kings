@@ -20,7 +20,7 @@ BACKGROUND_COLOR = (30, 40, 50)
 
 LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Solid/Fore", "Foreground", "Environment",
-          "Enemies", "Items", "Chests", "Push")
+          "Enemies", "Items", "Chests", "Push", "Portal")
 
 STANDARDS = LAYERS[1:6]
 OTHERS = ("Enemies", "Items", "Chests", "Push")
