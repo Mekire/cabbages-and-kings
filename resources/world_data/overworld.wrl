@@ -1,0 +1,18 @@
+? !!python/tuple [4, 4]
+: desert_northwest.map
+? !!python/tuple [4, 5]
+: desert_west.map
+? !!python/tuple [4, 6]
+: desert_southwest.map
+? !!python/tuple [5, 4]
+: desert_north.map
+? !!python/tuple [5, 5]
+: desert.map
+? !!python/tuple [5, 6]
+: desert_south.map
+? !!python/tuple [6, 4]
+: desert_northeast.map
+? !!python/tuple [6, 5]
+: desert_east.map
+? !!python/tuple [6, 6]
+: desert_southeast.map
