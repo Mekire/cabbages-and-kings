@@ -277,7 +277,9 @@ BG Colors:
   - background
   - !!python/tuple [0, 0, 0, 255]
   ? !!python/tuple [900, 150]
-  : *id003
+  : !!python/tuple
+  - background
+  - !!python/tuple [181, 112, 66, 255]
   ? !!python/tuple [900, 200]
   : *id003
   ? !!python/tuple [900, 250]
@@ -305,13 +307,7 @@ BG Colors:
   ? !!python/tuple [950, 400]
   : *id003
 BG Tiles: {}
-Chests:
-  ? !!python/tuple [900, 150]
-  : !!python/tuple
-  - item_place
-  - !!python/tuple [50, 50]
-  - !!python/tuple [head, sader]
-  - !!python/unicode '1'
+Chests: {}
 Enemies:
   ? !!python/tuple [200, 450]
   : !!python/tuple
@@ -328,14 +324,20 @@ Enemies:
   - enemy_place
   - *id004
   - 1.5
-  ? !!python/tuple [900, 250]
+  ? !!python/tuple [900, 400]
   : !!python/tuple
   - enemy_place
   - !!python/tuple [0, 50]
-  - 2.0
+  - 1.0
 Environment: {}
 Foreground: {}
 Items: {}
+Portal:
+  ? !!python/tuple [900, 100]
+  : - !!python/unicode 'cave_world.wrl'
+    - !!python/tuple [12, 12]
+    - !!python/tuple [17, 12]
+Push: {}
 Solid:
   ? !!python/tuple [0, 0]
   : &id005 !!python/tuple
