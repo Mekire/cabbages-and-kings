@@ -15,7 +15,7 @@ else:
 
 LAYERS = ("BG Colors", "BG Tiles", "Water", "Solid",
           "Solid/Fore", "Foreground", "Environment",
-          "Enemies", "Items", "Chests", "Push")
+          "Enemies", "Items", "Chests", "Push", "Portal")
 
 
 class CollisionRect(pg.sprite.Sprite):
@@ -286,6 +286,23 @@ class TreasureChest(Tile):
             self.add_to_map = True
 
 
+class PortalTile(pg.sprite.Sprite):
+    def __init__(self, target, world, map_coords, start_coords, *groups):
+        pg.sprite.Sprite.__init__(self, *groups)
+        self.rect = pg.Rect(target, (50, 50))
+        self.mask = pg.mask.Mask((50,50))
+        self.mask.fill()
+        self.world = world
+        self.map_coords = map_coords
+        self.start_coords = start_coords
+
+    def collide_with_player(self, player):
+        offset = player.rect.x - self.rect.x, player.rect.y - self.rect.y
+        overlap = self.mask.overlap_area(player.mask, offset)
+        if overlap > 800: # Magic Number (volume of player pixels)
+            player.on_world_change(self.world, self.map_coords, self.start_coords)
+        
+
 #All map tiles that need to have specific behavior should be added here.
 #Keys are (sheet, source_coordinates); Values are the type of tile and
 #keyword arguments for initializing it.
@@ -332,12 +349,14 @@ class Level(object):
         self.solid_border = pg.sprite.Group(self.solids, self.borders)
         self.interactables = pg.sprite.Group() ###
         self.projectiles = pg.sprite.Group()
+        self.portals = pg.sprite.Group()
         self.group_dict = {"borders" : self.borders,
                            "solid_border" : self.solid_border,
                            "foreground" : foreground,
                            "projectiles" : self.projectiles,
                            "enemies" : self.enemies,
                            "items" : self.items,
+                           "portals" : self.portals,
                            "main" : self.main_sprites,
                            "moving" : self.moving,
                            "all" : self.all_group}
@@ -347,6 +366,7 @@ class Level(object):
         self.posted = set() # Set of map events that have been posted.
         self.make_chests()
         self.make_push()
+        self.make_portal()
 
     def make_push(self):
         """Create all push blocks."""
@@ -358,6 +378,15 @@ class Level(object):
             self.all_group.add(push, layer=prepare.Z_ORDER["Solid"])
             groups = (self.solids, self.solid_border, self.moving)
             push.add(*groups)
+            
+    def make_portal(self):
+        """Create all portals."""
+        for target in self.map_dict["Portal"]:
+            data = self.map_dict["Portal"][target]
+            args = [target] + data
+            portal = PortalTile(*args)
+            groups = (self.portals,)
+            portal.add(*groups)
 
     def make_chests(self):
         """
@@ -495,7 +524,7 @@ class Level(object):
         """
         callback = tools.rect_then_mask
         groups = pg.sprite.Group(self.solids, self.enemies,
-                                 self.items, self.projectiles)
+                                 self.items, self.projectiles, self.portals)
         hits = pg.sprite.spritecollide(self.player, groups, False, callback)
         for hit in hits:
             hit.collide_with_player(self.player)
@@ -525,4 +554,3 @@ class Level(object):
                                  self.group_dict["enemies"])
         for sprite in groups:
             sprite.on_map_change()
-

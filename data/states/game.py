@@ -109,10 +109,19 @@ class Game(state_machine._State):
     def update(self, keys, now):
         """Update phase for the primary game state."""
         self.now = now
+        if self.player.world_change:
+            self.change_world()
         self.world.update(now)
         self.sidebar.update(self.player)
         if self.player.action_state == "dead":
             self.update_on_death(keys, now)
+
+    def change_world(self):
+        self.world = world.WorldMap(self.player)
+        pos = (self.player.start_coord[0]*prepare.CELL_SIZE[0],
+            self.player.start_coord[1]*prepare.CELL_SIZE[1])
+        self.player.reset_position(pos)
+        self.player.world_change = False
 
     def draw(self, surface, interpolate):
         """Draw level and sidebar; if player is dead draw death sequence."""

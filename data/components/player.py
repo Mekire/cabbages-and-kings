@@ -141,6 +141,7 @@ class Player(tools._BaseSprite, _ImageProcessing):
         self.all_animations = self.make_all_animations()
         self.death_anim = self.make_death_animation()
         self.image = None
+        self.world_change = False
         self.reset()
 
     def reset(self):
@@ -376,3 +377,9 @@ class Player(tools._BaseSprite, _ImageProcessing):
             self.move()
         self.adjust_frames(now)
         self.rect.topleft = self.exact_position
+
+    def on_world_change(self, world, map_coords, start_coords):
+        self.world_change = True
+        self.world = world
+        self.save_world_coords = map_coords
+        self.start_coord = start_coords
