@@ -158,12 +158,6 @@ BG Colors:
   : *id001
 BG Tiles: {}
 Chests:
-  ? !!python/tuple [50, 200]
-  : !!python/tuple
-  - item_place
-  - !!python/tuple [50, 100]
-  - !!python/tuple [shield, tin]
-  - !!python/unicode '1'
   ? !!python/tuple [550, 250]
   : !!python/tuple
   - item_place
@@ -189,6 +183,12 @@ Enemies:
 Environment: {}
 Foreground: {}
 Items: {}
+Portal:
+  ? !!python/tuple [150, 450]
+  : - !!python/unicode 'cave_world.wrl'
+    - !!python/tuple [0, 0]
+    - !!python/tuple [9, 2]
+Push: {}
 Solid:
   ? !!python/tuple [0, 0]
   : &id003 !!python/tuple
