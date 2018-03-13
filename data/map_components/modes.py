@@ -227,7 +227,7 @@ class Special(_Mode):
         self.panel = panel.Panel(self.map_state, pages)
         self.coord = None
 
-        self.start_waiting_mode = {"Push Block" : "DIRECTION",
+        self.start_waiting_mode = {"Push" : "DIRECTION",
             "Portal" : "WORLD"}
         self.waiting_mode = None
         self.args = []
@@ -253,7 +253,7 @@ class Special(_Mode):
             "START_COORDS" : "DONE"}
             
     def set_add_del(self, point, attribute):
-        if self.special_type == "Push Block":
+        if self.special_type == "Push":
             if not self.active_panel.rect.collidepoint(point):
                 if attribute == "deleting" and not self.adding:
                     self.deleting = True
@@ -262,7 +262,7 @@ class Special(_Mode):
                     map_rect = map_prepare.MAP_RECT
                     self.coord = tools.get_cell_coordinates(map_rect,point,(50,50))
                     if self.coord in self.map_state.map_dict["Solid"]:
-                        self.waiting_mode = self.start_waiting_mode["Push Block"]
+                        self.waiting_mode = self.start_waiting_mode["Push"]
                         self.adding = True
                         self.point = point
                         rect = map_prepare.MAP_RECT.inflate(-500, -600)
@@ -289,7 +289,7 @@ class Special(_Mode):
 
     def add_tile(self, *args):
         """Called in update if self.adding flag is set."""
-        if self.special_type == "Push Block":
+        if self.special_type == "Push":
             if self.waiting.done is not None:
                 try:
                     user_input = self.checks_push[self.waiting_mode]()
@@ -326,7 +326,7 @@ class Special(_Mode):
         target block from the solid layer and place corresponding block in the
         Push layer.
         """
-        if self.special_type == "Push Block":
+        if self.special_type == "Push":
             sheet, source = self.map_state.map_dict["Solid"][self.coord][:2]
             self.map_state.map_dict["Solid"].pop(self.coord)
             self.map_state.map_dict["Push"][self.coord] = [sheet, source] + self.args
@@ -339,7 +339,7 @@ class Special(_Mode):
         """Reset needed variables for adding a new block."""
         self.reset_add_del()
         self.args = []
-        if self.special_type == "Push Block":
+        if self.special_type == "Push":
             self.waiting_mode = "DIRECTION"
         elif self.special_type == "Portal":
             self.waiting_mode = "WORLD"
@@ -377,19 +377,11 @@ class Special(_Mode):
 
     def del_tile(self, point):
         """Called in update if self.deleting flag is set."""
-        if self.special_type == "Push Block":
-            map_rect = map_prepare.MAP_RECT
-            if map_rect.collidepoint(point):
-                size = map_prepare.CELL_SIZE
-                coord = tools.get_cell_coordinates(map_rect, point, size)
-                self.map_state.map_dict["Push"].pop(coord, None)
-        elif self.special_type == "Portal":
-            map_rect = map_prepare.MAP_RECT
-            if map_rect.collidepoint(point):
-                size = map_prepare.CELL_SIZE
-                coord = tools.get_cell_coordinates(map_rect, point, size)
-                self.map_state.map_dict["Portal"].pop(coord, None)
-                print("Deleted portal at coord.")
+        map_rect = map_prepare.MAP_RECT
+        if map_rect.collidepoint(point):
+            size = map_prepare.CELL_SIZE
+            coord = tools.get_cell_coordinates(map_rect, point, size)
+            self.map_state.map_dict[self.special_type].pop(coord, None)
 
 
 class InputWindow(object):

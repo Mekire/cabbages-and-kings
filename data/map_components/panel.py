@@ -25,11 +25,11 @@ ITEM_TYPE = {"content" : ["Treasure Chest", "On Event"],
              "size" : (100,20),
              "selected" : "Treasure Chest"}
 
-SPECIAL_TYPE = {"content" : ["Portal", "Push Block", "Burnable", "Breakable"],
+SPECIAL_TYPE = {"content" : ["Portal", "Push", "Burnable", "Breakable"],
              "start" : (140, 50),
              "space" : (0,20),
              "size" : (100,20),
-             "selected" : "Push Block"}
+             "selected" : "Push"}
 
 
 class Panel(object):
@@ -316,4 +316,4 @@ class SpecialPage(ItemPage):
         PanelPage.__init__(self, None, map_state)
         self.selector = Selector(**SPECIAL_TYPE)
         self.selector.bind(self.set_type)
-        self.selected = "Push Block"
+        self.selected = "Push"
