@@ -16,3 +16,13 @@
 : desert_east.map
 ? !!python/tuple [6, 6]
 : desert_southeast.map
+? !!python/tuple [4, 3]
+: expanse_west.map
+? !!python/tuple [5, 3]
+: expanse_east.map
+? !!python/tuple [4, 2]
+: temple_outside_west.map
+? !!python/tuple [5, 2]
+: temple_outside_east.map
+? !!python/tuple [5, 1]
+: temple_outside_top.map
